@@ -11,7 +11,7 @@ App para iOS que convierte la idea de ser un «justiciero nocturno estilo Batman
 | **Base** | Rango y XP, racha diaria, fase actual, misiones pendientes, entreno sugerido, consejo del día y accesos rápidos a Salida segura y Emergencia. |
 | **Programa** | 6 fases (~70 misiones semana a semana). Cada fase se desbloquea al completar el 80 % de la anterior. |
 | **Entreno** | 9 sesiones guiadas con temporizador (series, repeticiones, descansos), test físico y historial. |
-| **Academia** | 8 módulos y 29 lecciones, simulador con 10 escenarios reales, Juego de Kim (memoria visual) y el Código del Vigilante. |
+| **Academia** | 8 módulos y 28 lecciones, simulador con 10 escenarios reales, Juego de Kim (memoria visual) y el Código del Vigilante. |
 | **Más** | Salida segura (checklist + check-ins con notificaciones + SMS a tu contacto), Emergencias (112 y otros números), Equipamiento legal, Bitácora, Perfil con gráficas de evolución y Rangos. |
 
 ### Las 6 fases
