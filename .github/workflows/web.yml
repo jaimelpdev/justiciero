@@ -1,0 +1,47 @@
+name: Web (PWA)
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: data.js está sincronizado con los ficheros Swift
+        run: |
+          python3 tools/swift_data_to_js.py
+          git diff --exit-code web/data.js || (echo "::error::web/data.js no coincide con Justiciero/Data. Ejecuta: python3 tools/swift_data_to_js.py" && exit 1)
+      - name: Sintaxis JavaScript
+        run: |
+          node --check web/app.js
+          node --check web/data.js
+          node --check web/sw.js
+      - name: Carga del contenido
+        run: |
+          node -e 'const fs=require("fs"); eval(fs.readFileSync("web/data.js","utf8")+";if(PHASES.length!==6||!MODULES.length||!SCENARIOS.length||!WORKOUTS.length) throw new Error(\"contenido incompleto\")"); console.log("ok")'
+
+  deploy:
+    # Publica la carpeta web/ en GitHub Pages al fusionar en main.
+    # Requiere activar Pages: Settings › Pages › Source: GitHub Actions.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Versionar la caché del service worker
+        run: sed -i "s/const VERSION = \"justiciero-v1\"/const VERSION = \"justiciero-${GITHUB_SHA::7}\"/" web/sw.js
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deployment
+        uses: actions/deploy-pages@v4
