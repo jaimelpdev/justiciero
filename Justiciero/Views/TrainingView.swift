@@ -9,7 +9,14 @@ struct TrainingView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    Callout(kind: .tip, text: "Objetivo semanal: **3 sesiones** de la app + tus clases de arte marcial cuando llegues a la Fase 1. Deja siempre un día de descanso entre sesiones intensas.")
+                    Callout(kind: .tip, text: "Objetivo semanal: **3 sesiones** físicas + **2–3 clases** del Dojo a partir de la Fase 1. Puedes hacer una clase del Dojo y una sesión física el mismo día, pero deja al menos un día de descanso total a la semana.")
+
+                    NavigationLink {
+                        DojoView()
+                    } label: {
+                        DojoCard()
+                    }
+                    .buttonStyle(.plain)
 
                     HStack(spacing: 12) {
                         StatTile(value: "\(store.workoutsThisWeek)/3", label: "Esta semana", icon: "calendar", color: Theme.accent)
@@ -24,7 +31,7 @@ struct TrainingView: View {
                     }
                     .buttonStyle(PrimaryButtonStyle())
 
-                    SectionHeader(title: "Sesiones", icon: "dumbbell.fill")
+                    SectionHeader(title: "Sesiones físicas", icon: "dumbbell.fill")
                     ForEach(Workout.all) { workout in
                         let locked = workout.minPhase > store.currentPhase.id
                         NavigationLink {
@@ -416,5 +423,25 @@ struct FitnessTestForm: View {
                 }
             }
         }
+    }
+}
+
+struct DojoCard: View {
+    @EnvironmentObject private var store: ProgressStore
+
+    var body: some View {
+        let belt = store.currentBelt
+        HStack(spacing: 14) {
+            BeltBadge(belt: belt)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Dojo en casa").font(.headline)
+                Text("Artes marciales · cinturón \(belt.name.lowercased())").font(.subheadline).foregroundStyle(Theme.muted)
+                ProgressBar(value: Double(store.classesDone(belt)) / Double(belt.minClasses), height: 6)
+                Text("\(store.state.dojoBelts.count) de \(Belt.all.count) cinturones").font(.caption).foregroundStyle(Theme.muted)
+            }
+            Image(systemName: "chevron.right").foregroundStyle(Theme.muted)
+        }
+        .foregroundStyle(.white)
+        .card(Theme.cardHighlight)
     }
 }

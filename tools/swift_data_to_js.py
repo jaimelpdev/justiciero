@@ -16,7 +16,7 @@ OUT = ROOT / "web" / "data.js"
 
 # Tipos con argumentos etiquetados -> objetos JS.
 OBJECT_TYPES = {"Phase", "Exercise", "Workout", "WorkoutBlock", "SkillModule", "Lesson",
-                "Scenario", "ScenarioOption", "CodeRule", "GearItem"}
+                "Scenario", "ScenarioOption", "CodeRule", "GearItem", "Technique", "Belt", "DojoRound"}
 
 
 def convert_literals(src: str) -> str:
@@ -76,7 +76,7 @@ def convert_literals(src: str) -> str:
 def extract_statics(src: str) -> str:
     """`static let x: T = valor` / `static let x = valor` -> `const x = valor;`"""
     src = re.sub(r"^\s*//.*$", "", src, flags=re.M)
-    src = re.sub(r"static let (\w+)(?::\s*\[\w+\])?\s*=", r"const \1 =", src)
+    src = re.sub(r"(?:private )?static let (\w+)(?::\s*\[\w+\])?\s*=", r"const \1 =", src)
     return src
 
 
@@ -112,6 +112,7 @@ def main():
     workouts = (DATA / "WorkoutData.swift").read_text()
     academy = (DATA / "AcademyData.swift").read_text()
     scenarios = (DATA / "ScenarioData.swift").read_text()
+    dojo = (DATA / "DojoData.swift").read_text()
 
     tips_body = body_of(program, "enum DailyTips")
     tips = re.search(r"static let all: \[String\] = (\[.*?\])\n", tips_body, re.S).group(1)
@@ -129,6 +130,10 @@ def main():
         f"const CODE_RULES = {module(scenarios, 'extension CodeRule')};",
         f"const GEAR = {module(scenarios, 'extension GearItem')};",
         f"const TIPS = {tips};",
+        "const DOJO = (() => {" + convert_literals(extract_statics(body_of(dojo, "enum Dojo")))
+        + "\n  return { intro, honesty, setup, numbering, safety };\n})();",
+        f"const TECHNIQUES = {module(dojo, 'extension Technique')};",
+        f"const BELTS = {module(dojo, 'extension Belt')};",
     ]
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text("\n\n".join(parts) + "\n")

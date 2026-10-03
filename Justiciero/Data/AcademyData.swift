@@ -190,16 +190,17 @@ extension SkillModule {
                 ]),
                 .danger("Si alguien te amenaza con un arma para robarte, DALE LO QUE PIDE. Ningún móvil, cartera ni zapatillas vale tu vida. Memoriza su descripción y llama después."),
             ]),
-            Lesson(id: "def-2", title: "Cómo elegir disciplina", minutes: 5, blocks: [
+            Lesson(id: "def-2", title: "Qué aprendes en el Dojo y por qué", minutes: 5, blocks: [
+                .paragraph("El Dojo de la app (Entreno › Dojo en casa) mezcla lo más útil de varias disciplinas para un objetivo concreto: **protegerte lo justo para poder escapar**."),
                 .bullets([
-                    "**Judo**: aprendes a caer, a mantener el equilibrio y a controlar sin golpear. Muy recomendable y presente en casi todas las ciudades.",
-                    "**Jiu-jitsu brasileño (BJJ)**: control en el suelo y gestión de alguien más grande que tú. Sparring desde el principio.",
-                    "**Boxeo / kickboxing / muay thai**: forma física brutal, aprendes a encajar y a mantener la guardia bajo presión.",
-                    "**Lucha olímpica / grappling**: control y derribos; excelente base física.",
-                    "**Krav Maga y defensa personal**: orientados a la calle, pero la calidad varía mucho. Elige escuelas que hagan entrenamiento con resistencia real y no prometan milagros.",
+                    "**Del boxeo**: la guardia, los desplazamientos, los 6 golpes de puño y las esquivas. Es la base más práctica para protegerte la cabeza.",
+                    "**Del kickboxing y el muay thai**: la patada frontal para crear distancia, la patada baja, la rodilla y cómo defender patadas.",
+                    "**Del judo**: las caídas. Es lo que más te puede salvar en una situación real (un empujón, un resbalón).",
+                    "**Del jiu-jitsu y la lucha**: el puente, el escape de cadera, el sprawl y levantarte del suelo sin quedar expuesto.",
+                    "**De la defensa personal**: la valla, liberarte de agarres y, sobre todo, la idea de que cada técnica termina escapando.",
                 ]),
-                .tip("La disciplina importa menos que estas tres cosas: un buen instructor, entrenar con compañeros que se resisten de verdad (con control) y la constancia durante años."),
-                .warning("Desconfía de quien enseñe «técnicas letales», ataques a puntos vitales «que funcionan siempre» o que nunca haga sparring."),
+                .tip("En casa, tu instructor eres tú con el móvil: grábate, compara con los pasos de cada técnica y sé honesto en los exámenes. La constancia durante años importa más que cualquier disciplina."),
+                .warning("Lo que el Dojo no puede darte es un rival que se resiste. Por eso las técnicas de autodefensa tienen variantes con compañero, siempre lentas. Y desconfía de cualquiera que te venda «técnicas letales» o ataques «que funcionan siempre»."),
             ]),
             Lesson(id: "def-3", title: "Lo que la calle tiene de distinto", minutes: 4, blocks: [
                 .bullets([

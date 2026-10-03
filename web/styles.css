@@ -114,6 +114,7 @@ body.no-tabbar .tabbar { display: none; }
   text-decoration: none;
 }
 .card.hi { background: var(--card-hi); }
+.card.row { display: flex; }
 button.card:active, a.card:active { transform: scale(0.985); }
 .chev::after { content: "›"; color: var(--muted); font-size: 1.5rem; margin-left: 8px; }
 

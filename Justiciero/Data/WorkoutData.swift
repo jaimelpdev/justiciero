@@ -44,7 +44,7 @@ enum Exercises {
         howTo: "Boca arriba, zona lumbar pegada al suelo, eleva hombros y piernas estiradas formando una «banana». Aguanta.",
         easier: "Rodillas dobladas o brazos a los lados.")
     static let shadowBoxing = Exercise(id: "shadow", name: "Sombra (boxeo)", icon: "figure.boxing",
-        howTo: "Guardia alta, barbilla abajo. Golpes rectos y desplazamientos ligeros. Respira al golpear. Si no te han enseñado técnica en tu club, céntrate en moverte y en la guardia.",
+        howTo: "Guardia alta, barbilla abajo. Golpes rectos y desplazamientos ligeros. Respira al golpear. Usa la técnica que hayas aprendido en el Dojo.",
         easier: "Ritmo suave, solo desplazamientos y guardia.")
     static let sprawl = Exercise(id: "sprawl", name: "Sprawls", icon: "figure.cross.training",
         howTo: "Como un burpee rápido sin salto: echa las piernas atrás y la cadera al suelo para «defender un derribo», y vuelve a guardia.",
@@ -56,7 +56,7 @@ enum Exercises {
         howTo: "SOBRE COLCHONETA. Desde cuclillas, extiende una pierna cruzando por delante, cae de lado y golpea el suelo con el brazo de ese lado. Barbilla siempre al pecho. Alterna lados.",
         easier: "Desde sentado, solo el balanceo y el golpe de brazo.")
     static let roll = Exercise(id: "roll", name: "Rodada hacia delante", icon: "figure.gymnastics",
-        howTo: "SOBRE COLCHONETA. Rodada diagonal por el hombro (no por la cabeza) hasta la cadera contraria y te levantas. Mejor aprenderla con instructor de judo, aikido o parkour.",
+        howTo: "SOBRE COLCHONETA. Rodada diagonal por el hombro (no por la cabeza) hasta la cadera contraria y te levantas. Sigue la progresión de la técnica «Rodada hacia delante» del Dojo.",
         easier: "Rodada desde rodillas, muy despacio.")
     static let mobility = Exercise(id: "mobility", name: "Movilidad articular", icon: "figure.flexibility",
         howTo: "Círculos de cuello, hombros, cadera, rodillas y tobillos. 10 en cada sentido, sin forzar.",
@@ -132,8 +132,8 @@ extension Workout {
 
     static let caidas = Workout(
         id: "caidas", name: "Aprender a caer", focus: "Caídas seguras (ukemi)",
-        place: "Casa (colchoneta) o club", minPhase: 1, minutes: 20,
-        notes: "Solo sobre superficie blanda: colchoneta gruesa, colchón en el suelo o tatami. Si tienes problemas de cuello o espalda, apréndelo exclusivamente con un instructor.",
+        place: "Casa (colchoneta)", minPhase: 1, minutes: 20,
+        notes: "Solo sobre superficie blanda: colchoneta gruesa, colchón en el suelo o tatami. Lee antes las técnicas de caídas del Dojo. Si tienes problemas de cuello o espalda, consulta antes con tu médico.",
         blocks: [
             WorkoutBlock(exercise: Exercises.mobility, sets: 1, reps: nil, seconds: 120, rest: 10),
             WorkoutBlock(exercise: Exercises.breakfallBack, sets: 3, reps: "8", seconds: nil, rest: 45),
@@ -156,7 +156,7 @@ extension Workout {
     static let forjaCombate = Workout(
         id: "forja-combate", name: "Forja · Combate", focus: "Resistencia anaeróbica tipo asalto",
         place: "Casa", minPhase: 1, minutes: 30,
-        notes: "Simula la intensidad de un asalto, que es agotadora incluso para gente en forma. No sustituye a tus clases: las complementa.",
+        notes: "Simula la intensidad de un asalto, que es agotadora incluso para gente en forma. Complementa las clases del Dojo.",
         blocks: [
             WorkoutBlock(exercise: Exercises.mobility, sets: 1, reps: nil, seconds: 120, rest: 10),
             WorkoutBlock(exercise: Exercises.shadowBoxing, sets: 5, reps: nil, seconds: 60, rest: 30),
