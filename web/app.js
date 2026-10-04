@@ -6,7 +6,7 @@
    ============================================================ */
 
 const STORAGE_KEY = "justiciero.v1";
-const XP = { task: 20, lesson: 15, workout: 30, scenarioPerPoint: 10, test: 25, journal: 5 };
+const XP = { task: 20, lesson: 15, workout: 30, scenarioPerPoint: 10, test: 25, journal: 5, dojoClass: 40, belt: 150 };
 
 const RANKS = [
   { name: "Recluta", minXP: 0, emoji: "🧑", motto: "Todo héroe empezó sin saber nada." },
@@ -78,6 +78,9 @@ function defaultState() {
     journal: [],
     activeDays: [],
     outing: null,
+    dojoClasses: {},
+    dojoExam: [],
+    dojoBelts: [],
   };
 }
 
@@ -255,6 +258,7 @@ function viewBase() {
       ${tasks.length ? tasks.map((t) => taskRow(t, { compact: true })).join("") : `<div class="card">Has completado todas las misiones de esta fase. ¡Enorme!</div>`}
       ${section("Entreno sugerido hoy", "🏋️")}
       ${workoutRow(suggested, false)}
+      ${phase.id >= 1 ? dojoCard() : ""}
       ${section("Consejo del día", "💡")}
       <div class="card"><em>${esc(dailyTip())}</em></div>
       <div class="grid2">
@@ -292,10 +296,11 @@ function viewTraining() {
   return {
     title: "Entreno", large: true,
     html: `<div class="stack">
-      ${callout("tip", "Objetivo semanal: **3 sesiones** de la app + tus clases de arte marcial cuando llegues a la Fase 1. Deja siempre un día de descanso entre sesiones intensas.")}
+      ${callout("tip", "Objetivo semanal: **3 sesiones** físicas + **2–3 clases** del Dojo a partir de la Fase 1. Puedes hacer una clase del Dojo y una sesión física el mismo día, pero deja al menos un día de descanso total a la semana.")}
+      ${dojoCard()}
       <div class="grid3">${stat(`${workoutsThisWeek()}/3`, "Esta semana", "📅")}${stat(state.workouts.length, "Totales", "🔥")}${stat(state.tests.length, "Tests físicos", "📈")}</div>
       <a class="btn" href="#/test">⏱ Registrar test físico</a>
-      ${section("Sesiones", "🏋️")}
+      ${section("Sesiones físicas", "🏋️")}
       ${WORKOUTS.map((w) => workoutRow(w, w.minPhase > phase.id)).join("")}
       ${state.workouts.length ? `${section("Historial reciente", "🕘")}
         <div class="card list">${state.workouts.slice(0, 10).map((w) =>
@@ -725,7 +730,7 @@ function viewRanks() {
   return {
     title: "Rangos", back: "#/mas",
     html: `<div class="stack">
-      ${callout("info", `Ganas XP con cada misión (${XP.task}), sesión de entreno (${XP.workout}), test físico (${XP.test}), lección (${XP.lesson}), escenario mejorado y partida del Juego de Kim.`)}
+      ${callout("info", `Ganas XP con cada misión (${XP.task}), sesión de entreno (${XP.workout}), test físico (${XP.test}), lección (${XP.lesson}), clase del Dojo (${XP.dojoClass}), cinturón (${XP.belt}), escenario mejorado y partida del Juego de Kim.`)}
       ${RANKS.map((r) => {
         const reached = state.xp >= r.minXP;
         return `<div class="card row ${r === cur ? "hi" : ""}" style="${reached ? "" : "opacity:.6"}">
@@ -958,6 +963,252 @@ function notify(title, body) {
     .catch(() => { try { new Notification(title, { body }); } catch (e) { /* no soportado */ } });
 }
 
+/* ---------- Dojo ---------- */
+
+const KIND_EMOJI = { postura: "🧍", golpe: "🥊", patada: "🦵", defensa: "🛡️", suelo: "🤼", caida: "🥋", autodefensa: "✋" };
+const KIND_LABEL = { postura: "Postura y movimiento", golpe: "Golpes", patada: "Piernas", defensa: "Defensa", suelo: "Suelo", caida: "Caídas", autodefensa: "Autodefensa" };
+const ROUND_LABEL = { calentamiento: ["🔥", "Calentamiento"], tecnica: ["🎯", "Técnica"], sombra: ["🥊", "Sombra"], suelo: ["🤼", "Suelo"], acondicionamiento: ["⚡", "Acondicionamiento"], calma: ["🌬️", "Vuelta a la calma"] };
+
+const classesDone = (b) => state.dojoClasses[b.id] || 0;
+const hasBelt = (b) => state.dojoBelts.includes(b.id);
+const beltUnlocked = (b) => b.id === 0 || state.dojoBelts.includes(b.id - 1);
+const currentBelt = () => BELTS.find((b) => !hasBelt(b)) || BELTS[BELTS.length - 1];
+const examChecked = (b, i) => state.dojoExam.includes(`${b.id}-${i}`);
+const canEarn = (b) => !hasBelt(b) && beltUnlocked(b) && classesDone(b) >= b.minClasses && b.exam.every((_, i) => examChecked(b, i));
+const beltMinutes = (b) => Math.round(b.rounds.reduce((a, r) => a + r.seconds * r.repeats + r.rest * Math.max(0, r.repeats - 1), 0) / 60);
+const beltName = (b) => `Cinturón ${b.name.toLowerCase()}`;
+const beltBadge = (b, locked) => `<div class="tile-ico" style="--c:var(--muted);background:var(--card-hi)">
+  <span style="display:block;width:38px;height:13px;border-radius:4px;background:#${b.colorHex};border:1px solid rgba(255,255,255,.3);position:relative">${locked ? `<span style="position:absolute;inset:-6px 0 0;font-size:.6rem;text-align:center">🔒</span>` : ""}</span></div>`;
+const roundTime = (s) => (s % 60 === 0 ? `${s / 60} min` : mmss(s));
+
+function dojoCard() {
+  const b = currentBelt();
+  return link("#/dojo", `${beltBadge(b)}
+    <div class="grow stack" style="gap:6px"><p class="title">Dojo en casa</p>
+      <p class="small muted">Artes marciales · ${beltName(b).toLowerCase()}</p>
+      ${bar(classesDone(b) / b.minClasses, null, true)}
+      <p class="tiny muted">${state.dojoBelts.length} de ${BELTS.length} cinturones</p></div>`, "card row chev hi");
+}
+
+function techniqueRow(t) {
+  return link(`#/tecnica/${t.id}`, `<span style="font-size:1.5rem;width:36px;text-align:center">${KIND_EMOJI[t.kind]}</span>
+    <div class="grow"><p class="title">${esc(t.name)}</p><p class="tiny muted">${KIND_LABEL[t.kind]}</p></div>${t.partner ? `<span title="Variante con compañero">👥</span>` : ""}`);
+}
+
+function viewDojo() {
+  const cur = currentBelt();
+  return {
+    title: "Dojo en casa", back: "#/entreno",
+    html: `<div class="stack">
+      <p class="muted">${esc(DOJO.intro)}</p>
+      ${link(`#/cinturon/${cur.id}`, `${beltBadge(cur)}
+        <div class="grow stack" style="gap:6px"><p class="title">Entrenando: ${beltName(cur).toLowerCase()}</p><p class="small muted">${esc(cur.theme)}</p>
+        ${bar(classesDone(cur) / cur.minClasses)}<p class="tiny muted">${Math.min(classesDone(cur), cur.minClasses)} de ${cur.minClasses} clases para poder examinarte</p></div>`, "card row chev hi")}
+      ${callout("info", DOJO.honesty)}
+      ${section("Cinturones", "🥋")}
+      ${BELTS.map((b) => {
+        const un = beltUnlocked(b);
+        return link(`#/cinturon/${b.id}`, `${beltBadge(b, !un)}
+          <div class="grow stack" style="gap:4px"><p class="title">${beltName(b)}</p><p class="small muted">${esc(b.theme)}</p>
+          <div class="pills">${pill(`⏱ ${beltMinutes(b)} min/clase`, "var(--info)")}${hasBelt(b) ? pill("✓ Obtenido", "var(--success)") : !un ? pill("🔒 Bloqueado", "var(--muted)") : ""}</div></div>`,
+          `card row chev ${un ? "" : "locked"}`);
+      }).join("")}
+      ${section("Monta tu dojo", "🏠")}
+      <div class="card stack" style="gap:10px">${DOJO.setup.map((x) => `<div class="row top"><span style="color:var(--accent)">✓</span><span class="small">${esc(x)}</span></div>`).join("")}</div>
+      ${section("Reglas del dojo", "🛑")}
+      ${DOJO.safety.map((x) => callout("warning", x)).join("")}
+      ${link("#/tecnicas", `<span style="font-size:1.5rem">📚</span><div class="grow"><p class="title">Biblioteca de técnicas</p><p class="small muted">${TECHNIQUES.length} técnicas paso a paso</p></div>`)}
+    </div>`,
+  };
+}
+
+function viewBelt(id) {
+  const b = BELTS[Number(id)];
+  if (!b) return null;
+  const un = beltUnlocked(b), done = classesDone(b), owned = hasBelt(b);
+  const techs = b.techniques.map((tid) => TECHNIQUES.find((t) => t.id === tid)).filter(Boolean);
+  return {
+    title: beltName(b), back: "#/dojo",
+    html: `<div class="stack">
+      <div class="row">${beltBadge(b, !un)}<div><p class="h2">${esc(b.theme)}</p><p class="small muted">${esc(b.goal)}</p></div></div>
+      ${un ? "" : callout("warning", "Obtén el cinturón anterior para entrenar este. Puedes leer sus técnicas para saber lo que viene.")}
+      ${owned ? callout("tip", "Cinturón obtenido. Puedes seguir haciendo esta clase para repasar.") : ""}
+      <div class="card stack" style="gap:8px">
+        <div class="row"><p class="title grow">Clases</p><strong>${done} / ${b.minClasses}</strong></div>
+        ${bar(done / b.minClasses, done >= b.minClasses ? "var(--success)" : null)}
+        <p class="tiny muted">Recomendado: 3 clases por semana, con un día de descanso entre ellas.</p>
+      </div>
+      ${un ? `<a class="btn" href="#/clase/${b.id}">▶ Empezar clase (${beltMinutes(b)} min)</a>` : `<button class="btn" disabled>▶ Empezar clase</button>`}
+      ${section("Estructura de la clase", "📋")}
+      <div class="card list" style="padding:4px 16px">${b.rounds.map((r) => `
+        <div class="list-item"><span style="width:24px;text-align:center">${ROUND_LABEL[r.kind][0]}</span>
+          <div class="grow"><p class="small"><strong>${esc(r.title)}</strong></p><p class="tiny muted">${r.repeats > 1 ? `${r.repeats} × ${roundTime(r.seconds)}` : roundTime(r.seconds)}</p></div>
+          ${r.calls.length ? pill("🔊 Entrenador", "var(--info)") : ""}</div>`).join("")}</div>
+      ${techs.length ? section("Técnicas de este cinturón", "🥋") + techs.map(techniqueRow).join("") : ""}
+      ${section("Examen", "🏅")}
+      <p class="small muted">Grábate con el móvil y compara con los pasos de cada técnica. Marca cada punto solo cuando lo cumplas de verdad: aquí el único que puede hacerse trampas eres tú.</p>
+      <div class="card list" style="padding:4px 16px">${b.exam.map((x, i) => `
+        <button class="list-item" data-act="exam-toggle" data-key="${b.id}-${i}" ${!un || owned ? "disabled" : ""}>
+          <span class="check sq ${examChecked(b, i) ? "on" : ""}">${examChecked(b, i) ? "✓" : ""}</span><span class="grow small">${esc(x)}</span></button>`).join("")}</div>
+      ${owned ? "" : `<button class="btn" style="--c:var(--success)" data-act="belt-earn" data-id="${b.id}" ${canEarn(b) ? "" : "disabled"}>🏅 Obtener ${beltName(b).toLowerCase()} (+${XP.belt} XP)</button>
+        ${!canEarn(b) && un ? `<p class="tiny muted center">Necesitas ${b.minClasses} clases y todos los puntos del examen.</p>` : ""}`}
+    </div>`,
+  };
+}
+
+function viewTechniques() {
+  return {
+    title: "Técnicas", back: "#/dojo",
+    html: `<div class="stack">${callout("info", DOJO.numbering)}
+      ${Object.keys(KIND_LABEL).map((k) => {
+        const items = TECHNIQUES.filter((t) => t.kind === k);
+        return items.length ? section(KIND_LABEL[k], KIND_EMOJI[k]) + items.map(techniqueRow).join("") : "";
+      }).join("")}</div>`,
+  };
+}
+
+function viewTechnique(id) {
+  const t = TECHNIQUES.find((x) => x.id === id);
+  if (!t) return null;
+  return {
+    title: t.name, back: "#/tecnicas",
+    html: `<div class="stack lesson">
+      <div class="pills">${pill(`${KIND_EMOJI[t.kind]} ${KIND_LABEL[t.kind]}`)}</div>
+      <p style="font-size:1.15rem">${esc(t.summary)}</p>
+      ${section("Paso a paso", "🔢")}
+      <ol style="--c:var(--accent)">${t.steps.map((x) => `<li><span>${md(x)}</span></li>`).join("")}</ol>
+      ${section("Errores típicos", "❌")}
+      <ul style="--c:var(--danger)">${t.errors.map((x) => `<li><span>${md(x)}</span></li>`).join("")}</ul>
+      ${section("Ejercicio en solitario", "🥋")}
+      <div class="card">${esc(t.drill)}</div>
+      ${t.partner ? section("Con compañero (opcional)", "👥") + callout("info", t.partner) + callout("warning", "Velocidad al 30 %, sin golpes a la cabeza y con una palabra acordada para parar al instante.") : ""}
+      ${callout("tip", "Grábate con el móvil desde un lateral y compara con cada paso. Es la forma más fiable de corregirte sin instructor.")}
+    </div>`,
+  };
+}
+
+let dojoClass = null;
+let dojoVoice = (() => { try { return localStorage.getItem("justiciero.voice") !== "0"; } catch (e) { return true; } })();
+
+function buildSegments(b) {
+  const segs = [];
+  b.rounds.forEach((r, ri) => {
+    for (let rep = 0; rep < r.repeats; rep++) {
+      segs.push({ round: r, rep, rest: false, seconds: r.seconds });
+      if (rep < r.repeats - 1 && r.rest > 0) segs.push({ round: r, rep, rest: true, seconds: r.rest, label: `Siguiente: ${r.title} ${rep + 2}/${r.repeats}` });
+      else if (rep === r.repeats - 1 && ri < b.rounds.length - 1) {
+        const next = b.rounds[ri + 1];
+        segs.push({ round: next, rep: 0, rest: true, seconds: 15, label: `Siguiente: ${next.title}` });
+      }
+    }
+  });
+  return segs;
+}
+
+function spoken(text) {
+  const words = { 1: "uno", 2: "dos", 3: "tres", 4: "cuatro", 5: "cinco", 6: "seis" };
+  return text.replace(/[1-6]/g, (d) => words[d]).replace(/-/g, ", ");
+}
+
+function say(text) {
+  if (!dojoVoice || !("speechSynthesis" in window)) return;
+  const u = new SpeechSynthesisUtterance(spoken(text));
+  u.lang = "es-ES";
+  const voice = speechSynthesis.getVoices().find((v) => v.lang && v.lang.startsWith("es"));
+  if (voice) u.voice = voice;
+  u.rate = 1.05;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+function stopSpeech() { try { speechSynthesis.cancel(); } catch (e) { /* no soportado */ } }
+
+function dojoAnnounce(seg) {
+  if (seg.rest) { say("Descanso"); beep(1); return; }
+  say(seg.round.title);
+  beep(2);
+  dojoClass.sinceCall = seg.round.calls.length ? seg.round.pace - 2 : 0;
+}
+
+function dojoNextCall(round) {
+  const c = dojoClass;
+  const options = round.calls.length > 1 ? round.calls.filter((x) => x !== c.call) : round.calls;
+  c.call = options[Math.floor(Math.random() * options.length)];
+  c.sinceCall = 0;
+  say(c.call);
+}
+
+function dojoAdvance() {
+  const c = dojoClass;
+  if (c.index + 1 >= c.segments.length) {
+    c.finished = true;
+    c.running = false;
+    say("Clase terminada. Buen trabajo.");
+    beep(3);
+    return;
+  }
+  c.index++;
+  c.remaining = c.segments[c.index].seconds;
+  c.call = "";
+  c.sinceCall = 0;
+  if (c.running) dojoAnnounce(c.segments[c.index]);
+}
+
+function dojoTick() {
+  const c = dojoClass;
+  if (!c.running || c.finished) return;
+  const seg = c.segments[c.index];
+  c.remaining--;
+  if (!seg.rest) {
+    if (c.remaining === 10 && seg.seconds > 30) say("Diez segundos");
+    if (seg.round.calls.length && c.remaining > 1) {
+      c.sinceCall++;
+      if (c.sinceCall >= seg.round.pace) dojoNextCall(seg.round);
+    }
+  }
+  if (c.remaining <= 0) dojoAdvance();
+  render();
+}
+
+function viewDojoClass(id) {
+  const b = BELTS[Number(id)];
+  if (!b) return null;
+  if (!beltUnlocked(b)) { location.replace(`#/cinturon/${b.id}`); return { title: "", html: "" }; }
+  if (!dojoClass || dojoClass.belt.id !== b.id) {
+    const segments = buildSegments(b);
+    dojoClass = { belt: b, segments, index: 0, remaining: segments[0].seconds, running: false, started: false, finished: false, call: "", sinceCall: 0, saved: false };
+    requestWakeLock();
+  }
+  const c = dojoClass, seg = c.segments[c.index];
+  let body;
+  if (c.finished) {
+    body = `<div class="huge-ico">🥋</div><p class="h2 center">Clase completada</p>
+      <p class="center muted">Saluda al dojo, bebe agua y estira. La constancia es la técnica más difícil.</p>
+      <button class="btn" style="--c:var(--success)" data-act="dojo-save">Registrar clase (+${XP.dojoClass} XP)</button>`;
+  } else if (seg.rest) {
+    body = `<p class="eyebrow center" style="color:var(--info)">Descanso</p>
+      <div class="big-timer">${mmss(Math.max(0, c.remaining))}</div>
+      <p class="center title">${esc(seg.label)}</p>
+      <p class="center small muted">${esc(seg.round.cue)}</p>`;
+  } else {
+    const [emoji, label] = ROUND_LABEL[seg.round.kind];
+    body = `<p class="eyebrow center" style="color:var(--accent)">${emoji} ${label}</p>
+      <p class="h2 center">${esc(seg.round.title)}${seg.round.repeats > 1 ? ` ${seg.rep + 1}/${seg.round.repeats}` : ""}</p>
+      <div class="big-timer">${mmss(Math.max(0, c.remaining))}</div>
+      ${seg.round.calls.length ? `<div class="center" style="min-height:96px;display:grid;place-items:center;font-size:2.6rem;font-weight:900;color:var(--accent);line-height:1.1">${esc(c.call || "¡Prepárate!")}</div>` : ""}
+      <p class="center small muted">${esc(seg.round.cue)}</p>`;
+  }
+  const fresh = !c.started;
+  return {
+    title: beltName(b), back: `#/cinturon/${b.id}`, hideTabs: true,
+    action: `<button class="linkbtn" data-act="dojo-voice" aria-label="Voz">${dojoVoice ? "🔊" : "🔇"}</button>`,
+    html: `<div class="session">${bar(c.index / c.segments.length)}${body}
+      ${c.finished ? "" : `<div class="row"><button class="btn" data-act="dojo-toggle" style="${c.running ? "--c:var(--card-hi);color:var(--text)" : ""}">${c.running ? "Pausar" : fresh ? "Empezar" : "Seguir"}</button>
+        <button class="btn ghost" style="width:110px" data-act="dojo-skip">Saltar</button></div>`}
+      ${fresh ? `<p class="tiny muted center">Sube el volumen: el entrenador te cantará las combinaciones. Puedes silenciarlo con 🔊.</p>` : ""}
+    </div>`,
+  };
+}
+
 /* ---------- Onboarding ---------- */
 
 let onb = { page: 0, alias: "", isAdult: true, accepted: false, contactName: "", contactPhone: "" };
@@ -970,7 +1221,7 @@ function renderOnboarding() {
     `<div class="big">🌙</div><h2>Justiciero</h2>
      <p style="font-size:1.15rem" class="muted">Un programa de 12 meses para convertirte en alguien que protege a los demás por la noche. De verdad.</p>
      <div class="stack" style="gap:12px">
-       ${feature("💪", "Entrenamiento progresivo, empezando en casa")}${feature("⛑️", "Primeros auxilios, la habilidad que más vidas salva")}
+       ${feature("💪", "Entrenamiento progresivo, empezando en casa")}${feature("🥋", "Dojo en casa: 7 cinturones con entrenador por voz")}${feature("⛑️", "Primeros auxilios, la habilidad que más vidas salva")}
        ${feature("⚖️", "Lo que la ley te permite y lo que no")}${feature("👁️", "Observación y memoria de detective")}
        ${feature("🎭", "Simulador de situaciones reales")}${feature("🛡️", "Del entrenamiento al servicio real")}</div>`,
     `<div class="big">💬</div><h2>La verdad sobre Batman</h2>
@@ -983,7 +1234,7 @@ function renderOnboarding() {
      <div class="stack" style="gap:12px">
        ${feature("🩺", "Si tienes alguna condición de salud, consulta a tu médico antes de entrenar.")}
        ${feature("🏠", "Las primeras semanas son en casa. La calle llega cuando estés preparado.")}
-       ${feature("🥋", "Las artes marciales se aprenden con instructor, no con vídeos.")}
+       ${feature("🥋", "Artes marciales en tu propio dojo: técnica lenta y limpia, y nunca contra personas sin control.")}
        ${feature("📞", "Ante cualquier peligro: distancia y 112.")}</div>
      <label class="switch card"><span class="small">Entiendo que esta app no sustituye a la formación presencial ni me autoriza a intervenir en situaciones peligrosas.</span>
        <input type="checkbox" data-onb="accepted" ${onb.accepted ? "checked" : ""}></label>`,
@@ -1047,11 +1298,17 @@ const ROUTES = [
   [/^#\/bitacora(?:\/(\w+))?$/, viewJournal],
   [/^#\/bitacora-nueva\/(\w+)$/, viewJournalNew],
   [/^#\/perfil$/, viewProfile],
+  [/^#\/dojo$/, viewDojo],
+  [/^#\/cinturon\/(\d+)$/, viewBelt],
+  [/^#\/tecnicas$/, viewTechniques],
+  [/^#\/tecnica\/([\w-]+)$/, viewTechnique],
+  [/^#\/clase\/(\d+)$/, viewDojoClass],
 ];
 
 function tabFor(hash) {
   const map = { fase: "#/programa", entreno: "#/entreno", sesion: "#/entreno", test: "#/entreno", modulo: "#/academia", leccion: "#/academia",
-    codigo: "#/academia", escenarios: "#/academia", escenario: "#/academia", kim: "#/academia" };
+    codigo: "#/academia", escenarios: "#/academia", escenario: "#/academia", kim: "#/academia",
+    dojo: "#/entreno", cinturon: "#/entreno", tecnicas: "#/entreno", tecnica: "#/entreno", clase: "#/entreno" };
   const key = hash.split("/")[1];
   return TABS.find(([h]) => h === hash)?.[0] || map[key] || "#/mas";
 }
@@ -1070,6 +1327,7 @@ function render() {
   if (!view) { location.replace("#/base"); return; }
 
   if (hash !== lastHash && !hash.startsWith("#/sesion")) session = null;
+  if (hash !== lastHash && !hash.startsWith("#/clase")) { if (dojoClass) stopSpeech(); dojoClass = null; }
   if (hash !== lastHash && !hash.startsWith("#/escenario/")) scenarioPlay = null;
   if (hash !== lastHash && hash !== "#/kim") kim = { stage: "menu", hard: kim.hard };
 
@@ -1196,6 +1454,36 @@ const ACTIONS = {
     el.closest("form").querySelector('[name="mood"]').value = d.v;
   },
   metric: (d) => { metric = d.m; render(); },
+  "exam-toggle": (d) => commit((s) => {
+    const i = s.dojoExam.indexOf(d.key);
+    if (i >= 0) s.dojoExam.splice(i, 1); else s.dojoExam.push(d.key);
+  }),
+  "belt-earn": (d) => {
+    const b = BELTS[Number(d.id)];
+    if (!canEarn(b)) return;
+    commit((s) => { s.dojoBelts.push(b.id); gainXP(XP.belt); markActive(); });
+  },
+  "dojo-toggle": () => {
+    const c = dojoClass;
+    c.running = !c.running;
+    beep(0);
+    if (c.running && !c.started) { c.started = true; dojoAnnounce(c.segments[0]); }
+    render();
+  },
+  "dojo-skip": () => { dojoAdvance(); render(); },
+  "dojo-voice": () => {
+    dojoVoice = !dojoVoice;
+    try { localStorage.setItem("justiciero.voice", dojoVoice ? "1" : "0"); } catch (e) { /* sin almacenamiento */ }
+    if (!dojoVoice) stopSpeech();
+    render();
+  },
+  "dojo-save": () => {
+    const c = dojoClass;
+    if (!c || c.saved) return;
+    c.saved = true;
+    commit((s) => { s.dojoClasses[c.belt.id] = (s.dojoClasses[c.belt.id] || 0) + 1; gainXP(XP.dojoClass); markActive(); }, false);
+    location.hash = `#/cinturon/${c.belt.id}`;
+  },
   export: () => {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
@@ -1288,7 +1576,7 @@ document.addEventListener("submit", (e) => {
 window.addEventListener("hashchange", render);
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
-    if (session) requestWakeLock();
+    if (session || dojoClass) requestWakeLock();
     outingTick();
     if (location.hash === "#/salida") render();
   }
@@ -1296,6 +1584,7 @@ document.addEventListener("visibilitychange", () => {
 
 setInterval(() => {
   if (session && location.hash.startsWith("#/sesion")) sessionTick();
+  if (dojoClass && location.hash.startsWith("#/clase")) dojoTick();
   if (kim.stage === "memorize" && location.hash === "#/kim") {
     kim.countdown--;
     if (kim.countdown <= 0) kim.stage = "recall";

@@ -34,6 +34,7 @@ struct OnboardingView: View {
                        subtitle: "Un programa de 12 meses para convertirte en alguien que protege a los demás por la noche. De verdad.") {
             VStack(alignment: .leading, spacing: 12) {
                 feature("figure.strengthtraining.traditional", "Entrenamiento progresivo, empezando en casa")
+                feature("figure.martial.arts", "Dojo en casa: 7 cinturones con entrenador por voz")
                 feature("cross.case.fill", "Primeros auxilios, la habilidad que más vidas salva")
                 feature("building.columns.fill", "Lo que la ley te permite y lo que no")
                 feature("eye.fill", "Observación y memoria de detective")
@@ -64,7 +65,7 @@ struct OnboardingView: View {
             VStack(alignment: .leading, spacing: 12) {
                 feature("stethoscope", "Si tienes alguna condición de salud, consulta a tu médico antes de entrenar.")
                 feature("house.fill", "Las primeras semanas son en casa. La calle llega cuando estés preparado.")
-                feature("person.2.fill", "Las artes marciales se aprenden con instructor, no con vídeos.")
+                feature("figure.martial.arts", "Artes marciales en tu propio dojo: técnica lenta y limpia, y nunca contra personas sin control.")
                 feature("phone.fill", "Ante cualquier peligro: distancia y 112.")
                 Toggle(isOn: $acceptedRisks) {
                     Text("Entiendo que esta app no sustituye a la formación presencial ni me autoriza a intervenir en situaciones peligrosas.")

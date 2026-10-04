@@ -135,6 +135,14 @@ struct TodayView: View {
                 WorkoutRow(workout: suggestedWorkout, locked: false)
             }
             .buttonStyle(.plain)
+            if store.currentPhase.id >= 1 {
+                NavigationLink {
+                    DojoView()
+                } label: {
+                    DojoCard()
+                }
+                .buttonStyle(.plain)
+            }
         }
     }
 

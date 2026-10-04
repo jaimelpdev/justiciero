@@ -194,7 +194,7 @@ struct RanksView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                Callout(kind: .info, text: "Ganas XP con cada misión (\(XP.task)), sesión de entreno (\(XP.workout)), test físico (\(XP.test)), lección (\(XP.lesson)), escenario mejorado y partida del Juego de Kim.")
+                Callout(kind: .info, text: "Ganas XP con cada misión (\(XP.task)), sesión de entreno (\(XP.workout)), test físico (\(XP.test)), lección (\(XP.lesson)), clase del Dojo (\(XP.dojoClass)), cinturón (\(XP.belt)), escenario mejorado y partida del Juego de Kim.")
                 ForEach(Rank.all) { rank in
                     let reached = store.state.xp >= rank.minXP
                     HStack(spacing: 14) {

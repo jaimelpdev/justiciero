@@ -245,3 +245,109 @@ struct CodeRule: Identifiable {
     let title: String
     let text: String
 }
+
+// MARK: - Dojo
+
+enum TechniqueKind: String, CaseIterable {
+    case postura, golpe, patada, defensa, suelo, caida, autodefensa
+
+    var label: String {
+        switch self {
+        case .postura: "Postura y movimiento"
+        case .golpe: "Golpes"
+        case .patada: "Piernas"
+        case .defensa: "Defensa"
+        case .suelo: "Suelo"
+        case .caida: "Caídas"
+        case .autodefensa: "Autodefensa"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .postura: "figure.stand"
+        case .golpe: "figure.boxing"
+        case .patada: "figure.kickboxing"
+        case .defensa: "shield.lefthalf.filled"
+        case .suelo: "figure.wrestling"
+        case .caida: "figure.fall"
+        case .autodefensa: "hand.raised.fill"
+        }
+    }
+}
+
+struct Technique: Identifiable, Hashable {
+    let id: String
+    let name: String
+    let kind: TechniqueKind
+    let summary: String
+    let steps: [String]
+    let errors: [String]
+    let drill: String
+    /// Variante opcional con compañero (siempre lenta y controlada), si la hay.
+    let partner: String?
+}
+
+enum RoundKind: String {
+    case calentamiento, tecnica, sombra, suelo, acondicionamiento, calma
+
+    var label: String {
+        switch self {
+        case .calentamiento: "Calentamiento"
+        case .tecnica: "Técnica"
+        case .sombra: "Sombra"
+        case .suelo: "Suelo"
+        case .acondicionamiento: "Acondicionamiento"
+        case .calma: "Vuelta a la calma"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .calentamiento: "flame"
+        case .tecnica: "scope"
+        case .sombra: "figure.boxing"
+        case .suelo: "figure.wrestling"
+        case .acondicionamiento: "bolt.heart.fill"
+        case .calma: "wind"
+        }
+    }
+}
+
+struct DojoRound: Hashable {
+    let title: String
+    let kind: RoundKind
+    /// Duración de cada asalto en segundos.
+    let seconds: Int
+    let repeats: Int
+    let rest: Int
+    let cue: String
+    /// Combinaciones que el entrenador va cantando al azar durante el asalto.
+    let calls: [String]
+    /// Segundos entre cada combinación cantada.
+    let pace: Int
+}
+
+struct Belt: Identifiable, Hashable {
+    let id: Int
+    let name: String
+    let colorHex: String
+    let theme: String
+    let goal: String
+    let minClasses: Int
+    let techniques: [String]
+    let exam: [String]
+    let rounds: [DojoRound]
+
+    var color: Color { Color(hex: colorHex) }
+    var minutes: Int { rounds.reduce(0) { $0 + ($1.seconds * $1.repeats + $1.rest * max(0, $1.repeats - 1)) } / 60 }
+}
+
+extension Color {
+    init(hex: String) {
+        let value = UInt64(hex.trimmingCharacters(in: CharacterSet(charactersIn: "#")), radix: 16) ?? 0xFFFFFF
+        self.init(red: Double((value >> 16) & 0xFF) / 255,
+                  green: Double((value >> 8) & 0xFF) / 255,
+                  blue: Double(value & 0xFF) / 255)
+    }
+}

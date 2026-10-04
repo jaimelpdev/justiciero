@@ -11,13 +11,14 @@ App para iOS que convierte la idea de ser un «justiciero nocturno estilo Batman
 | **Base** | Rango y XP, racha diaria, fase actual, misiones pendientes, entreno sugerido, consejo del día y accesos rápidos a Salida segura y Emergencia. |
 | **Programa** | 6 fases (~70 misiones semana a semana). Cada fase se desbloquea al completar el 80 % de la anterior. |
 | **Entreno** | 9 sesiones guiadas con temporizador (series, repeticiones, descansos), test físico y historial. |
+| **Dojo en casa** | Artes marciales sin gimnasio: 7 cinturones (blanco a negro), 27 técnicas paso a paso con errores típicos y variantes opcionales con compañero, clases guiadas por asaltos con un entrenador por voz que canta combinaciones, y examen para cada cinturón. |
 | **Academia** | 8 módulos y 28 lecciones, simulador con 10 escenarios reales, Juego de Kim (memoria visual) y el Código del Vigilante. |
 | **Más** | Salida segura (checklist + check-ins con notificaciones + SMS a tu contacto), Emergencias (112 y otros números), Equipamiento legal, Bitácora, Perfil con gráficas de evolución y Rangos. |
 
 ### Las 6 fases
 
 0. **La Cueva** (sem. 1–4) · En casa: evaluación física, sueño, ley, primeros auxilios básicos. *Nada de calle.*
-1. **La Forja** (sem. 5–12) · Arte marcial con instructor, 0 a 5 km, curso presencial de RCP/DEA, aprender a caer.
+1. **La Forja** (sem. 5–12) · Dojo en casa hasta el cinturón blanco, 0 a 5 km, curso presencial de RCP/DEA, aprender a caer.
 2. **La Ciudad** (sem. 13–20) · Conocer tu barrio: primero de día, luego al anochecer acompañado. Puntos seguros, AlertCops.
 3. **El Detective** (sem. 21–28) · Observación, descripción de personas y vehículos, la llamada perfecta al 112.
 4. **El Guardián** (sem. 29–40) · Voluntariado en Protección Civil o Cruz Roja: servicios nocturnos reales.

@@ -78,6 +78,34 @@ struct AppState: Codable {
     var tests: [FitnessTest] = []
     var journal: [JournalEntry] = []
     var activeDays: Set<String> = []
+    /// Clases completadas por cinturón (clave: id del cinturón).
+    var dojoClasses: [String: Int] = [:]
+    /// Puntos del examen marcados ("idCinturón-índice").
+    var dojoExam: Set<String> = []
+    /// Cinturones obtenidos.
+    var dojoBelts: Set<Int> = []
+
+    init() {}
+
+    // Decodificación tolerante: si en una versión nueva se añaden campos,
+    // el progreso guardado con la versión anterior se sigue cargando.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        profile = try c.decodeIfPresent(Profile.self, forKey: .profile) ?? Profile()
+        xp = try c.decodeIfPresent(Int.self, forKey: .xp) ?? 0
+        completedTasks = try c.decodeIfPresent(Set<String>.self, forKey: .completedTasks) ?? []
+        completedLessons = try c.decodeIfPresent(Set<String>.self, forKey: .completedLessons) ?? []
+        scenarioBest = try c.decodeIfPresent([String: Int].self, forKey: .scenarioBest) ?? [:]
+        kimBest = try c.decodeIfPresent(Int.self, forKey: .kimBest) ?? 0
+        kimGames = try c.decodeIfPresent(Int.self, forKey: .kimGames) ?? 0
+        workouts = try c.decodeIfPresent([WorkoutLog].self, forKey: .workouts) ?? []
+        tests = try c.decodeIfPresent([FitnessTest].self, forKey: .tests) ?? []
+        journal = try c.decodeIfPresent([JournalEntry].self, forKey: .journal) ?? []
+        activeDays = try c.decodeIfPresent(Set<String>.self, forKey: .activeDays) ?? []
+        dojoClasses = try c.decodeIfPresent([String: Int].self, forKey: .dojoClasses) ?? [:]
+        dojoExam = try c.decodeIfPresent(Set<String>.self, forKey: .dojoExam) ?? []
+        dojoBelts = try c.decodeIfPresent(Set<Int>.self, forKey: .dojoBelts) ?? []
+    }
 }
 
 enum XP {
@@ -87,6 +115,8 @@ enum XP {
     static let scenarioPerPoint = 10
     static let test = 25
     static let journal = 5
+    static let dojoClass = 40
+    static let belt = 150
 }
 
 final class ProgressStore: ObservableObject {
@@ -267,6 +297,53 @@ final class ProgressStore: ObservableObject {
         state.tests.append(test)
         state.tests.sort { $0.date < $1.date }
         state.xp += XP.test
+        markActive()
+    }
+
+    // MARK: Dojo
+
+    func classesDone(_ belt: Belt) -> Int {
+        state.dojoClasses[String(belt.id)] ?? 0
+    }
+
+    func hasBelt(_ belt: Belt) -> Bool {
+        state.dojoBelts.contains(belt.id)
+    }
+
+    /// Un cinturón se desbloquea al obtener el anterior.
+    func isUnlocked(_ belt: Belt) -> Bool {
+        belt.id == 0 || state.dojoBelts.contains(belt.id - 1)
+    }
+
+    /// Cinturón en el que estás entrenando ahora.
+    var currentBelt: Belt {
+        Belt.all.first(where: { !hasBelt($0) }) ?? Belt.all[Belt.all.count - 1]
+    }
+
+    func logDojoClass(_ belt: Belt) {
+        state.dojoClasses[String(belt.id), default: 0] += 1
+        state.xp += XP.dojoClass
+        markActive()
+    }
+
+    func isExamChecked(_ belt: Belt, _ index: Int) -> Bool {
+        state.dojoExam.contains("\(belt.id)-\(index)")
+    }
+
+    func toggleExam(_ belt: Belt, _ index: Int) {
+        let key = "\(belt.id)-\(index)"
+        if state.dojoExam.contains(key) { state.dojoExam.remove(key) } else { state.dojoExam.insert(key) }
+    }
+
+    func canEarn(_ belt: Belt) -> Bool {
+        !hasBelt(belt) && isUnlocked(belt) && classesDone(belt) >= belt.minClasses
+            && belt.exam.indices.allSatisfy { isExamChecked(belt, $0) }
+    }
+
+    func earn(_ belt: Belt) {
+        guard canEarn(belt) else { return }
+        state.dojoBelts.insert(belt.id)
+        state.xp += XP.belt
         markActive()
     }
 
