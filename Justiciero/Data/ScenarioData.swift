@@ -179,7 +179,7 @@ extension GearItem {
         GearItem(name: "Cámara corporal", icon: "video.fill", status: .condicionado,
                  why: "Grabar para entregar a la policía puede ser útil, pero hay límites legales en cuanto a datos personales y difusión. Nunca publiques las imágenes."),
         GearItem(name: "Pasamontañas o máscara", icon: "theatermasks.fill", status: .condicionado,
-                 why: "Ocultar tu cara mientras «vigilas» genera alarma y desconfianza y puede traerte problemas con la policía. Un héroe real va a cara descubierta."),
+                 why: "Ocultar tu cara mientras «vigilas» genera alarma, hace que la policía te pare y agrava cualquier problema. Para proteger tu identidad hay formas mejores: lee Academia › Ley y límites › Anonimato."),
         GearItem(name: "Esposas o bridas", icon: "link", status: .prohibido,
                  why: "Usarlas sobre otra persona fuera de los casos legales puede ser detención ilegal, y usarlas mal provoca lesiones. No son para ti."),
         GearItem(name: "Porra o defensa extensible", icon: "xmark.shield.fill", status: .prohibido,

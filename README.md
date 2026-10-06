@@ -12,7 +12,7 @@ App para iOS que convierte la idea de ser un «justiciero nocturno estilo Batman
 | **Programa** | 6 fases (~70 misiones semana a semana). Cada fase se desbloquea al completar el 80 % de la anterior. |
 | **Entreno** | 9 sesiones guiadas con temporizador (series, repeticiones, descansos) o marcadas como hechas sin temporizador, test físico y historial. |
 | **Dojo en casa** | Artes marciales sin gimnasio: 7 cinturones (blanco a negro), 27 técnicas paso a paso con errores típicos y variantes opcionales con compañero, clases guiadas por asaltos con un entrenador por voz que canta combinaciones, y examen para cada cinturón. |
-| **Academia** | 8 módulos y 28 lecciones, simulador con 10 escenarios reales, Juego de Kim (memoria visual) y el Código del Vigilante. |
+| **Academia** | 8 módulos y 29 lecciones, simulador con 10 escenarios reales, Juego de Kim (memoria visual) y el Código del Vigilante. |
 | **Sucesos** | Sucesos de tu zona: con «Usar mi ubicación» (o a mano) detecta tu ciudad y tu barrio, y muestra primero las noticias que mencionan tu barrio y después el resto de la ciudad (últimos días) (se marcan las nuevas desde tu última visita), enlaces a fuentes oficiales (AlertCops, Policía Nacional, Guardia Civil, balance de criminalidad) y alerta de Google por correo. En iOS se consulta Google Noticias directamente; en la web, un workflow publica cada hora un resumen para las 68 ciudades más grandes de España (`tools/fetch_sucesos.py`). |
 | **Más** | Salida segura (checklist + check-ins con notificaciones + SMS a tu contacto), Emergencias (112 y otros números), Equipamiento legal, Bitácora, Perfil con gráficas de evolución y Rangos. |
 

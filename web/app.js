@@ -720,7 +720,15 @@ function viewEmergency() {
       ${EMERGENCY_NUMBERS.map(([n, name, detail, emoji]) => `<a class="card row" href="${telLink(n)}">
         <span style="font-size:1.5rem;width:32px;text-align:center">${emoji}</span>
         <div class="grow"><p class="title">${name}</p><p class="tiny muted">${detail}</p></div><strong style="font-size:1.2rem">${n}</strong></a>`).join("")}
-      ${callout("tip", "Instala **AlertCops** (Ministerio del Interior) para alertar a la policía por chat si no puedes hablar, y configura **Emergencia SOS** en Ajustes del iPhone.")}
+      ${section("Avisar de forma anónima", "🕶️")}
+      <div class="card stack" style="gap:10px">
+        <p class="small">Para dar un aviso o información sobre un delito <strong>no estás obligado a decir tu nombre</strong>. Llama al <strong>091</strong> (Policía Nacional) o al <strong>062</strong> (Guardia Civil) y di que prefieres no identificarte.</p>
+        <p class="small">Para información que no es urgente (por ejemplo, un punto de venta de droga en tu barrio), usa los apartados de <strong>colaboración ciudadana</strong> de sus webs:</p>
+        <a class="linkbtn small" style="padding:0" href="https://www.policia.es/" target="_blank" rel="noopener">Policía Nacional · policia.es ↗</a>
+        <a class="linkbtn small" style="padding:0" href="https://www.guardiacivil.es/es/colaboracion/" target="_blank" rel="noopener">Guardia Civil · Colaboración ↗</a>
+        <p class="tiny muted">Si tienes que declarar como testigo y temes represalias, pide que te apliquen la <strong>Ley de Protección de Testigos</strong> (LO 19/1994).</p>
+      </div>
+      ${callout("tip", "Instala **AlertCops** (Ministerio del Interior) para alertar a la policía por chat si no puedes hablar, y configura **Emergencia SOS** en Ajustes del iPhone. AlertCops pide registrarte: tus datos solo los ve la policía.")}
     </div>`,
   };
 }

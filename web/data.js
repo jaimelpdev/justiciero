@@ -572,6 +572,25 @@ const MODULES = (() => {
                 B("paragraph", "Grabar un delito para entregarlo a la policía puede ser útil. **Difundirlo** en redes con caras identificables puede vulnerar el derecho a la propia imagen y la protección de datos, perjudicar la investigación y ponerte en peligro."),
                 B("warning", "Nunca grabes si eso te expone. Tu prioridad es tu seguridad y la de la víctima, no el vídeo."),
             ]},
+            {id: "ley-6", title: "Anonimato: protegerte sin máscara", minutes: 5, blocks: [
+                B("paragraph", "El miedo a que te reconozcan y haya represalias es lógico. Pero la máscara no te protege de eso y te crea problemas nuevos."),
+                B("heading", "Por qué la máscara juega en tu contra"),
+                B("bullets", [
+                    "**La policía te parará**: una persona con la cara tapada rondando de noche es exactamente lo que alguien denuncia. Tendrás que identificarte igualmente, y negarte es sancionable (Ley de Seguridad Ciudadana).",
+                    "**Agrava cualquier problema**: si pasa algo, actuar con disfraz es una circunstancia agravante (art. 22.2 del Código Penal), y a un juez le costará más creer que actuabas de buena fe.",
+                    "**Asusta a la víctima**: para alguien en peligro, un enmascarado que se acerca es otra amenaza.",
+                    "**No te hace irreconocible**: tu altura, tu forma de andar, tu ropa, tu voz y las cámaras siguen ahí.",
+                ]),
+                B("heading", "Lo que sí te protege"),
+                B("steps", [
+                    "**No te enfrentes a nadie.** Si no peleas, no persigues y no te pones delante, nadie tiene motivo para buscarte. Un testigo que llama desde lejos es casi invisible.",
+                    "**Avisa sin dar tu nombre.** En el 091 y el 062 no estás obligado a identificarte para dar un aviso, y las webs de la Policía Nacional y la Guardia Civil tienen apartados de colaboración ciudadana. Lo tienes en Emergencias › Avisar de forma anónima.",
+                    "**Cero rastro en redes.** Nada de vídeos, fotos ni comentarios sobre lo que veas o hagas. Tampoco lo cuentes por el barrio.",
+                    "**Si tienes que declarar como testigo y temes represalias**, pide que te apliquen la Ley de Protección de Testigos (LO 19/1994): pueden ocultar tu nombre, tu domicilio y tu imagen.",
+                    "**Cuando hagas servicio, que sea con uniforme de voluntario.** Con el chaleco de Protección Civil o Cruz Roja eres parte de un equipo con respaldo, no alguien que se metió en un asunto ajeno.",
+                ]),
+                B("tip", "La mejor forma de que no sepan quién eres es que nunca hayas sido parte de la historia: observa, avisa y deja que actúen quienes tienen la autoridad para hacerlo."),
+            ]},
         ]}
 
 
@@ -1067,7 +1086,7 @@ const GEAR = (() => {
         {name: "Cámara corporal", icon: "video.fill", status: "condicionado",
                  why: "Grabar para entregar a la policía puede ser útil, pero hay límites legales en cuanto a datos personales y difusión. Nunca publiques las imágenes."},
         {name: "Pasamontañas o máscara", icon: "theatermasks.fill", status: "condicionado",
-                 why: "Ocultar tu cara mientras «vigilas» genera alarma y desconfianza y puede traerte problemas con la policía. Un héroe real va a cara descubierta."},
+                 why: "Ocultar tu cara mientras «vigilas» genera alarma, hace que la policía te pare y agrava cualquier problema. Para proteger tu identidad hay formas mejores: lee Academia › Ley y límites › Anonimato."},
         {name: "Esposas o bridas", icon: "link", status: "prohibido",
                  why: "Usarlas sobre otra persona fuera de los casos legales puede ser detención ilegal, y usarlas mal provoca lesiones. No son para ti."},
         {name: "Porra o defensa extensible", icon: "xmark.shield.fill", status: "prohibido",
