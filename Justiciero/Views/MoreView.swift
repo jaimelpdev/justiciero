@@ -8,6 +8,9 @@ struct MoreView: View {
         NavigationStack {
             List {
                 Section("En la calle") {
+                    NavigationLink { SucesosView() } label: {
+                        Label("Sucesos en tu zona", systemImage: "newspaper.fill")
+                    }
                     NavigationLink { SafeOutingView() } label: {
                         Label("Salida segura", systemImage: "location.circle.fill")
                     }

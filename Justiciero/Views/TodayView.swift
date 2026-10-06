@@ -27,6 +27,12 @@ struct TodayView: View {
                     phaseCard
                     missions
                     workoutCard
+                    NavigationLink {
+                        SucesosView()
+                    } label: {
+                        SucesosCard()
+                    }
+                    .buttonStyle(.plain)
                     tipCard
                     quickActions
                 }

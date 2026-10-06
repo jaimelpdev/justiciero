@@ -73,6 +73,7 @@ struct TrainingView: View {
 }
 
 struct WorkoutRow: View {
+    @EnvironmentObject private var store: ProgressStore
     let workout: Workout
     let locked: Bool
 
@@ -89,6 +90,7 @@ struct WorkoutRow: View {
                     Pill(text: "\(workout.minutes) min", icon: "clock", color: Theme.info)
                     Pill(text: workout.place, icon: "mappin", color: Theme.success)
                     if locked { Pill(text: "Fase \(workout.minPhase)", icon: "lock.fill", color: Theme.muted) }
+                    if !locked && store.doneToday(workout) { Pill(text: "Hecho hoy", icon: "checkmark", color: Theme.success) }
                 }
             }
             Spacer()
@@ -101,8 +103,10 @@ struct WorkoutRow: View {
 }
 
 struct WorkoutDetailView: View {
+    @EnvironmentObject private var store: ProgressStore
     let workout: Workout
     @State private var running = false
+    @State private var justLogged = false
 
     var body: some View {
         ScrollView {
@@ -142,10 +146,26 @@ struct WorkoutDetailView: View {
                 Button {
                     running = true
                 } label: {
-                    Label("Empezar sesión", systemImage: "play.fill")
+                    Label("Empezar sesión guiada", systemImage: "play.fill")
                 }
                 .buttonStyle(PrimaryButtonStyle())
                 .padding(.top, 8)
+
+                Button {
+                    store.logWorkout(workout, minutes: workout.minutes)
+                    withAnimation { justLogged = true }
+                } label: {
+                    Label("Ya lo he hecho: marcar como completado (+\(XP.workout) XP)", systemImage: "checkmark")
+                        .foregroundStyle(.white)
+                }
+                .buttonStyle(PrimaryButtonStyle(color: Theme.cardHighlight))
+
+                if justLogged || store.doneToday(workout) {
+                    Label("Ya has registrado este entreno hoy", systemImage: "checkmark.seal.fill")
+                        .font(.caption)
+                        .foregroundStyle(Theme.success)
+                        .frame(maxWidth: .infinity)
+                }
             }
             .padding()
         }
@@ -210,6 +230,14 @@ struct WorkoutSessionView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Salir") { dismiss() }
+                }
+                if stage != .finished {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button("Terminar") {
+                            timerRunning = false
+                            stage = .finished
+                        }
+                    }
                 }
             }
         }
