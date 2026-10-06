@@ -16,7 +16,7 @@ OUT = ROOT / "web" / "data.js"
 
 # Tipos con argumentos etiquetados -> objetos JS.
 OBJECT_TYPES = {"Phase", "Exercise", "Workout", "WorkoutBlock", "SkillModule", "Lesson",
-                "Scenario", "ScenarioOption", "CodeRule", "GearItem", "Technique", "Belt", "DojoRound"}
+                "Scenario", "ScenarioOption", "CodeRule", "GearItem", "Technique", "Belt", "DojoRound", "HabitItem", "WeekTemplate"}
 
 
 def convert_literals(src: str) -> str:
@@ -107,12 +107,25 @@ def module(src: str, header: str, export: str = "all") -> str:
     return f"(() => {{{body}\n  return {export}();\n}})()"
 
 
+def habits_js(body: str) -> str:
+    # El único trozo de lógica Swift del fichero: el atajo para crear tareas de entreno.
+    start = body.index("private static func workout(")
+    end = body.index("\n    }\n", start) + len("\n    }\n")
+    body = body[:start] + (
+        'const workout = (id, title, detail, minutes) => ({ id: "entreno-" + id, block: "tarde", '
+        'kind: "entreno", title, detail, minutes, workout: id });\n') + body[end:]
+    js = convert_literals(extract_statics(body))
+    # `weeks` se declara antes que las plantillas que usa: se pospone su evaluación.
+    return js.replace("const weeks =", "const weeks = () =>")
+
+
 def main():
     program = (DATA / "ProgramData.swift").read_text()
     workouts = (DATA / "WorkoutData.swift").read_text()
     academy = (DATA / "AcademyData.swift").read_text()
     scenarios = (DATA / "ScenarioData.swift").read_text()
     dojo = (DATA / "DojoData.swift").read_text()
+    habits = (DATA / "HabitData.swift").read_text()
 
     tips_body = body_of(program, "enum DailyTips")
     tips = re.search(r"static let all: \[String\] = (\[.*?\])\n", tips_body, re.S).group(1)
@@ -134,6 +147,8 @@ def main():
         + "\n  return { intro, honesty, setup, numbering, safety };\n})();",
         f"const TECHNIQUES = {module(dojo, 'extension Technique')};",
         f"const BELTS = {module(dojo, 'extension Belt')};",
+        "const HABITS = (() => {" + habits_js(body_of(habits, "enum Habits"))
+        + "\n  return { daily, weeks: weeks(), test };\n})();",
     ]
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text("\n\n".join(parts) + "\n")

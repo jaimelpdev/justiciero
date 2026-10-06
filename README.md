@@ -8,7 +8,7 @@ App para iOS que convierte la idea de ser un «justiciero nocturno estilo Batman
 
 | Sección | Contenido |
 |---|---|
-| **Base** | Rango y XP, racha diaria, fase actual, misiones pendientes, entreno sugerido, consejo del día y accesos rápidos a Salida segura y Emergencia. |
+| **Base** | **Plan de hoy**: qué hacer exactamente cada día (mañana, tarde y noche) según tu fase y el día de la semana; las tareas se marcan solas al hacerlas en la app. Vista de la semana, racha de días cumplidos y recordatorios diarios en iOS. También rango y XP, fase actual, consejo del día y accesos rápidos. |
 | **Programa** | 6 fases (~70 misiones semana a semana). Cada fase se desbloquea al completar el 80 % de la anterior. |
 | **Entreno** | 9 sesiones guiadas con temporizador (series, repeticiones, descansos) o marcadas como hechas sin temporizador, test físico y historial. |
 | **Dojo en casa** | Artes marciales sin gimnasio: 7 cinturones (blanco a negro), 27 técnicas paso a paso con errores típicos y variantes opcionales con compañero, clases guiadas por asaltos con un entrenador por voz que canta combinaciones, y examen para cada cinturón. |
