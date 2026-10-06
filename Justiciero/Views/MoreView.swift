@@ -8,6 +8,9 @@ struct MoreView: View {
         NavigationStack {
             List {
                 Section("En la calle") {
+                    NavigationLink { SucesosView() } label: {
+                        Label("Sucesos en tu zona", systemImage: "newspaper.fill")
+                    }
                     NavigationLink { SafeOutingView() } label: {
                         Label("Salida segura", systemImage: "location.circle.fill")
                     }
@@ -133,7 +136,24 @@ struct EmergencyView: View {
                     .buttonStyle(.plain)
                 }
 
-                Callout(kind: .tip, text: "Instala **AlertCops** (Ministerio del Interior) para alertar a la policía por chat si no puedes hablar, y configura **Emergencia SOS** en Ajustes del iPhone.")
+                SectionHeader(title: "Avisar de forma anónima", icon: "person.fill.questionmark")
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(md("Para dar un aviso o información sobre un delito **no estás obligado a decir tu nombre**. Llama al **091** (Policía Nacional) o al **062** (Guardia Civil) y di que prefieres no identificarte."))
+                    Text(md("Para información que no es urgente (por ejemplo, un punto de venta de droga en tu barrio), usa los apartados de **colaboración ciudadana** de sus webs."))
+                    if let url = URL(string: "https://www.policia.es/") {
+                        Link(destination: url) { Label("Policía Nacional · policia.es", systemImage: "arrow.up.right.square") }
+                    }
+                    if let url = URL(string: "https://www.guardiacivil.es/es/colaboracion/") {
+                        Link(destination: url) { Label("Guardia Civil · Colaboración", systemImage: "arrow.up.right.square") }
+                    }
+                    Text(md("Si tienes que declarar como testigo y temes represalias, pide que te apliquen la **Ley de Protección de Testigos** (LO 19/1994)."))
+                        .font(.footnote)
+                        .foregroundStyle(Theme.muted)
+                }
+                .font(.subheadline)
+                .card()
+
+                Callout(kind: .tip, text: "Instala **AlertCops** (Ministerio del Interior) para alertar a la policía por chat si no puedes hablar, y configura **Emergencia SOS** en Ajustes del iPhone. AlertCops pide registrarte: tus datos solo los ve la policía.")
             }
             .padding()
         }

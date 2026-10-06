@@ -178,6 +178,13 @@ function workoutsThisWeek() {
   monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
   return state.workouts.filter((w) => w.date >= monday.getTime()).length;
 }
+const doneToday = (workoutID) => state.workouts.some((w) => w.workoutID === workoutID && dayKey(new Date(w.date)) === dayKey());
+function logWorkout(w, minutes) {
+  commit((s) => { s.workouts.unshift({ id: String(Date.now()), date: Date.now(), workoutID: w.id, name: w.name, minutes }); gainXP(XP.workout); markActive(); }, false);
+}
+function logDojoClass(b) {
+  commit((s) => { s.dojoClasses[b.id] = (s.dojoClasses[b.id] || 0) + 1; gainXP(XP.dojoClass); markActive(); }, false);
+}
 const learnedCount = (m) => m.lessons.filter((l) => state.completedLessons.includes(l.id)).length;
 const optimalScenarios = () => Object.values(state.scenarioBest).filter((v) => v === 2).length;
 function dailyTip() {
@@ -216,7 +223,7 @@ function workoutRow(w, locked) {
     <div class="grow stack" style="gap:4px">
       <p class="title">${esc(w.name)}</p>
       <p class="small muted">${esc(w.focus)}</p>
-      <div class="pills">${pill(`⏱ ${w.minutes} min`, "var(--info)")}${pill(`📍 ${w.place}`, "var(--success)")}${locked ? pill(`🔒 Fase ${w.minPhase}`, "var(--muted)") : ""}</div>
+      <div class="pills">${pill(`⏱ ${w.minutes} min`, "var(--info)")}${pill(`📍 ${w.place}`, "var(--success)")}${locked ? pill(`🔒 Fase ${w.minPhase}`, "var(--muted)") : ""}${!locked && doneToday(w.id) ? pill("✓ Hecho hoy", "var(--success)") : ""}</div>
     </div>`;
   return locked ? `<div class="card row locked">${inner}</div>` : link(`#/entreno/${w.id}`, inner);
 }
@@ -259,6 +266,8 @@ function viewBase() {
       ${section("Entreno sugerido hoy", "🏋️")}
       ${workoutRow(suggested, false)}
       ${phase.id >= 1 ? dojoCard() : ""}
+      ${link("#/sucesos", `<span style="font-size:1.5rem">📰</span><div class="grow"><p class="title">Sucesos ${state.profile.city ? `en ${esc(zoneNames()[0] || state.profile.city)}` : "en tu zona"}</p>
+        <p class="small muted">${state.profile.city ? "Lo que ha pasado en los últimos días" : "Elige tu ciudad para ver las noticias de sucesos"}</p></div>`)}
       ${section("Consejo del día", "💡")}
       <div class="card"><em>${esc(dailyTip())}</em></div>
       <div class="grid2">
@@ -338,7 +347,7 @@ function viewMore() {
     title: "Más", large: true,
     html: `<div class="stack">
       ${section("En la calle")}
-      <div class="card list" style="padding:4px 16px">${item("#/salida", "📍", "Salida segura")}${item("#/emergencias", "🆘", "Emergencias")}${item("#/equipo", "🎒", "Equipamiento")}</div>
+      <div class="card list" style="padding:4px 16px">${item("#/sucesos", "📰", "Sucesos en tu zona")}${item("#/salida", "📍", "Salida segura")}${item("#/emergencias", "🆘", "Emergencias")}${item("#/equipo", "🎒", "Equipamiento")}</div>
       ${section("Tu progreso")}
       <div class="card list" style="padding:4px 16px">${item("#/perfil", "👤", "Perfil y tests físicos")}${item("#/bitacora", "📓", "Bitácora")}${item("#/rangos", "🏅", "Rangos")}</div>
       ${section("Información")}
@@ -407,7 +416,9 @@ function viewWorkout(id) {
           <p class="tiny muted"><strong>Más fácil:</strong> ${esc(b.exercise.easier)}</p>
           ${b.rest ? `<p class="tiny muted">⏸ Descanso ${b.rest} s</p>` : ""}
         </div>`).join("")}
-      <a class="btn" href="#/sesion/${w.id}">▶ Empezar sesión</a>
+      <a class="btn" href="#/sesion/${w.id}">▶ Empezar sesión guiada</a>
+      <button class="btn ghost" data-act="workout-quick" data-id="${w.id}">✓ Ya lo he hecho: marcar como completado (+${XP.workout} XP)</button>
+      ${doneToday(w.id) ? `<p class="tiny center" style="color:var(--success)">✓ Ya has registrado este entreno hoy</p>` : ""}
     </div>`,
   };
 }
@@ -487,6 +498,7 @@ function viewSession(id) {
   }
   return {
     title: w.name, back: `#/entreno/${w.id}`, hideTabs: true,
+    action: s.stage === "finished" ? "" : `<button class="linkbtn" data-act="session-end">Terminar</button>`,
     html: `<div class="session">${bar(doneSets / total)}${body}</div>`,
   };
 }
@@ -708,7 +720,15 @@ function viewEmergency() {
       ${EMERGENCY_NUMBERS.map(([n, name, detail, emoji]) => `<a class="card row" href="${telLink(n)}">
         <span style="font-size:1.5rem;width:32px;text-align:center">${emoji}</span>
         <div class="grow"><p class="title">${name}</p><p class="tiny muted">${detail}</p></div><strong style="font-size:1.2rem">${n}</strong></a>`).join("")}
-      ${callout("tip", "Instala **AlertCops** (Ministerio del Interior) para alertar a la policía por chat si no puedes hablar, y configura **Emergencia SOS** en Ajustes del iPhone.")}
+      ${section("Avisar de forma anónima", "🕶️")}
+      <div class="card stack" style="gap:10px">
+        <p class="small">Para dar un aviso o información sobre un delito <strong>no estás obligado a decir tu nombre</strong>. Llama al <strong>091</strong> (Policía Nacional) o al <strong>062</strong> (Guardia Civil) y di que prefieres no identificarte.</p>
+        <p class="small">Para información que no es urgente (por ejemplo, un punto de venta de droga en tu barrio), usa los apartados de <strong>colaboración ciudadana</strong> de sus webs:</p>
+        <a class="linkbtn small" style="padding:0" href="https://www.policia.es/" target="_blank" rel="noopener">Policía Nacional · policia.es ↗</a>
+        <a class="linkbtn small" style="padding:0" href="https://www.guardiacivil.es/es/colaboracion/" target="_blank" rel="noopener">Guardia Civil · Colaboración ↗</a>
+        <p class="tiny muted">Si tienes que declarar como testigo y temes represalias, pide que te apliquen la <strong>Ley de Protección de Testigos</strong> (LO 19/1994).</p>
+      </div>
+      ${callout("tip", "Instala **AlertCops** (Ministerio del Interior) para alertar a la policía por chat si no puedes hablar, y configura **Emergencia SOS** en Ajustes del iPhone. AlertCops pide registrarte: tus datos solo los ve la policía.")}
     </div>`,
   };
 }
@@ -1038,7 +1058,9 @@ function viewBelt(id) {
         ${bar(done / b.minClasses, done >= b.minClasses ? "var(--success)" : null)}
         <p class="tiny muted">Recomendado: 3 clases por semana, con un día de descanso entre ellas.</p>
       </div>
-      ${un ? `<a class="btn" href="#/clase/${b.id}">▶ Empezar clase (${beltMinutes(b)} min)</a>` : `<button class="btn" disabled>▶ Empezar clase</button>`}
+      ${un ? `<a class="btn" href="#/clase/${b.id}">▶ Empezar clase guiada (${beltMinutes(b)} min)</a>
+        <button class="btn ghost" data-act="dojo-quick" data-id="${b.id}">✓ Ya la he hecho: marcar clase como completada (+${XP.dojoClass} XP)</button>`
+        : `<button class="btn" disabled>▶ Empezar clase</button>`}
       ${section("Estructura de la clase", "📋")}
       <div class="card list" style="padding:4px 16px">${b.rounds.map((r) => `
         <div class="list-item"><span style="width:24px;text-align:center">${ROUND_LABEL[r.kind][0]}</span>
@@ -1200,11 +1222,160 @@ function viewDojoClass(id) {
   const fresh = !c.started;
   return {
     title: beltName(b), back: `#/cinturon/${b.id}`, hideTabs: true,
-    action: `<button class="linkbtn" data-act="dojo-voice" aria-label="Voz">${dojoVoice ? "🔊" : "🔇"}</button>`,
+    action: `<button class="linkbtn" data-act="dojo-voice" aria-label="Voz">${dojoVoice ? "🔊" : "🔇"}</button>${c.finished ? "" : `<button class="linkbtn" data-act="dojo-end">Terminar</button>`}`,
     html: `<div class="session">${bar(c.index / c.segments.length)}${body}
       ${c.finished ? "" : `<div class="row"><button class="btn" data-act="dojo-toggle" style="${c.running ? "--c:var(--card-hi);color:var(--text)" : ""}">${c.running ? "Pausar" : fresh ? "Empezar" : "Seguir"}</button>
         <button class="btn ghost" style="width:110px" data-act="dojo-skip">Saltar</button></div>`}
       ${fresh ? `<p class="tiny muted center">Sube el volumen: el entrenador te cantará las combinaciones. Puedes silenciarlo con 🔊.</p>` : ""}
+    </div>`,
+  };
+}
+
+/* ---------- Sucesos ---------- */
+
+let sucesos = { slug: null, data: null, index: null, loading: false, error: null };
+let sucesosAll = false;
+const citySlug = (c) => c.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+function timeAgo(iso) {
+  const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  if (min < 60) return `hace ${Math.max(1, min)} min`;
+  if (min < 1440) return `hace ${Math.round(min / 60)} h`;
+  return `hace ${Math.round(min / 1440)} d`;
+}
+
+async function loadSucesos(force = false) {
+  const city = state.profile.city || "";
+  const slug = city ? citySlug(city) : null;
+  if (!force && (sucesos.loading || (sucesos.slug === slug && (sucesos.data || sucesos.error)))) return;
+  sucesos = { ...sucesos, slug, loading: true, error: null, data: null };
+  if (location.hash === "#/sucesos") render();
+  try {
+    if (!sucesos.index) {
+      const r = await fetch("feeds/index.json", { cache: "no-store" });
+      if (r.ok) sucesos.index = await r.json();
+    }
+    if (slug) {
+      const r = await fetch(`feeds/${slug}.json`, { cache: "no-store" });
+      if (r.ok) sucesos.data = await r.json();
+      else sucesos.error = "sin-feed";
+    } else {
+      sucesos.error = "sin-ciudad";
+    }
+  } catch (e) {
+    sucesos.error = "red";
+  }
+  sucesos.loading = false;
+  if (location.hash === "#/sucesos") render();
+}
+
+const SEEN_KEY = "justiciero.sucesos.seen";
+function lastSeen() { try { return Number(localStorage.getItem(SEEN_KEY)) || 0; } catch (e) { return 0; } }
+
+const fold = (t) => String(t || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+/** Nombres de tu zona (barrio, distrito...) separados por comas. */
+const zoneNames = () => (state.profile.zone || "").split(",").map((z) => z.trim()).filter((z) => z.length >= 3);
+function inZone(item) {
+  const title = fold(item.title);
+  return zoneNames().some((z) => new RegExp(`(^|[^a-z0-9])${fold(z).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^a-z0-9]|$)`).test(title));
+}
+
+let locating = false;
+async function locateZone() {
+  if (!("geolocation" in navigator)) { alert("Tu navegador no permite obtener la ubicación. Escribe tu ciudad y tu barrio a mano."); return; }
+  locating = true;
+  render();
+  try {
+    const pos = await new Promise((ok, ko) => navigator.geolocation.getCurrentPosition(ok, ko, { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 }));
+    const { latitude, longitude } = pos.coords;
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=16&accept-language=es&lat=${latitude.toFixed(4)}&lon=${longitude.toFixed(4)}`);
+    const a = (await r.json()).address || {};
+    const city = a.city || a.town || a.village || a.municipality || "";
+    const zones = [a.suburb || a.city_district || a.district, a.quarter || a.neighbourhood].filter(Boolean);
+    if (!city) throw new Error("sin ciudad");
+    commit((s) => { s.profile.city = city; s.profile.zone = [...new Set(zones)].join(", "); });
+    toast(`📍 ${zones[0] ? `${zones[0]}, ` : ""}${city}`);
+    loadSucesos(true);
+  } catch (e) {
+    alert("No he podido obtener tu ubicación. Revisa que Safari tenga permiso de ubicación o escribe tu ciudad y tu barrio a mano.");
+  } finally {
+    locating = false;
+    render();
+  }
+}
+
+function newsCard(i, seen) {
+  return `
+    <div class="card stack" style="gap:6px">
+      <div class="row"><span class="tiny grow muted">${esc(i.source)} · ${timeAgo(i.date)}</span>${seen && new Date(i.date).getTime() > seen ? pill("Nuevo") : ""}</div>
+      <a href="${esc(i.link)}" target="_blank" rel="noopener" style="color:var(--text);text-decoration:none"><p class="title">${esc(i.title)}</p></a>
+      <div class="row"><a class="linkbtn tiny" style="padding-left:0" href="${esc(i.link)}" target="_blank" rel="noopener">Leer noticia ↗</a><span class="grow"></span>
+        <a class="linkbtn tiny" href="#/bitacora-nueva/observacion?t=${encodeURIComponent(i.title)}">📝 Anotar</a></div>
+    </div>`;
+}
+
+function viewSucesos() {
+  const city = state.profile.city || "";
+  const zone = state.profile.zone || "";
+  const zones = zoneNames();
+  if (sucesos.slug !== (city ? citySlug(city) : null) || (!sucesos.data && !sucesos.error && !sucesos.loading)) setTimeout(() => loadSucesos(), 0);
+  const seen = lastSeen();
+  const cities = sucesos.index ? sucesos.index.cities.map((c) => c.city) : [];
+  const place = zones[0] ? `"${zones[0]}" ${city}` : `"${city || "España"}"`;
+  const newsQuery = encodeURIComponent(`${place} (sucesos OR detenido OR robo OR agresión)`);
+  const alertQuery = encodeURIComponent(`${place} (sucesos OR detenido OR robo)`);
+  let feed = "";
+  if (!city) {
+    feed = `<div class="card muted">Pulsa «Usar mi ubicación» o escribe tu ciudad para ver los sucesos de tu zona.</div>`;
+  } else if (sucesos.loading) {
+    feed = `<div class="card muted center">Cargando noticias…</div>`;
+  } else if (sucesos.error === "red") {
+    feed = callout("warning", "No hay conexión. Vuelve a intentarlo cuando tengas internet.");
+  } else if (sucesos.error === "sin-feed" || !sucesos.data) {
+    feed = callout("info", `Todavía no hay resumen automático para **${city}** (está disponible para las ${cities.length || 60} ciudades más grandes de España). Mientras tanto, usa el botón «Google Noticias» de abajo, que busca directamente en tu zona.`);
+  } else {
+    const items = sucesos.data.items;
+    const near = zones.length ? items.filter(inZone) : [];
+    const rest = items.filter((i) => !near.includes(i));
+    const fresh = items.filter((i) => new Date(i.date).getTime() > seen).length;
+    feed = `<p class="tiny muted">Actualizado ${timeAgo(sucesos.data.updated)} · ${items.length} noticias de los últimos 3 días${seen && fresh ? ` · <strong style="color:var(--accent)">${fresh} nuevas</strong>` : ""}</p>
+      ${zones.length ? section(`En tu zona · ${zones.join(", ")}`, "📍") + (near.length ? near.map((i) => newsCard(i, seen)).join("")
+        : `<div class="card muted small">Ninguna noticia de los últimos días menciona ${esc(zones.join(" o "))}. Buena señal. Para buscar más a fondo, usa «Google Noticias» abajo.</div>`) : ""}
+      ${section(zones.length ? `Resto de ${city}` : `Últimos sucesos en ${city}`, "📰")}
+      ${rest.length ? rest.slice(0, sucesosAll ? rest.length : 10).map((i) => newsCard(i, seen)).join("") : `<div class="card muted">No hay más noticias de sucesos en los últimos días.</div>`}
+      ${!sucesosAll && rest.length > 10 ? `<button class="btn ghost" data-act="sucesos-all">Ver las ${rest.length} noticias</button>` : ""}`;
+    setTimeout(() => { try { localStorage.setItem(SEEN_KEY, String(Date.now())); } catch (e) { /* sin almacenamiento */ } }, 2000);
+  }
+  return {
+    title: "Sucesos", back: "#/mas",
+    action: city ? `<button class="linkbtn" data-act="sucesos-reload" aria-label="Actualizar">↻</button>` : "",
+    html: `<div class="stack">
+      ${callout("danger", "Enterarte de un suceso **no es para ir allí**. Sirve para evitar zonas, avisar a los tuyos y estar atento. Si sabes algo útil para la investigación, llama al 091 / 062 o usa AlertCops. No difundas bulos ni datos de nadie.")}
+      <div class="card stack" style="gap:10px">
+        <button class="btn" data-act="sucesos-locate" ${locating ? "disabled" : ""}>${locating ? "Buscando tu zona…" : "📍 Usar mi ubicación"}</button>
+        <div class="field"><label for="sucesos-city">Ciudad o pueblo</label>
+          <input type="text" id="sucesos-city" list="sucesos-cities" value="${esc(city)}" placeholder="Ej. Madrid" autocomplete="off"></div>
+        <div class="field"><label for="sucesos-zone">Barrio o distrito (opcional, separa varios con comas)</label>
+          <input type="text" id="sucesos-zone" value="${esc(zone)}" placeholder="Ej. Latina, Aluche" autocomplete="off"></div>
+        <button class="btn ghost" data-act="sucesos-city">Guardar zona</button>
+        <datalist id="sucesos-cities">${cities.map((c) => `<option value="${esc(c)}">`).join("")}</datalist>
+        <p class="tiny muted">Tu ubicación solo se usa para saber tu ciudad y tu barrio. No se guarda ni se envía a nadie más.</p>
+      </div>
+      ${feed}
+      ${section("Buscar más en tu zona", "🔎")}
+      <div class="card list" style="padding:4px 16px">
+        <a class="list-item chev" href="https://news.google.com/search?q=${newsQuery}%20when%3A7d&hl=es&gl=ES&ceid=ES%3Aes" target="_blank" rel="noopener"><span style="width:28px;text-align:center">🗞️</span><span class="grow">Google Noticias: sucesos en ${esc(zones[0] || city || "tu zona")} (7 días)</span></a>
+        <a class="list-item chev" href="https://alertcops.ses.mir.es/" target="_blank" rel="noopener"><span style="width:28px;text-align:center">🚨</span><span class="grow">AlertCops: alertas oficiales y avisar a la policía</span></a>
+        <a class="list-item chev" href="https://x.com/policia" target="_blank" rel="noopener"><span style="width:28px;text-align:center">👮</span><span class="grow">Policía Nacional (@policia)</span></a>
+        <a class="list-item chev" href="https://x.com/guardiacivil" target="_blank" rel="noopener"><span style="width:28px;text-align:center">🚓</span><span class="grow">Guardia Civil (@guardiacivil)</span></a>
+        <a class="list-item chev" href="https://www.interior.gob.es/opencms/es/prensa/balances-e-informes/" target="_blank" rel="noopener"><span style="width:28px;text-align:center">📊</span><span class="grow">Balance de criminalidad por municipio (Interior)</span></a>
+      </div>
+      ${section("Que te avisen", "🔔")}
+      <div class="card stack" style="gap:10px">
+        <p class="small">Crea una <strong>alerta de Google</strong> y te llegará un correo cada vez que se publique un suceso en ${esc(zones[0] || city || "tu zona")}.</p>
+        <a class="btn ghost" href="https://www.google.com/alerts?q=${alertQuery}" target="_blank" rel="noopener">Crear alerta por correo</a>
+        <p class="small">Sigue también en X o Instagram a la <strong>Policía Local</strong> y al <strong>112</strong> de tu comunidad, y únete al grupo de vecinos de tu barrio: suelen ser los primeros en avisar.</p>
+      </div>
     </div>`,
   };
 }
@@ -1296,7 +1467,8 @@ const ROUTES = [
   [/^#\/aviso$/, viewAbout],
   [/^#\/instalar$/, viewInstall],
   [/^#\/bitacora(?:\/(\w+))?$/, viewJournal],
-  [/^#\/bitacora-nueva\/(\w+)$/, viewJournalNew],
+  [/^#\/bitacora-nueva\/(\w+)(?:\?t=(.*))?$/, (k, t) => viewJournalNew(k, t ? decodeURIComponent(t) : "")],
+  [/^#\/sucesos$/, viewSucesos],
   [/^#\/perfil$/, viewProfile],
   [/^#\/dojo$/, viewDojo],
   [/^#\/cinturon\/(\d+)$/, viewBelt],
@@ -1308,7 +1480,7 @@ const ROUTES = [
 function tabFor(hash) {
   const map = { fase: "#/programa", entreno: "#/entreno", sesion: "#/entreno", test: "#/entreno", modulo: "#/academia", leccion: "#/academia",
     codigo: "#/academia", escenarios: "#/academia", escenario: "#/academia", kim: "#/academia",
-    dojo: "#/entreno", cinturon: "#/entreno", tecnicas: "#/entreno", tecnica: "#/entreno", clase: "#/entreno" };
+    sucesos: "#/mas", dojo: "#/entreno", cinturon: "#/entreno", tecnicas: "#/entreno", tecnica: "#/entreno", clase: "#/entreno" };
   const key = hash.split("/")[1];
   return TABS.find(([h]) => h === hash)?.[0] || map[key] || "#/mas";
 }
@@ -1327,6 +1499,7 @@ function render() {
   if (!view) { location.replace("#/base"); return; }
 
   if (hash !== lastHash && !hash.startsWith("#/sesion")) session = null;
+  if (hash !== lastHash && hash !== "#/sucesos") sucesosAll = false;
   if (hash !== lastHash && !hash.startsWith("#/clase")) { if (dojoClass) stopSpeech(); dojoClass = null; }
   if (hash !== lastHash && !hash.startsWith("#/escenario/")) scenarioPlay = null;
   if (hash !== lastHash && hash !== "#/kim") kim = { stage: "menu", hard: kim.hard };
@@ -1383,14 +1556,38 @@ const ACTIONS = {
     if (i >= 0) { s.completedTasks.splice(i, 1); s.xp = Math.max(0, s.xp - XP.task); }
     else { s.completedTasks.push(d.id); gainXP(XP.task); markActive(); }
   }),
+  "workout-quick": (d) => {
+    const w = WORKOUTS.find((x) => x.id === d.id);
+    logWorkout(w, w.minutes);
+    render();
+  },
+  "session-end": () => { session.running = false; session.stage = "finished"; render(); },
+  "dojo-quick": (d) => {
+    const b = BELTS[Number(d.id)];
+    if (!beltUnlocked(b)) return;
+    logDojoClass(b);
+    toast(`Clase registrada · ${classesDone(b)}/${b.minClasses}`);
+    render();
+  },
+  "dojo-end": () => { const c = dojoClass; c.running = false; c.finished = true; stopSpeech(); render(); },
+  "sucesos-city": () => {
+    const city = document.getElementById("sucesos-city").value.trim();
+    const zone = document.getElementById("sucesos-zone").value.trim();
+    if (!city) return;
+    commit((s) => { s.profile.city = city; s.profile.zone = zone; });
+    toast("Zona guardada");
+    loadSucesos(true);
+  },
+  "sucesos-locate": () => locateZone(),
+  "sucesos-reload": () => loadSucesos(true),
+  "sucesos-all": () => { sucesosAll = true; render(); },
   "session-toggle": () => { session.running = !session.running; beep(0); render(); },
   "session-done": () => { sessionFinishSet(); render(); },
   "session-skip": () => { sessionAdvance(); render(); },
   "session-save": () => {
     if (session.saved) return;
     session.saved = true;
-    const w = session.w, minutes = Math.max(1, Math.round((Date.now() - session.start) / 60000));
-    commit((s) => { s.workouts.unshift({ id: crypto.randomUUID?.() || String(Date.now()), date: Date.now(), workoutID: w.id, name: w.name, minutes }); gainXP(XP.workout); markActive(); }, false);
+    logWorkout(session.w, Math.max(1, Math.round((Date.now() - session.start) / 60000)));
     location.hash = "#/entreno";
   },
   step: (d, el) => {
@@ -1481,7 +1678,7 @@ const ACTIONS = {
     const c = dojoClass;
     if (!c || c.saved) return;
     c.saved = true;
-    commit((s) => { s.dojoClasses[c.belt.id] = (s.dojoClasses[c.belt.id] || 0) + 1; gainXP(XP.dojoClass); markActive(); }, false);
+    logDojoClass(c.belt);
     location.hash = `#/cinturon/${c.belt.id}`;
   },
   export: () => {

@@ -288,6 +288,10 @@ final class ProgressStore: ObservableObject {
         markActive()
     }
 
+    func doneToday(_ workout: Workout) -> Bool {
+        state.workouts.contains { $0.workoutID == workout.id && Calendar.current.isDateInToday($0.date) }
+    }
+
     var workoutsThisWeek: Int {
         guard let weekStart = Calendar.current.dateInterval(of: .weekOfYear, for: .now)?.start else { return 0 }
         return state.workouts.filter { $0.date >= weekStart }.count

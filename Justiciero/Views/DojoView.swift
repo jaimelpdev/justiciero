@@ -173,10 +173,20 @@ struct BeltView: View {
                 Button {
                     training = true
                 } label: {
-                    Label("Empezar clase (\(belt.minutes) min)", systemImage: "play.fill")
+                    Label("Empezar clase guiada (\(belt.minutes) min)", systemImage: "play.fill")
                 }
                 .buttonStyle(PrimaryButtonStyle(color: unlocked ? Theme.accent : Theme.muted))
                 .disabled(!unlocked)
+
+                if unlocked {
+                    Button {
+                        withAnimation { store.logDojoClass(belt) }
+                    } label: {
+                        Label("Ya la he hecho: marcar clase como completada (+\(XP.dojoClass) XP)", systemImage: "checkmark")
+                            .foregroundStyle(.white)
+                    }
+                    .buttonStyle(PrimaryButtonStyle(color: Theme.cardHighlight))
+                }
 
                 SectionHeader(title: "Estructura de la clase", icon: "list.bullet.rectangle")
                 VStack(alignment: .leading, spacing: 0) {
@@ -504,6 +514,14 @@ struct DojoClassView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Salir") { dismiss() }
+                }
+                if !finished {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Terminar") {
+                            running = false
+                            finished = true
+                        }
+                    }
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button {
