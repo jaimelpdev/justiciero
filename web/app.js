@@ -81,6 +81,7 @@ function defaultState() {
     dojoClasses: {},
     dojoExam: [],
     dojoBelts: [],
+    habitLog: {},
   };
 }
 
@@ -180,11 +181,154 @@ function workoutsThisWeek() {
 }
 const doneToday = (workoutID) => state.workouts.some((w) => w.workoutID === workoutID && dayKey(new Date(w.date)) === dayKey());
 function logWorkout(w, minutes) {
-  commit((s) => { s.workouts.unshift({ id: String(Date.now()), date: Date.now(), workoutID: w.id, name: w.name, minutes }); gainXP(XP.workout); markActive(); }, false);
+  commit((s) => { s.workouts.unshift({ id: String(Date.now()), date: Date.now(), workoutID: w.id, name: w.name, minutes }); gainXP(XP.workout); markActive(); markHabit("entreno"); }, false);
 }
 function logDojoClass(b) {
-  commit((s) => { s.dojoClasses[b.id] = (s.dojoClasses[b.id] || 0) + 1; gainXP(XP.dojoClass); markActive(); }, false);
+  commit((s) => { s.dojoClasses[b.id] = (s.dojoClasses[b.id] || 0) + 1; gainXP(XP.dojoClass); markActive(); markHabit("dojo"); }, false);
 }
+/* ---------- Plan diario ---------- */
+
+const AUTO_KINDS = ["entreno", "dojo", "leccion", "mision", "kim", "escenario", "bitacora", "test"];
+const BLOCKS = [["manana", "🌅", "Mañana"], ["tarde", "☀️", "Tarde"], ["noche", "🌙", "Noche"]];
+const weekdayIndex = (d) => (d.getDay() + 6) % 7; // lunes = 0
+
+function plan(date = new Date()) {
+  const phase = currentPhase().id;
+  const template = [...HABITS.weeks].reverse().find((w) => w.minPhase <= phase) || HABITS.weeks[0];
+  const idx = weekdayIndex(date);
+  const items = [...HABITS.daily, ...template.days[idx]];
+  const last = state.tests[state.tests.length - 1];
+  if (idx === 6 && (!last || date.getTime() - last.date >= 25 * 86400000)) items.push(HABITS.test);
+  const order = BLOCKS.map((b) => b[0]);
+  return items.map((it, i) => [it, i]).sort((a, b) => order.indexOf(a[0].block) - order.indexOf(b[0].block) || a[1] - b[1]).map((x) => x[0]);
+}
+const habitLogFor = (date) => (state.habitLog || {})[dayKey(date)] || [];
+function habitDone(item, date = new Date()) {
+  const log = habitLogFor(date);
+  return log.includes(item.id) || (AUTO_KINDS.includes(item.kind) && log.includes(`kind:${item.kind}`));
+}
+function markHabit(kind) {
+  state.habitLog = state.habitLog || {};
+  const k = dayKey();
+  const log = state.habitLog[k] || (state.habitLog[k] = []);
+  if (!log.includes(`kind:${kind}`)) log.push(`kind:${kind}`);
+}
+function habitProgress(date = new Date()) {
+  const items = plan(date);
+  return { done: items.filter((i) => habitDone(i, date)).length, total: items.length };
+}
+function habitStreak() {
+  const met = (d) => { const p = habitProgress(d); return p.total > 0 && p.done / p.total >= 0.8; };
+  const d = new Date();
+  if (!met(d)) d.setDate(d.getDate() - 1);
+  let n = 0;
+  while (met(d) && n < 3650) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+function currentWeekDays() {
+  const monday = new Date(); monday.setHours(12, 0, 0, 0);
+  monday.setDate(monday.getDate() - weekdayIndex(monday));
+  return [...Array(7)].map((_, i) => { const d = new Date(monday); d.setDate(monday.getDate() + i); return d; });
+}
+function nextLesson() {
+  for (const m of MODULES) { const l = m.lessons.find((x) => !state.completedLessons.includes(x.id)); if (l) return [m, l]; }
+  return null;
+}
+/** Título, detalle y enlace concretos de una tarea del plan. */
+function resolveHabit(item) {
+  const r = { title: item.title, detail: item.detail, href: null };
+  switch (item.kind) {
+    case "entreno": r.href = `#/entreno/${item.workout}`; break;
+    case "dojo": { const b = currentBelt(); r.title = `Clase del Dojo · cinturón ${b.name.toLowerCase()}`; r.href = `#/cinturon/${b.id}`; break; }
+    case "leccion": {
+      const n = nextLesson();
+      if (n) { r.title = `Lección: ${n[1].title}`; r.detail = `${n[0].title} · ${n[1].minutes} min. Léela y márcala como aprendida.`; r.href = `#/leccion/${n[0].id}/${n[1].id}`; }
+      else { r.title = "Repasa una lección"; r.detail = "Ya has aprendido todas las lecciones: repasa la que peor recuerdes."; r.href = "#/academia"; }
+      break;
+    }
+    case "mision": {
+      const p = currentPhase();
+      const t = p.tasks.filter((x) => !isDone(x)).sort((a, b) => a.week - b.week)[0];
+      if (t) { r.title = `Misión: ${t.title}`; r.detail = t.detail; } else { r.title = "Misiones de la fase completadas"; r.detail = "Repasa las misiones de tu fase o adelanta el test físico."; }
+      r.href = `#/fase/${p.id}`;
+      break;
+    }
+    case "kim": r.href = "#/kim"; break;
+    case "escenario": r.href = "#/escenarios"; break;
+    case "bitacora": r.href = "#/bitacora-nueva/reflexion"; break;
+    case "test": r.href = "#/test"; break;
+    case "salida": r.href = "#/salida"; break;
+  }
+  if ((item.kind === "leccion" || item.kind === "mision") && habitDone(item)) {
+    r.detail = r.href && r.title !== item.title ? `Hecha. Si te apetece adelantar: ${r.title}.` : "Hecha.";
+    r.title = item.title;
+  }
+  return r;
+}
+
+function habitRow(item) {
+  const done = habitDone(item);
+  const r = resolveHabit(item);
+  return `
+    <div class="card row top ${done ? "done" : ""}">
+      <button class="check ${done ? "on" : ""}" data-act="toggle-habit" data-id="${item.id}" aria-label="Hecho">${done ? "✓" : ""}</button>
+      <div class="grow stack" style="gap:6px">
+        <p class="title task-title">${esc(r.title)}</p>
+        <p class="small muted">${esc(r.detail)}</p>
+        <div class="row">
+          <div class="pills grow">${item.minutes ? pill(`⏱ ${item.minutes} min`, "var(--info)") : ""}${AUTO_KINDS.includes(item.kind) && !done ? pill("Se marca sola", "var(--muted)") : ""}</div>
+          ${r.href ? `<a class="linkbtn small" style="font-weight:700;padding:4px 0" href="${r.href}">Ir →</a>` : ""}
+        </div>
+      </div>
+    </div>`;
+}
+
+function dailyPlanSection() {
+  const items = plan();
+  const p = habitProgress();
+  const complete = p.done === p.total;
+  const raw = new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+  const today = raw.charAt(0).toUpperCase() + raw.slice(1);
+  const streakDays = habitStreak();
+  return `
+    <div class="card hi stack" style="gap:8px">
+      <div class="row"><div class="grow"><p class="h2" style="font-size:1.25rem">Tu plan de hoy</p><p class="tiny muted">${today}</p></div>
+        <strong style="font-size:1.5rem;color:${complete ? "var(--success)" : "var(--accent)"}">${p.done}/${p.total}</strong></div>
+      ${bar(p.done / p.total, complete ? "var(--success)" : null)}
+      <div class="row tiny muted"><span class="grow">⏱ ${items.reduce((a, i) => a + i.minutes, 0)} min en total</span><span>🔥 Racha: ${streakDays} ${streakDays === 1 ? "día" : "días"}</span></div>
+      ${complete ? `<p class="small" style="color:var(--success);font-weight:700">Día completado. Así se construye un protector.</p>` : ""}
+    </div>
+    ${BLOCKS.map(([key, emoji, label]) => {
+      const blockItems = items.filter((i) => i.block === key);
+      return blockItems.length ? section(label, emoji) + blockItems.map(habitRow).join("") : "";
+    }).join("")}
+    <a class="btn ghost" href="#/semana">📅 Ver la semana</a>`;
+}
+
+function viewWeek() {
+  const dailyIds = HABITS.daily.map((d) => d.id);
+  const KIND_ICON = { entreno: "💪", dojo: "🥋", mision: "🎯", kim: "👁️", escenario: "🎭", test: "⏱️", salida: "📍", voluntariado: "❤️", descanso: "🛌" };
+  const now = new Date();
+  return {
+    title: "Tu semana", back: "#/base",
+    html: `<div class="stack">
+      <p class="muted">Cada día tiene los mismos hábitos fijos (levantarte a tu hora, respiración, lección, bitácora y dormir a tu hora) más el entrenamiento que toca. El plan cambia cuando avanzas de fase.</p>
+      ${currentWeekDays().map((d) => {
+        const isToday = dayKey(d) === dayKey(now);
+        const future = d > now && !isToday;
+        const p = habitProgress(d);
+        const specific = plan(d).filter((i) => !dailyIds.includes(i.id));
+        return `<div class="card stack ${isToday ? "hi" : ""}" style="gap:6px">
+          <div class="row"><p class="title grow" style="text-transform:capitalize">${d.toLocaleDateString("es-ES", { weekday: "long", day: "numeric" })}</p>
+            ${isToday ? pill("HOY") : ""}${future ? "" : `<strong class="small" style="color:${p.done === p.total ? "var(--success)" : "var(--muted)"}">${p.done}/${p.total}</strong>`}</div>
+          ${specific.map((i) => `<p class="small muted">${KIND_ICON[i.kind] || "✓"} ${esc(i.title)}</p>`).join("")}
+        </div>`;
+      }).join("")}
+      ${callout("info", "En la versión web no hay avisos programados. Truco: crea dos alarmas en la app **Reloj** (8:00 «Plan de hoy» y 21:30 «Bitácora y a dormir»).")}
+    </div>`,
+  };
+}
+
 const learnedCount = (m) => m.lessons.filter((l) => state.completedLessons.includes(l.id)).length;
 const optimalScenarios = () => Object.values(state.scenarioBest).filter((v) => v === 2).length;
 function dailyTip() {
@@ -234,9 +378,6 @@ function viewBase() {
   const r = rank(), next = nextRank(r), phase = currentPhase();
   const hour = new Date().getHours();
   const greeting = hour >= 6 && hour < 13 ? "Buenos días" : hour >= 13 && hour < 21 ? "Buenas tardes" : "Buenas noches";
-  const available = WORKOUTS.filter((w) => w.minPhase <= phase.id);
-  const suggested = available[Math.floor(Date.now() / 86400000) % available.length];
-  const tasks = phase.tasks.filter((t) => !isDone(t)).sort((a, b) => a.week - b.week).slice(0, 3);
 
   return {
     title: "Base", large: true,
@@ -253,6 +394,7 @@ function viewBase() {
       <div class="grid3">
         ${stat(streak(), "Racha (días)", "🔥")}${stat(workoutsThisWeek(), "Entrenos semana", "🏃")}${stat(programWeek(), "Semana", "📅")}
       </div>
+      ${dailyPlanSection()}
       ${link(`#/fase/${phase.id}`, `
         <div class="grow stack" style="gap:8px">
           <div class="row"><span class="grow">${pill(`${PHASE_EMOJI[phase.id]} FASE ${phase.id}`)}</span><span class="tiny muted">${weeksLabel(phase)}</span></div>
@@ -261,11 +403,6 @@ function viewBase() {
           ${bar(completion(phase))}
           <p class="tiny muted">${Math.round(completion(phase) * 100)} % completado · necesitas 80 % para avanzar</p>
         </div>`, "card row")}
-      ${section("Misiones pendientes", "🎯")}
-      ${tasks.length ? tasks.map((t) => taskRow(t, { compact: true })).join("") : `<div class="card">Has completado todas las misiones de esta fase. ¡Enorme!</div>`}
-      ${section("Entreno sugerido hoy", "🏋️")}
-      ${workoutRow(suggested, false)}
-      ${phase.id >= 1 ? dojoCard() : ""}
       ${link("#/sucesos", `<span style="font-size:1.5rem">📰</span><div class="grow"><p class="title">Sucesos ${state.profile.city ? `en ${esc(zoneNames()[0] || state.profile.city)}` : "en tu zona"}</p>
         <p class="small muted">${state.profile.city ? "Lo que ha pasado en los últimos días" : "Elige tu ciudad para ver las noticias de sucesos"}</p></div>`)}
       ${section("Consejo del día", "💡")}
@@ -653,6 +790,7 @@ function kimFinish() {
     kim.gained = Math.floor(kim.percent / 5);
     gainXP(kim.gained);
     markActive();
+    markHabit("kim");
   });
 }
 
@@ -1469,6 +1607,7 @@ const ROUTES = [
   [/^#\/bitacora(?:\/(\w+))?$/, viewJournal],
   [/^#\/bitacora-nueva\/(\w+)(?:\?t=(.*))?$/, (k, t) => viewJournalNew(k, t ? decodeURIComponent(t) : "")],
   [/^#\/sucesos$/, viewSucesos],
+  [/^#\/semana$/, viewWeek],
   [/^#\/perfil$/, viewProfile],
   [/^#\/dojo$/, viewDojo],
   [/^#\/cinturon\/(\d+)$/, viewBelt],
@@ -1480,7 +1619,7 @@ const ROUTES = [
 function tabFor(hash) {
   const map = { fase: "#/programa", entreno: "#/entreno", sesion: "#/entreno", test: "#/entreno", modulo: "#/academia", leccion: "#/academia",
     codigo: "#/academia", escenarios: "#/academia", escenario: "#/academia", kim: "#/academia",
-    sucesos: "#/mas", dojo: "#/entreno", cinturon: "#/entreno", tecnicas: "#/entreno", tecnica: "#/entreno", clase: "#/entreno" };
+    sucesos: "#/mas", semana: "#/base", dojo: "#/entreno", cinturon: "#/entreno", tecnicas: "#/entreno", tecnica: "#/entreno", clase: "#/entreno" };
   const key = hash.split("/")[1];
   return TABS.find(([h]) => h === hash)?.[0] || map[key] || "#/mas";
 }
@@ -1554,8 +1693,20 @@ const ACTIONS = {
   "toggle-task": (d) => commit((s) => {
     const i = s.completedTasks.indexOf(d.id);
     if (i >= 0) { s.completedTasks.splice(i, 1); s.xp = Math.max(0, s.xp - XP.task); }
-    else { s.completedTasks.push(d.id); gainXP(XP.task); markActive(); }
+    else { s.completedTasks.push(d.id); gainXP(XP.task); markActive(); markHabit("mision"); }
   }),
+  "toggle-habit": (d) => {
+    const item = plan().find((i) => i.id === d.id);
+    if (!item) return;
+    commit((s) => {
+      s.habitLog = s.habitLog || {};
+      const k = dayKey();
+      let log = s.habitLog[k] || [];
+      if (habitDone(item)) log = log.filter((x) => x !== item.id && x !== `kind:${item.kind}`);
+      else { log.push(item.id); markActive(); }
+      s.habitLog[k] = log;
+    });
+  },
   "workout-quick": (d) => {
     const w = WORKOUTS.find((x) => x.id === d.id);
     logWorkout(w, w.minutes);
@@ -1596,7 +1747,7 @@ const ACTIONS = {
   },
   "lesson-done": (d) => {
     const m = MODULES.find((x) => x.id === d.mid);
-    if (!state.completedLessons.includes(d.lid)) commit((s) => { s.completedLessons.push(d.lid); gainXP(XP.lesson); markActive(); }, false);
+    if (!state.completedLessons.includes(d.lid)) commit((s) => { s.completedLessons.push(d.lid); gainXP(XP.lesson); markActive(); markHabit("leccion"); }, false);
     location.hash = `#/modulo/${m.id}`;
   },
   "scenario-pick": (d) => {
@@ -1606,6 +1757,7 @@ const ACTIONS = {
     commit((st) => {
       const best = st.scenarioBest[s.id];
       markActive();
+      markHabit("escenario");
       if (best === undefined || score > best) {
         st.scenarioBest[s.id] = score;
         scenarioPlay.gained = Math.max(0, score - (best || 0)) * XP.scenarioPerPoint;
@@ -1752,6 +1904,7 @@ document.addEventListener("submit", (e) => {
       s.tests.push({ id: String(Date.now()), date: Date.now(), pushups: num("pushups"), squats: num("squats"), plankSeconds: num("plank"), burpees: num("burpees"), run5kMinutes: f.get("hasRun") ? num("run") : null });
       gainXP(XP.test);
       markActive();
+      markHabit("test");
     }, false);
     history.length > 1 ? history.back() : (location.hash = "#/perfil");
   } else if (form.dataset.form === "journal") {
@@ -1760,6 +1913,7 @@ document.addEventListener("submit", (e) => {
       s.journal.unshift({ id: String(Date.now()), date: Date.now(), kind, title: String(f.get("title")).trim() || JOURNAL_KINDS[kind].label, notes: String(f.get("notes")).trim(), mood: Number(f.get("mood")) || 3 });
       gainXP(XP.journal);
       markActive();
+      markHabit("bitacora");
     }, false);
     location.hash = "#/bitacora";
   } else if (form.dataset.form === "profile") {

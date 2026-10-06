@@ -3,12 +3,6 @@ import SwiftUI
 struct TodayView: View {
     @EnvironmentObject private var store: ProgressStore
 
-    private var suggestedWorkout: Workout {
-        let available = Workout.all.filter { $0.minPhase <= store.currentPhase.id }
-        let day = Calendar.current.ordinality(of: .day, in: .era, for: .now) ?? 0
-        return available[day % available.count]
-    }
-
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: .now)
         switch hour {
@@ -24,9 +18,8 @@ struct TodayView: View {
                 VStack(spacing: 16) {
                     header
                     statsRow
+                    DailyPlanSection()
                     phaseCard
-                    missions
-                    workoutCard
                     NavigationLink {
                         SucesosView()
                     } label: {
@@ -114,42 +107,6 @@ struct TodayView: View {
             .card()
         }
         .buttonStyle(.plain)
-    }
-
-    private var missions: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SectionHeader(title: "Misiones pendientes", icon: "target")
-            let tasks = store.nextTasks()
-            if tasks.isEmpty {
-                Text("Has completado todas las misiones de esta fase. ¡Enorme!")
-                    .font(.subheadline)
-                    .card()
-            } else {
-                ForEach(tasks) { task in
-                    TaskRow(task: task, compact: true)
-                }
-            }
-        }
-    }
-
-    private var workoutCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SectionHeader(title: "Entreno sugerido hoy", icon: "dumbbell.fill")
-            NavigationLink {
-                WorkoutDetailView(workout: suggestedWorkout)
-            } label: {
-                WorkoutRow(workout: suggestedWorkout, locked: false)
-            }
-            .buttonStyle(.plain)
-            if store.currentPhase.id >= 1 {
-                NavigationLink {
-                    DojoView()
-                } label: {
-                    DojoCard()
-                }
-                .buttonStyle(.plain)
-            }
-        }
     }
 
     private var tipCard: some View {

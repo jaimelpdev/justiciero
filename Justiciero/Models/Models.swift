@@ -351,3 +351,54 @@ extension Color {
                   blue: Double(value & 0xFF) / 255)
     }
 }
+
+// MARK: - Hábitos
+
+enum DayBlock: String, CaseIterable {
+    case manana, tarde, noche
+
+    var label: String {
+        switch self {
+        case .manana: "Mañana"
+        case .tarde: "Tarde"
+        case .noche: "Noche"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .manana: "sunrise.fill"
+        case .tarde: "sun.max.fill"
+        case .noche: "moon.fill"
+        }
+    }
+}
+
+enum HabitKind: String {
+    case habito, entreno, dojo, leccion, mision, kim, escenario, bitacora, test, salida, voluntariado, descanso
+
+    /// Las tareas de estos tipos se marcan solas al hacerlas en la app.
+    var isAutomatic: Bool {
+        switch self {
+        case .entreno, .dojo, .leccion, .mision, .kim, .escenario, .bitacora, .test: true
+        default: false
+        }
+    }
+}
+
+struct HabitItem: Identifiable, Hashable {
+    let id: String
+    let block: DayBlock
+    let kind: HabitKind
+    let title: String
+    let detail: String
+    let minutes: Int
+    /// Para tareas de entreno: el id de la sesión.
+    let workout: String?
+}
+
+struct WeekTemplate {
+    let minPhase: Int
+    /// 7 días, de lunes a domingo.
+    let days: [[HabitItem]]
+}

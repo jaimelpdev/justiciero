@@ -84,6 +84,8 @@ struct AppState: Codable {
     var dojoExam: Set<String> = []
     /// Cinturones obtenidos.
     var dojoBelts: Set<Int> = []
+    /// Tareas del plan diario hechas cada día ("yyyy-MM-dd" → ids y "kind:<tipo>").
+    var habitLog: [String: Set<String>] = [:]
 
     init() {}
 
@@ -105,6 +107,7 @@ struct AppState: Codable {
         dojoClasses = try c.decodeIfPresent([String: Int].self, forKey: .dojoClasses) ?? [:]
         dojoExam = try c.decodeIfPresent(Set<String>.self, forKey: .dojoExam) ?? []
         dojoBelts = try c.decodeIfPresent(Set<Int>.self, forKey: .dojoBelts) ?? []
+        habitLog = try c.decodeIfPresent([String: Set<String>].self, forKey: .habitLog) ?? [:]
     }
 }
 
@@ -210,6 +213,7 @@ final class ProgressStore: ObservableObject {
             state.completedTasks.insert(task.id)
             state.xp += XP.task
             markActive()
+            markHabit(.mision)
         }
     }
 
@@ -245,6 +249,7 @@ final class ProgressStore: ObservableObject {
         state.completedLessons.insert(lesson.id)
         state.xp += XP.lesson
         markActive()
+        markHabit(.leccion)
     }
 
     func learnedCount(in module: SkillModule) -> Int {
@@ -256,6 +261,7 @@ final class ProgressStore: ObservableObject {
     func recordScenario(_ scenario: Scenario, score: Int) -> Int {
         let best = state.scenarioBest[scenario.id] ?? 0
         markActive()
+        markHabit(.escenario)
         guard score > best else {
             if state.scenarioBest[scenario.id] == nil { state.scenarioBest[scenario.id] = score }
             return 0
@@ -277,6 +283,7 @@ final class ProgressStore: ObservableObject {
         let gained = percent / 5
         state.xp += gained
         markActive()
+        markHabit(.kim)
         return gained
     }
 
@@ -286,6 +293,7 @@ final class ProgressStore: ObservableObject {
         state.workouts.insert(WorkoutLog(workoutID: workout.id, name: workout.name, minutes: minutes), at: 0)
         state.xp += XP.workout
         markActive()
+        markHabit(.entreno)
     }
 
     func doneToday(_ workout: Workout) -> Bool {
@@ -302,6 +310,7 @@ final class ProgressStore: ObservableObject {
         state.tests.sort { $0.date < $1.date }
         state.xp += XP.test
         markActive()
+        markHabit(.test)
     }
 
     // MARK: Dojo
@@ -328,6 +337,7 @@ final class ProgressStore: ObservableObject {
         state.dojoClasses[String(belt.id), default: 0] += 1
         state.xp += XP.dojoClass
         markActive()
+        markHabit(.dojo)
     }
 
     func isExamChecked(_ belt: Belt, _ index: Int) -> Bool {
@@ -351,12 +361,94 @@ final class ProgressStore: ObservableObject {
         markActive()
     }
 
+    // MARK: Plan diario
+
+    static func dayKey(_ date: Date) -> String { dayFormatter.string(from: date) }
+
+    /// Tareas del día según la fase actual y el día de la semana (lunes = 0).
+    func plan(for date: Date = .now) -> [HabitItem] {
+        let weekday = Calendar.current.component(.weekday, from: date) // 1 = domingo
+        let index = (weekday + 5) % 7
+        let phase = currentPhase.id
+        let template = Habits.weeks.last(where: { $0.minPhase <= phase }) ?? Habits.weeks[0]
+        var items = Habits.daily + template.days[index]
+        if index == 6 && testDue(at: date) { items.append(Habits.test) }
+        let order = DayBlock.allCases
+        return items.enumerated()
+            .sorted { a, b in
+                let ia = order.firstIndex(of: a.element.block) ?? 0
+                let ib = order.firstIndex(of: b.element.block) ?? 0
+                return ia == ib ? a.offset < b.offset : ia < ib
+            }
+            .map(\.element)
+    }
+
+    private func testDue(at date: Date) -> Bool {
+        guard let last = state.tests.last else { return true }
+        return date.timeIntervalSince(last.date) >= 25 * 86_400
+    }
+
+    func isDone(_ item: HabitItem, on date: Date = .now) -> Bool {
+        let log = state.habitLog[Self.dayKey(date)] ?? []
+        return log.contains(item.id) || (item.kind.isAutomatic && log.contains("kind:" + item.kind.rawValue))
+    }
+
+    func toggleHabit(_ item: HabitItem) {
+        let key = Self.dayKey(.now)
+        var log = state.habitLog[key] ?? []
+        if isDone(item) {
+            log.remove(item.id)
+            log.remove("kind:" + item.kind.rawValue)
+        } else {
+            log.insert(item.id)
+            markActive()
+        }
+        state.habitLog[key] = log
+    }
+
+    private func markHabit(_ kind: HabitKind) {
+        state.habitLog[Self.dayKey(.now), default: []].insert("kind:" + kind.rawValue)
+    }
+
+    func habitProgress(on date: Date = .now) -> (done: Int, total: Int) {
+        let items = plan(for: date)
+        return (items.filter { isDone($0, on: date) }.count, items.count)
+    }
+
+    /// Días seguidos cumpliendo al menos el 80 % del plan (hoy cuenta si ya lo has alcanzado).
+    var habitStreak: Int {
+        let calendar = Calendar.current
+        var day = Date.now
+        func met(_ date: Date) -> Bool {
+            let p = habitProgress(on: date)
+            return p.total > 0 && Double(p.done) / Double(p.total) >= 0.8
+        }
+        if !met(day) { day = calendar.date(byAdding: .day, value: -1, to: day) ?? day }
+        var count = 0
+        while met(day) {
+            count += 1
+            guard let previous = calendar.date(byAdding: .day, value: -1, to: day) else { break }
+            day = previous
+        }
+        return count
+    }
+
+    /// Lunes a domingo de la semana actual.
+    var currentWeekDays: [Date] {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: .now)
+        let offset = (calendar.component(.weekday, from: today) + 5) % 7
+        let monday = calendar.date(byAdding: .day, value: -offset, to: today) ?? today
+        return (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: monday) }
+    }
+
     // MARK: Bitácora
 
     func addJournal(_ entry: JournalEntry) {
         state.journal.insert(entry, at: 0)
         state.xp += XP.journal
         markActive()
+        markHabit(.bitacora)
     }
 
     func deleteJournal(at offsets: IndexSet) {
