@@ -266,7 +266,7 @@ function viewBase() {
       ${section("Entreno sugerido hoy", "🏋️")}
       ${workoutRow(suggested, false)}
       ${phase.id >= 1 ? dojoCard() : ""}
-      ${link("#/sucesos", `<span style="font-size:1.5rem">📰</span><div class="grow"><p class="title">Sucesos ${state.profile.city ? `en ${esc(state.profile.city)}` : "en tu zona"}</p>
+      ${link("#/sucesos", `<span style="font-size:1.5rem">📰</span><div class="grow"><p class="title">Sucesos ${state.profile.city ? `en ${esc(zoneNames()[0] || state.profile.city)}` : "en tu zona"}</p>
         <p class="small muted">${state.profile.city ? "Lo que ha pasado en los últimos días" : "Elige tu ciudad para ver las noticias de sucesos"}</p></div>`)}
       ${section("Consejo del día", "💡")}
       <div class="card"><em>${esc(dailyTip())}</em></div>
@@ -1264,34 +1264,78 @@ async function loadSucesos(force = false) {
 const SEEN_KEY = "justiciero.sucesos.seen";
 function lastSeen() { try { return Number(localStorage.getItem(SEEN_KEY)) || 0; } catch (e) { return 0; } }
 
+const fold = (t) => String(t || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+/** Nombres de tu zona (barrio, distrito...) separados por comas. */
+const zoneNames = () => (state.profile.zone || "").split(",").map((z) => z.trim()).filter((z) => z.length >= 3);
+function inZone(item) {
+  const title = fold(item.title);
+  return zoneNames().some((z) => new RegExp(`(^|[^a-z0-9])${fold(z).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^a-z0-9]|$)`).test(title));
+}
+
+let locating = false;
+async function locateZone() {
+  if (!("geolocation" in navigator)) { alert("Tu navegador no permite obtener la ubicación. Escribe tu ciudad y tu barrio a mano."); return; }
+  locating = true;
+  render();
+  try {
+    const pos = await new Promise((ok, ko) => navigator.geolocation.getCurrentPosition(ok, ko, { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 }));
+    const { latitude, longitude } = pos.coords;
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=16&accept-language=es&lat=${latitude.toFixed(4)}&lon=${longitude.toFixed(4)}`);
+    const a = (await r.json()).address || {};
+    const city = a.city || a.town || a.village || a.municipality || "";
+    const zones = [a.suburb || a.city_district || a.district, a.quarter || a.neighbourhood].filter(Boolean);
+    if (!city) throw new Error("sin ciudad");
+    commit((s) => { s.profile.city = city; s.profile.zone = [...new Set(zones)].join(", "); });
+    toast(`📍 ${zones[0] ? `${zones[0]}, ` : ""}${city}`);
+    loadSucesos(true);
+  } catch (e) {
+    alert("No he podido obtener tu ubicación. Revisa que Safari tenga permiso de ubicación o escribe tu ciudad y tu barrio a mano.");
+  } finally {
+    locating = false;
+    render();
+  }
+}
+
+function newsCard(i, seen) {
+  return `
+    <div class="card stack" style="gap:6px">
+      <div class="row"><span class="tiny grow muted">${esc(i.source)} · ${timeAgo(i.date)}</span>${seen && new Date(i.date).getTime() > seen ? pill("Nuevo") : ""}</div>
+      <a href="${esc(i.link)}" target="_blank" rel="noopener" style="color:var(--text);text-decoration:none"><p class="title">${esc(i.title)}</p></a>
+      <div class="row"><a class="linkbtn tiny" style="padding-left:0" href="${esc(i.link)}" target="_blank" rel="noopener">Leer noticia ↗</a><span class="grow"></span>
+        <a class="linkbtn tiny" href="#/bitacora-nueva/observacion?t=${encodeURIComponent(i.title)}">📝 Anotar</a></div>
+    </div>`;
+}
+
 function viewSucesos() {
   const city = state.profile.city || "";
+  const zone = state.profile.zone || "";
+  const zones = zoneNames();
   if (sucesos.slug !== (city ? citySlug(city) : null) || (!sucesos.data && !sucesos.error && !sucesos.loading)) setTimeout(() => loadSucesos(), 0);
   const seen = lastSeen();
   const cities = sucesos.index ? sucesos.index.cities.map((c) => c.city) : [];
-  const newsQuery = encodeURIComponent(`"${city || "España"}" sucesos`);
-  const alertQuery = encodeURIComponent(`"${city || "tu ciudad"}" (sucesos OR detenido OR robo)`);
+  const place = zones[0] ? `"${zones[0]}" ${city}` : `"${city || "España"}"`;
+  const newsQuery = encodeURIComponent(`${place} (sucesos OR detenido OR robo OR agresión)`);
+  const alertQuery = encodeURIComponent(`${place} (sucesos OR detenido OR robo)`);
   let feed = "";
   if (!city) {
-    feed = `<div class="card muted">Escribe tu ciudad arriba para ver las noticias de sucesos de los últimos días.</div>`;
+    feed = `<div class="card muted">Pulsa «Usar mi ubicación» o escribe tu ciudad para ver los sucesos de tu zona.</div>`;
   } else if (sucesos.loading) {
     feed = `<div class="card muted center">Cargando noticias…</div>`;
   } else if (sucesos.error === "red") {
     feed = callout("warning", "No hay conexión. Vuelve a intentarlo cuando tengas internet.");
   } else if (sucesos.error === "sin-feed" || !sucesos.data) {
-    feed = callout("info", `Todavía no hay resumen automático para **${city}** (está disponible para las ${cities.length || 60} ciudades más grandes de España). Mientras tanto, usa el botón de Google Noticias de abajo.`);
+    feed = callout("info", `Todavía no hay resumen automático para **${city}** (está disponible para las ${cities.length || 60} ciudades más grandes de España). Mientras tanto, usa el botón «Google Noticias» de abajo, que busca directamente en tu zona.`);
   } else {
     const items = sucesos.data.items;
+    const near = zones.length ? items.filter(inZone) : [];
+    const rest = items.filter((i) => !near.includes(i));
     const fresh = items.filter((i) => new Date(i.date).getTime() > seen).length;
     feed = `<p class="tiny muted">Actualizado ${timeAgo(sucesos.data.updated)} · ${items.length} noticias de los últimos 3 días${seen && fresh ? ` · <strong style="color:var(--accent)">${fresh} nuevas</strong>` : ""}</p>
-      ${items.length ? items.slice(0, sucesosAll ? items.length : 10).map((i) => `
-        <div class="card stack" style="gap:6px">
-          <div class="row"><span class="tiny grow muted">${esc(i.source)} · ${timeAgo(i.date)}</span>${seen && new Date(i.date).getTime() > seen ? pill("Nuevo") : ""}</div>
-          <a href="${esc(i.link)}" target="_blank" rel="noopener" style="color:var(--text);text-decoration:none"><p class="title">${esc(i.title)}</p></a>
-          <div class="row"><a class="linkbtn tiny" style="padding-left:0" href="${esc(i.link)}" target="_blank" rel="noopener">Leer noticia ↗</a><span class="grow"></span>
-            <a class="linkbtn tiny" href="#/bitacora-nueva/observacion?t=${encodeURIComponent(i.title)}">📝 Anotar</a></div>
-        </div>`).join("") : `<div class="card muted">No hay noticias de sucesos en los últimos días. Buena señal.</div>`}
-      ${!sucesosAll && items.length > 10 ? `<button class="btn ghost" data-act="sucesos-all">Ver las ${items.length} noticias</button>` : ""}`;
+      ${zones.length ? section(`En tu zona · ${zones.join(", ")}`, "📍") + (near.length ? near.map((i) => newsCard(i, seen)).join("")
+        : `<div class="card muted small">Ninguna noticia de los últimos días menciona ${esc(zones.join(" o "))}. Buena señal. Para buscar más a fondo, usa «Google Noticias» abajo.</div>`) : ""}
+      ${section(zones.length ? `Resto de ${city}` : `Últimos sucesos en ${city}`, "📰")}
+      ${rest.length ? rest.slice(0, sucesosAll ? rest.length : 10).map((i) => newsCard(i, seen)).join("") : `<div class="card muted">No hay más noticias de sucesos en los últimos días.</div>`}
+      ${!sucesosAll && rest.length > 10 ? `<button class="btn ghost" data-act="sucesos-all">Ver las ${rest.length} noticias</button>` : ""}`;
     setTimeout(() => { try { localStorage.setItem(SEEN_KEY, String(Date.now())); } catch (e) { /* sin almacenamiento */ } }, 2000);
   }
   return {
@@ -1299,17 +1343,20 @@ function viewSucesos() {
     action: city ? `<button class="linkbtn" data-act="sucesos-reload" aria-label="Actualizar">↻</button>` : "",
     html: `<div class="stack">
       ${callout("danger", "Enterarte de un suceso **no es para ir allí**. Sirve para evitar zonas, avisar a los tuyos y estar atento. Si sabes algo útil para la investigación, llama al 091 / 062 o usa AlertCops. No difundas bulos ni datos de nadie.")}
-      <div class="card stack" style="gap:8px">
-        <label class="small muted" for="sucesos-city">Tu ciudad</label>
-        <div class="row"><input type="text" id="sucesos-city" list="sucesos-cities" value="${esc(city)}" placeholder="Ej. Madrid" autocomplete="off">
-          <button class="btn" style="width:auto;padding:12px 16px" data-act="sucesos-city">OK</button></div>
+      <div class="card stack" style="gap:10px">
+        <button class="btn" data-act="sucesos-locate" ${locating ? "disabled" : ""}>${locating ? "Buscando tu zona…" : "📍 Usar mi ubicación"}</button>
+        <div class="field"><label for="sucesos-city">Ciudad o pueblo</label>
+          <input type="text" id="sucesos-city" list="sucesos-cities" value="${esc(city)}" placeholder="Ej. Madrid" autocomplete="off"></div>
+        <div class="field"><label for="sucesos-zone">Barrio o distrito (opcional, separa varios con comas)</label>
+          <input type="text" id="sucesos-zone" value="${esc(zone)}" placeholder="Ej. Latina, Aluche" autocomplete="off"></div>
+        <button class="btn ghost" data-act="sucesos-city">Guardar zona</button>
         <datalist id="sucesos-cities">${cities.map((c) => `<option value="${esc(c)}">`).join("")}</datalist>
+        <p class="tiny muted">Tu ubicación solo se usa para saber tu ciudad y tu barrio. No se guarda ni se envía a nadie más.</p>
       </div>
-      ${section(city ? `Últimos sucesos en ${city}` : "Últimos sucesos", "📰")}
       ${feed}
-      ${section("Más fuentes", "🔎")}
+      ${section("Buscar más en tu zona", "🔎")}
       <div class="card list" style="padding:4px 16px">
-        <a class="list-item chev" href="https://news.google.com/search?q=${newsQuery}%20when%3A1d&hl=es&gl=ES&ceid=ES%3Aes" target="_blank" rel="noopener"><span style="width:28px;text-align:center">🗞️</span><span class="grow">Google Noticias: sucesos de hoy</span></a>
+        <a class="list-item chev" href="https://news.google.com/search?q=${newsQuery}%20when%3A7d&hl=es&gl=ES&ceid=ES%3Aes" target="_blank" rel="noopener"><span style="width:28px;text-align:center">🗞️</span><span class="grow">Google Noticias: sucesos en ${esc(zones[0] || city || "tu zona")} (7 días)</span></a>
         <a class="list-item chev" href="https://alertcops.ses.mir.es/" target="_blank" rel="noopener"><span style="width:28px;text-align:center">🚨</span><span class="grow">AlertCops: alertas oficiales y avisar a la policía</span></a>
         <a class="list-item chev" href="https://x.com/policia" target="_blank" rel="noopener"><span style="width:28px;text-align:center">👮</span><span class="grow">Policía Nacional (@policia)</span></a>
         <a class="list-item chev" href="https://x.com/guardiacivil" target="_blank" rel="noopener"><span style="width:28px;text-align:center">🚓</span><span class="grow">Guardia Civil (@guardiacivil)</span></a>
@@ -1317,9 +1364,9 @@ function viewSucesos() {
       </div>
       ${section("Que te avisen", "🔔")}
       <div class="card stack" style="gap:10px">
-        <p class="small">Crea una <strong>alerta de Google</strong> y te llegará un correo cada vez que se publique un suceso en tu ciudad o tu barrio.</p>
+        <p class="small">Crea una <strong>alerta de Google</strong> y te llegará un correo cada vez que se publique un suceso en ${esc(zones[0] || city || "tu zona")}.</p>
         <a class="btn ghost" href="https://www.google.com/alerts?q=${alertQuery}" target="_blank" rel="noopener">Crear alerta por correo</a>
-        <p class="small">Sigue también en X o Instagram a la <strong>Policía Local</strong> y al <strong>112</strong> de tu comunidad: publican cortes, incendios y avisos en tiempo real.</p>
+        <p class="small">Sigue también en X o Instagram a la <strong>Policía Local</strong> y al <strong>112</strong> de tu comunidad, y únete al grupo de vecinos de tu barrio: suelen ser los primeros en avisar.</p>
       </div>
     </div>`,
   };
@@ -1516,12 +1563,14 @@ const ACTIONS = {
   },
   "dojo-end": () => { const c = dojoClass; c.running = false; c.finished = true; stopSpeech(); render(); },
   "sucesos-city": () => {
-    const input = document.getElementById("sucesos-city");
-    const city = input.value.trim();
+    const city = document.getElementById("sucesos-city").value.trim();
+    const zone = document.getElementById("sucesos-zone").value.trim();
     if (!city) return;
-    commit((s) => { s.profile.city = city; });
+    commit((s) => { s.profile.city = city; s.profile.zone = zone; });
+    toast("Zona guardada");
     loadSucesos(true);
   },
+  "sucesos-locate": () => locateZone(),
   "sucesos-reload": () => loadSucesos(true),
   "sucesos-all": () => { sucesosAll = true; render(); },
   "session-toggle": () => { session.running = !session.running; beep(0); render(); },

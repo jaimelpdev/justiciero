@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreLocation
 
 // MARK: - Noticias de sucesos
 
@@ -8,16 +9,40 @@ struct NewsItem: Identifiable, Hashable {
     let source: String
     let link: URL?
     let date: Date
+    var nearby = false
+}
+
+/// Quita tildes y pasa a minúsculas para comparar nombres de barrios.
+func folded(_ text: String) -> String {
+    text.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: "es_ES"))
+}
+
+/// True si el título menciona alguno de los nombres como palabra completa.
+func mentions(_ title: String, any names: [String]) -> Bool {
+    let words = folded(title)
+    return names.contains { name in
+        let needle = folded(name)
+        var range = words.startIndex..<words.endIndex
+        while let found = words.range(of: needle, range: range) {
+            let before = found.lowerBound == words.startIndex ? nil : words[words.index(before: found.lowerBound)]
+            let after = found.upperBound == words.endIndex ? nil : words[found.upperBound]
+            if !(before?.isLetter ?? false) && !(before?.isNumber ?? false) && !(after?.isLetter ?? false) && !(after?.isNumber ?? false) {
+                return true
+            }
+            range = found.upperBound..<words.endIndex
+        }
+        return false
+    }
 }
 
 enum SucesosFeed {
     /// Misma búsqueda que tools/fetch_sucesos.py, que alimenta la versión web.
     static let terms = "(sucesos OR detenido OR detenida OR robo OR atraco OR agresión OR apuñalado OR reyerta OR policía)"
 
-    static func url(for city: String) -> URL? {
+    static func url(query: String) -> URL? {
         var components = URLComponents(string: "https://news.google.com/rss/search")
         components?.queryItems = [
-            URLQueryItem(name: "q", value: "\"\(city)\" \(terms) when:3d"),
+            URLQueryItem(name: "q", value: query),
             URLQueryItem(name: "hl", value: "es"),
             URLQueryItem(name: "gl", value: "ES"),
             URLQueryItem(name: "ceid", value: "ES:es"),
@@ -25,11 +50,29 @@ enum SucesosFeed {
         return components?.url
     }
 
-    static func load(city: String) async throws -> [NewsItem] {
-        guard let url = url(for: city) else { return [] }
+    private static func fetch(_ query: String) async throws -> [NewsItem] {
+        guard let url = url(query: query) else { return [] }
         let (data, _) = try await URLSession.shared.data(from: url)
-        let items = RSSParser().parse(data).sorted { $0.date > $1.date }
-        return Array(items.prefix(30))
+        return RSSParser().parse(data)
+    }
+
+    /// Noticias de la ciudad y, si hay zona, una búsqueda específica de tu barrio o distrito.
+    static func load(city: String, zones: [String]) async throws -> [NewsItem] {
+        var items = try await fetch("\"\(city)\" \(terms) when:3d")
+        if !zones.isEmpty {
+            let names = zones.map { "\"\($0)\"" }.joined(separator: " OR ")
+            let zoneItems = (try? await fetch("(\(names)) \(city) \(terms) when:7d")) ?? []
+            let known = Set(items.map(\.title))
+            items += zoneItems.filter { !known.contains($0.title) }.map { item in
+                var copy = item
+                copy.nearby = true
+                return copy
+            }
+        }
+        for index in items.indices where !items[index].nearby {
+            items[index].nearby = mentions(items[index].title, any: zones)
+        }
+        return Array(items.sorted { $0.date > $1.date }.prefix(60))
     }
 }
 
@@ -90,9 +133,14 @@ final class RSSParser: NSObject, XMLParserDelegate {
 
 struct SucesosView: View {
     @AppStorage("sucesos.city") private var city = ""
+    @AppStorage("sucesos.zone") private var zone = ""
     @AppStorage("sucesos.seen") private var seen: Double = 0
 
     @State private var cityDraft = ""
+    @State private var zoneDraft = ""
+    @State private var locator = ZoneLocator()
+    @State private var locating = false
+    @State private var locationError = false
     @State private var items: [NewsItem] = []
     @State private var loading = false
     @State private var failed = false
@@ -100,6 +148,13 @@ struct SucesosView: View {
     @State private var noteItem: NewsItem?
     /// Momento de la visita anterior: lo que sea más reciente se marca como nuevo.
     @State private var previousVisit: Double = 0
+
+    private var zones: [String] {
+        zone.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { $0.count >= 3 }
+    }
+
+    private var nearbyItems: [NewsItem] { items.filter(\.nearby) }
+    private var otherItems: [NewsItem] { items.filter { !$0.nearby } }
 
     private var newCount: Int {
         guard previousVisit > 0 else { return 0 }
@@ -111,26 +166,41 @@ struct SucesosView: View {
             VStack(alignment: .leading, spacing: 16) {
                 Callout(kind: .danger, text: "Enterarte de un suceso **no es para ir allí**. Sirve para evitar zonas, avisar a los tuyos y estar atento. Si sabes algo útil para la investigación, llama al 091 / 062 o usa AlertCops. No difundas bulos ni datos de nadie.")
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Tu ciudad o pueblo").font(.caption).foregroundStyle(Theme.muted)
-                    HStack {
-                        TextField("Ej. Madrid", text: $cityDraft)
-                            .textFieldStyle(.roundedBorder)
-                            .submitLabel(.search)
-                            .onSubmit(applyCity)
-                        Button("OK", action: applyCity)
-                            .buttonStyle(.borderedProminent)
-                            .foregroundStyle(.black)
+                VStack(alignment: .leading, spacing: 10) {
+                    Button {
+                        Task { await locate() }
+                    } label: {
+                        Label(locating ? "Buscando tu zona…" : "Usar mi ubicación", systemImage: "location.fill")
                     }
+                    .buttonStyle(PrimaryButtonStyle())
+                    .disabled(locating)
+                    if locationError {
+                        Text("No he podido obtener tu ubicación. Revisa el permiso en Ajustes › Justiciero o escribe tu zona a mano.")
+                            .font(.caption)
+                            .foregroundStyle(Theme.danger)
+                    }
+                    Text("Ciudad o pueblo").font(.caption).foregroundStyle(Theme.muted)
+                    TextField("Ej. Madrid", text: $cityDraft)
+                        .textFieldStyle(.roundedBorder)
+                    Text("Barrio o distrito (opcional, separa varios con comas)").font(.caption).foregroundStyle(Theme.muted)
+                    TextField("Ej. Latina, Aluche", text: $zoneDraft)
+                        .textFieldStyle(.roundedBorder)
+                        .submitLabel(.done)
+                        .onSubmit(applyZone)
+                    Button("Guardar zona", action: applyZone)
+                        .buttonStyle(PrimaryButtonStyle(color: Theme.cardHighlight))
+                        .foregroundStyle(.white)
+                    Text("Tu ubicación solo se usa para saber tu ciudad y tu barrio. No se guarda ni se envía a nadie más.")
+                        .font(.caption2)
+                        .foregroundStyle(Theme.muted)
                 }
                 .card()
 
-                SectionHeader(title: city.isEmpty ? "Últimos sucesos" : "Últimos sucesos en \(city)", icon: "newspaper.fill")
                 feed
 
                 SectionHeader(title: "Más fuentes", icon: "magnifyingglass")
                 VStack(spacing: 0) {
-                    sourceLink("Google Noticias: sucesos de hoy", icon: "newspaper", url: googleNewsURL)
+                    sourceLink("Google Noticias: sucesos en \(zones.first ?? (city.isEmpty ? "tu zona" : city)) (7 días)", icon: "newspaper", url: googleNewsURL)
                     Divider()
                     sourceLink("AlertCops: alertas oficiales y avisar a la policía", icon: "light.beacon.max.fill", url: URL(string: "https://alertcops.ses.mir.es/"))
                     Divider()
@@ -144,7 +214,7 @@ struct SucesosView: View {
 
                 SectionHeader(title: "Que te avisen", icon: "bell.fill")
                 VStack(alignment: .leading, spacing: 10) {
-                    Text(md("Crea una **alerta de Google** y te llegará un correo cada vez que se publique un suceso en tu ciudad o tu barrio."))
+                    Text(md("Crea una **alerta de Google** y te llegará un correo cada vez que se publique un suceso en \(zones.first ?? (city.isEmpty ? "tu zona" : city))."))
                         .font(.subheadline)
                     if let url = googleAlertsURL {
                         Link(destination: url) {
@@ -153,7 +223,7 @@ struct SucesosView: View {
                         }
                         .buttonStyle(PrimaryButtonStyle(color: Theme.cardHighlight))
                     }
-                    Text(md("Sigue también en X o Instagram a la **Policía Local** y al **112** de tu comunidad: publican cortes, incendios y avisos en tiempo real."))
+                    Text(md("Sigue también en X o Instagram a la **Policía Local** y al **112** de tu comunidad, y únete al grupo de vecinos de tu barrio: suelen ser los primeros en avisar."))
                         .font(.subheadline)
                 }
                 .card()
@@ -163,9 +233,10 @@ struct SucesosView: View {
         .screenBackground()
         .navigationTitle("Sucesos")
         .refreshable { await load() }
-        .task(id: city) { await load() }
+        .task(id: city + "|" + zone) { await load() }
         .onAppear {
             cityDraft = city
+            zoneDraft = zone
             previousVisit = seen
         }
         .onDisappear {
@@ -197,7 +268,7 @@ struct SucesosView: View {
                 .card()
         } else {
             HStack(spacing: 4) {
-                Text("\(items.count) noticias de los últimos 3 días")
+                Text("\(items.count) noticias recientes")
                 if newCount > 0 {
                     Text("· \(newCount) nuevas").bold().foregroundStyle(Theme.accent)
                 }
@@ -205,43 +276,64 @@ struct SucesosView: View {
             .font(.caption)
             .foregroundStyle(Theme.muted)
 
-            ForEach(showAll ? items : Array(items.prefix(10))) { item in
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text("\(item.source) · \(item.date, format: .relative(presentation: .named))")
-                            .font(.caption)
-                            .foregroundStyle(Theme.muted)
-                        Spacer()
-                        if previousVisit > 0 && item.date.timeIntervalSince1970 > previousVisit {
-                            Pill(text: "Nuevo")
-                        }
-                    }
-                    Text(item.title).font(.headline)
-                    HStack {
-                        if let link = item.link {
-                            Link(destination: link) {
-                                Label("Leer noticia", systemImage: "arrow.up.right.square")
-                            }
-                            .font(.caption)
-                        }
-                        Spacer()
-                        Button {
-                            noteItem = item
-                        } label: {
-                            Label("Anotar", systemImage: "square.and.pencil")
-                        }
-                        .font(.caption)
-                    }
+            if !zones.isEmpty {
+                SectionHeader(title: "En tu zona · \(zones.joined(separator: ", "))", icon: "location.fill")
+                if nearbyItems.isEmpty {
+                    Text("Ninguna noticia reciente menciona \(zones.joined(separator: " o ")). Buena señal.")
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.muted)
+                        .card()
+                } else {
+                    ForEach(nearbyItems) { newsCard($0) }
                 }
-                .card()
             }
 
-            if !showAll && items.count > 10 {
-                Button("Ver las \(items.count) noticias") { showAll = true }
+            SectionHeader(title: zones.isEmpty ? "Últimos sucesos en \(city)" : "Resto de \(city)", icon: "newspaper.fill")
+            if otherItems.isEmpty {
+                Text("No hay más noticias de sucesos en los últimos días.")
+                    .foregroundStyle(Theme.muted)
+                    .card()
+            } else {
+                ForEach(showAll ? otherItems : Array(otherItems.prefix(10))) { newsCard($0) }
+            }
+
+            if !showAll && otherItems.count > 10 {
+                Button("Ver las \(otherItems.count) noticias") { showAll = true }
                     .buttonStyle(PrimaryButtonStyle(color: Theme.cardHighlight))
                     .foregroundStyle(.white)
             }
         }
+    }
+
+    private func newsCard(_ item: NewsItem) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("\(item.source) · \(item.date, format: .relative(presentation: .named))")
+                    .font(.caption)
+                    .foregroundStyle(Theme.muted)
+                Spacer()
+                if previousVisit > 0 && item.date.timeIntervalSince1970 > previousVisit {
+                    Pill(text: "Nuevo")
+                }
+            }
+            Text(item.title).font(.headline)
+            HStack {
+                if let link = item.link {
+                    Link(destination: link) {
+                        Label("Leer noticia", systemImage: "arrow.up.right.square")
+                    }
+                    .font(.caption)
+                }
+                Spacer()
+                Button {
+                    noteItem = item
+                } label: {
+                    Label("Anotar", systemImage: "square.and.pencil")
+                }
+                .font(.caption)
+            }
+        }
+        .card()
     }
 
     private func sourceLink(_ title: String, icon: String, url: URL?) -> some View {
@@ -260,10 +352,15 @@ struct SucesosView: View {
         }
     }
 
+    private var place: String {
+        if let first = zones.first { return "\"\(first)\" \(city)" }
+        return "\"\(city.isEmpty ? "España" : city)\""
+    }
+
     private var googleNewsURL: URL? {
         var components = URLComponents(string: "https://news.google.com/search")
         components?.queryItems = [
-            URLQueryItem(name: "q", value: "\"\(city.isEmpty ? "España" : city)\" sucesos when:1d"),
+            URLQueryItem(name: "q", value: "\(place) (sucesos OR detenido OR robo OR agresión) when:7d"),
             URLQueryItem(name: "hl", value: "es"),
             URLQueryItem(name: "gl", value: "ES"),
             URLQueryItem(name: "ceid", value: "ES:es"),
@@ -273,16 +370,32 @@ struct SucesosView: View {
 
     private var googleAlertsURL: URL? {
         var components = URLComponents(string: "https://www.google.com/alerts")
-        components?.queryItems = [URLQueryItem(name: "q", value: "\"\(city.isEmpty ? "tu ciudad" : city)\" (sucesos OR detenido OR robo)")]
+        components?.queryItems = [URLQueryItem(name: "q", value: "\(place) (sucesos OR detenido OR robo)")]
         return components?.url
     }
 
-    private func applyCity() {
-        let trimmed = cityDraft.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, trimmed != city else { return }
+    private func applyZone() {
+        let newCity = cityDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        let newZone = zoneDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !newCity.isEmpty, newCity != city || newZone != zone else { return }
         items = []
         showAll = false
-        city = trimmed
+        city = newCity
+        zone = newZone
+    }
+
+    private func locate() async {
+        locating = true
+        locationError = false
+        if let placemark = await locator.locate(), let locality = placemark.locality {
+            let names = [placemark.subLocality].compactMap { $0 }
+            cityDraft = locality
+            zoneDraft = names.joined(separator: ", ")
+            applyZone()
+        } else {
+            locationError = true
+        }
+        locating = false
     }
 
     private func load() async {
@@ -290,7 +403,7 @@ struct SucesosView: View {
         loading = true
         failed = false
         do {
-            items = try await SucesosFeed.load(city: city)
+            items = try await SucesosFeed.load(city: city, zones: zones)
         } catch {
             failed = true
         }
@@ -300,12 +413,17 @@ struct SucesosView: View {
 
 struct SucesosCard: View {
     @AppStorage("sucesos.city") private var city = ""
+    @AppStorage("sucesos.zone") private var zone = ""
+
+    private var place: String {
+        zone.split(separator: ",").first.map { $0.trimmingCharacters(in: .whitespaces) } ?? city
+    }
 
     var body: some View {
         HStack(spacing: 14) {
             Image(systemName: "newspaper.fill").font(.title2).foregroundStyle(Theme.accent).frame(width: 36)
             VStack(alignment: .leading, spacing: 2) {
-                Text(city.isEmpty ? "Sucesos en tu zona" : "Sucesos en \(city)").font(.headline)
+                Text(city.isEmpty ? "Sucesos en tu zona" : "Sucesos en \(place)").font(.headline)
                 Text(city.isEmpty ? "Elige tu ciudad para ver las noticias de sucesos" : "Lo que ha pasado en los últimos días")
                     .font(.subheadline)
                     .foregroundStyle(Theme.muted)
@@ -315,5 +433,60 @@ struct SucesosCard: View {
         }
         .foregroundStyle(.white)
         .card()
+    }
+}
+
+// MARK: - Ubicación
+
+/// Obtiene una sola vez la ubicación y la traduce a ciudad y barrio.
+/// CLLocationManager se crea en el hilo principal, así que sus avisos llegan también ahí.
+final class ZoneLocator: NSObject, CLLocationManagerDelegate {
+    private let manager = CLLocationManager()
+    private var continuation: CheckedContinuation<CLLocation?, Never>?
+
+    override init() {
+        super.init()
+        manager.delegate = self
+        manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+    }
+
+    func locate() async -> CLPlacemark? {
+        guard continuation == nil else { return nil }
+        let location: CLLocation? = await withCheckedContinuation { continuation in
+            self.continuation = continuation
+            switch manager.authorizationStatus {
+            case .notDetermined:
+                manager.requestWhenInUseAuthorization()
+            case .authorizedWhenInUse, .authorizedAlways:
+                manager.requestLocation()
+            default:
+                finish(nil)
+            }
+        }
+        guard let location else { return nil }
+        let placemarks = try? await CLGeocoder().reverseGeocodeLocation(location, preferredLocale: Locale(identifier: "es_ES"))
+        return placemarks?.first
+    }
+
+    private func finish(_ location: CLLocation?) {
+        continuation?.resume(returning: location)
+        continuation = nil
+    }
+
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        guard continuation != nil else { return }
+        switch manager.authorizationStatus {
+        case .authorizedWhenInUse, .authorizedAlways: manager.requestLocation()
+        case .notDetermined: break
+        default: finish(nil)
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        finish(locations.last)
+    }
+
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        finish(nil)
     }
 }

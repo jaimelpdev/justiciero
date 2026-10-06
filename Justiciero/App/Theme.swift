@@ -140,7 +140,7 @@ struct PrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.headline)
-            .foregroundStyle(.black)
+            .foregroundStyle(color == Theme.cardHighlight || color == Theme.card ? Color.white : Color.black)
             .padding(.vertical, 14)
             .frame(maxWidth: .infinity)
             .background(color.opacity(configuration.isPressed ? 0.7 : 1), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
