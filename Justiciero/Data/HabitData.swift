@@ -47,6 +47,10 @@ enum Habits {
                                        detail: "25 minutos alternando trote y caminar. Semana 1: 1 min trote / 2 min caminar. Cada semana, 1 minuto más de trote. Por zonas iluminadas.",
                                        minutes: 25, workout: nil)
 
+    private static let route = HabitItem(id: "ruta", block: .tarde, kind: .ruta, title: "Paso de tu ruta a la autoridad",
+                                         detail: "Avanza en el siguiente paso de tu ruta: Protección Civil, vigilante de seguridad o Ciber-Batman.",
+                                         minutes: 20, workout: nil)
+
     private static func workout(_ id: String, _ title: String, _ detail: String, _ minutes: Int) -> HabitItem {
         HabitItem(id: "entreno-" + id, block: .tarde, kind: .entreno, title: title, detail: detail, minutes: minutes, workout: id)
     }
@@ -56,7 +60,7 @@ enum Habits {
     static let cueva = WeekTemplate(minPhase: 0, days: [
         [workout("cueva-a", "Cueva A · Fuerza base", "Sesión guiada en casa. Si es tu primera semana, usa la versión fácil de cada ejercicio.", 25), mission],
         [workout("movilidad", "Movilidad y calma", "15 minutos de movilidad y respiración. Recupera para mañana.", 15), kim],
-        [workout("cueva-b", "Cueva B · Resistencia", "Sesión guiada en casa. Descansa lo que marque cada serie, no menos.", 25), mission],
+        [workout("cueva-b", "Cueva B · Resistencia", "Sesión guiada en casa. Descansa lo que marque cada serie, no menos.", 25), route],
         [workout("movilidad", "Movilidad y calma", "15 minutos de movilidad y respiración.", 15), scenario],
         [workout("cueva-a", "Cueva A · Fuerza base", "Intenta hacer una repetición más que el lunes en flexiones.", 25), mission],
         [scenario, kim,
@@ -70,7 +74,7 @@ enum Habits {
     static let forja = WeekTemplate(minPhase: 1, days: [
         [workout("forja-fuerza", "Forja · Fuerza", "Fuerza con tu peso. Después, si te quedan ganas, 10 minutos de técnica lenta del Dojo.", 35)],
         [dojo, mission],
-        [jog, workout("caidas", "Aprender a caer", "Sobre colchoneta. Barbilla al pecho siempre.", 20)],
+        [jog, workout("caidas", "Aprender a caer", "Sobre colchoneta. Barbilla al pecho siempre.", 20), route],
         [dojo, mission],
         [workout("forja-fuerza", "Forja · Fuerza", "Intenta mejorar una repetición en cada ejercicio respecto al lunes.", 35), jog],
         [dojo, scenario, kim],
@@ -82,7 +86,7 @@ enum Habits {
     static let ciudad = WeekTemplate(minPhase: 2, days: [
         [workout("forja-fuerza", "Forja · Fuerza", "Fuerza con tu peso.", 35), dojo],
         [dojo, mission],
-        [workout("carrera", "Reconocimiento", "Carrera por tu barrio, de día o por zonas iluminadas. Fíjate en calles, portales y puntos seguros.", 40)],
+        [workout("carrera", "Reconocimiento", "Carrera por tu barrio, de día o por zonas iluminadas. Fíjate en calles, portales y puntos seguros.", 40), route],
         [dojo, mission],
         [workout("agilidad", "Agilidad urbana", "En un parque, a ras de suelo. Nada de alturas.", 30), scenario],
         [dojo, mission,
@@ -97,7 +101,7 @@ enum Habits {
     static let guardian = WeekTemplate(minPhase: 4, days: [
         [workout("guardian", "Circuito del Guardián", "Preparación física para pruebas de acceso.", 45)],
         [dojo, mission],
-        [workout("carrera", "Reconocimiento", "Carrera por tu barrio. Intenta bajar tu tiempo en 5 km.", 40)],
+        [workout("carrera", "Reconocimiento", "Carrera por tu barrio. Intenta bajar tu tiempo en 5 km.", 40), route],
         [dojo, mission],
         [workout("forja-fuerza", "Forja · Fuerza", "Fuerza con tu peso.", 35), scenario],
         [HabitItem(id: "voluntariado", block: .tarde, kind: .voluntariado, title: "Servicio o formación",

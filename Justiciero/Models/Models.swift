@@ -375,12 +375,12 @@ enum DayBlock: String, CaseIterable {
 }
 
 enum HabitKind: String {
-    case habito, entreno, dojo, leccion, mision, kim, escenario, bitacora, test, salida, voluntariado, descanso
+    case habito, entreno, dojo, leccion, mision, kim, escenario, bitacora, test, salida, voluntariado, descanso, ruta
 
     /// Las tareas de estos tipos se marcan solas al hacerlas en la app.
     var isAutomatic: Bool {
         switch self {
-        case .entreno, .dojo, .leccion, .mision, .kim, .escenario, .bitacora, .test: true
+        case .entreno, .dojo, .leccion, .mision, .kim, .escenario, .bitacora, .test, .ruta: true
         default: false
         }
     }
@@ -401,4 +401,25 @@ struct WeekTemplate {
     let minPhase: Int
     /// 7 días, de lunes a domingo.
     let days: [[HabitItem]]
+}
+
+// MARK: - Ruta a la autoridad
+
+struct RouteLink: Hashable {
+    let title: String
+    let url: String
+}
+
+struct AuthorityRoute: Identifiable, Hashable {
+    let id: String
+    let title: String
+    let icon: String
+    let summary: String
+    let time: String
+    let study: String
+    let powers: String
+    let requirements: [String]
+    /// Pasos como misiones (se guardan junto a las del programa; sus ids empiezan por "r-").
+    let steps: [ProgramTask]
+    let links: [RouteLink]
 }
