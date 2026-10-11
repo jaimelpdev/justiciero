@@ -20,6 +20,8 @@ enum Authority {
             "Compromiso de un mínimo de horas de servicio al año (lo fija cada agrupación).",
         ],
         steps: [
+            ProgramTask("r-pc-0", 1, .habilidad, "Audita tu huella en internet",
+                        "Antes de ponerte el uniforme, haz la lección Academia › Ciber-Batman › Protege tu identidad: que nadie pueda encontrar dónde vives buscando tu nombre."),
             ProgramTask("r-pc-1", 1, .comunidad, "Localiza tu agrupación",
                         "Busca «Protección Civil» + tu municipio, o pregunta en el ayuntamiento o en la Policía Local. Apunta teléfono, correo y cuándo hacen las reuniones o la formación."),
             ProgramTask("r-pc-2", 2, .ley, "Pide tus certificados",
@@ -54,6 +56,8 @@ enum Authority {
             "Informe de aptitud psicofísica de un centro de reconocimiento autorizado.",
         ],
         steps: [
+            ProgramTask("r-vs-0", 1, .habilidad, "Audita tu huella en internet",
+                        "Antes de trabajar de cara al público, haz la lección Academia › Ciber-Batman › Protege tu identidad: que nadie pueda encontrar dónde vives buscando tu nombre."),
             ProgramTask("r-vs-1", 1, .habilidad, "Elige un centro de formación homologado",
                         "Compara precio, horario (presencial u online), porcentaje de aprobados y si te preparan las pruebas físicas. Pide referencias."),
             ProgramTask("r-vs-2", 2, .fisico, "Haz un test de las pruebas físicas",
@@ -86,6 +90,8 @@ enum Authority {
         steps: [
             ProgramTask("r-cb-1", 1, .ley, "Completa el módulo Ciber-Batman",
                         "Academia › Ciber-Batman: estafas, ayuda a víctimas, OSINT legal, peritaje y las líneas rojas que nunca se cruzan."),
+            ProgramTask("r-cb-0", 2, .habilidad, "Audita tu propia huella",
+                        "Haz contigo mismo el OSINT de la lección «Protege tu identidad» y borra lo que revele dónde vives. Primero protégete tú; luego, a los demás."),
             ProgramTask("r-cb-2", 2, .comunidad, "Sé el informático de confianza de tu familia",
                         "Revisa con tus padres, abuelos o vecinos mayores: doble factor en el correo y el banco, cómo reconocer un SMS falso y qué hacer si les estafan."),
             ProgramTask("r-cb-3", 3, .comunidad, "Da tu primera charla anti-estafas",

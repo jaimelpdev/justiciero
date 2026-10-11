@@ -462,5 +462,35 @@ extension SkillModule {
                 ]),
                 .tip("Las pruebas de seguridad solo se hacen con **autorización por escrito** del propietario o dentro de programas de recompensas (bug bounty) que lo permitan expresamente."),
             ]),
+            Lesson(id: "cib-6", title: "Protege tu identidad: audítate a ti mismo", minutes: 8, blocks: [
+                .paragraph("Hoy nadie te localiza siguiéndote por la calle: te buscan en internet. Una máscara no tapa nada de eso. Una buena higiene digital, sí. Haz contigo mismo el OSINT que harías en una investigación."),
+                .heading("1. Qué se sabe de ti"),
+                .steps([
+                    "Busca tu nombre completo entre comillas, tus usuarios de redes, tu correo y tu teléfono en varios buscadores. Apunta todo lo que salga.",
+                    "Haz una búsqueda inversa de tu cara (por ejemplo, con Google Lens) usando tus fotos de perfil.",
+                    "Marca en rojo lo que revela **dónde vives, dónde trabajas, tu rutina o tu familia**: es lo que hay que borrar primero.",
+                ]),
+                .heading("2. Cierra puertas"),
+                .bullets([
+                    "Redes en privado, sin ciudad, empresa ni lista de amigos visible. Revisa también fotos en las que te etiquetan otros.",
+                    "Nada de fotos de tu portal, tu calle, tu coche, tu matrícula o la vista desde tu casa. Desactiva la ubicación de la cámara.",
+                    "Apps deportivas (Strava y similares): perfil privado y **zona de privacidad** alrededor de tu casa. Tus rutas de carrera dibujan dónde vives.",
+                    "No publiques en tiempo real dónde estás: súbelo después, si acaso.",
+                    "Que el nombre de tu Wi-Fi no lleve tu nombre ni tu piso.",
+                ]),
+                .heading("3. Pide que borren tus datos"),
+                .bullets([
+                    "Ejerce tu **derecho de supresión** (art. 17 del RGPD) ante webs, guías o buscadores de personas que publiquen tu dirección o teléfono. Si no te responden en un mes, reclama ante la **AEPD**.",
+                    "Google tiene un formulario para pedir que retire resultados con datos personales como tu dirección o tu teléfono.",
+                    "Pide a tu operadora que tu número no figure en las guías telefónicas.",
+                ]),
+                .heading("4. Separa identidades"),
+                .bullets([
+                    "Un correo y un número distintos para el voluntariado, la ciberseguridad y cualquier actividad pública.",
+                    "Contraseñas únicas en un gestor y verificación en dos pasos en todo, empezando por el correo.",
+                    "Nunca cuentes en redes ni en el barrio lo que haces.",
+                ]),
+                .tip("Repite la auditoría cada 6 meses. Y recuerda: con uniforme te identificas por un número (la TIP de vigilante o tu número de voluntario), no por tu nombre."),
+            ]),
         ])
 }

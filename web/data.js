@@ -970,6 +970,36 @@ const MODULES = (() => {
                 ]),
                 B("tip", "Las pruebas de seguridad solo se hacen con **autorización por escrito** del propietario o dentro de programas de recompensas (bug bounty) que lo permitan expresamente."),
             ]},
+            {id: "cib-6", title: "Protege tu identidad: audítate a ti mismo", minutes: 8, blocks: [
+                B("paragraph", "Hoy nadie te localiza siguiéndote por la calle: te buscan en internet. Una máscara no tapa nada de eso. Una buena higiene digital, sí. Haz contigo mismo el OSINT que harías en una investigación."),
+                B("heading", "1. Qué se sabe de ti"),
+                B("steps", [
+                    "Busca tu nombre completo entre comillas, tus usuarios de redes, tu correo y tu teléfono en varios buscadores. Apunta todo lo que salga.",
+                    "Haz una búsqueda inversa de tu cara (por ejemplo, con Google Lens) usando tus fotos de perfil.",
+                    "Marca en rojo lo que revela **dónde vives, dónde trabajas, tu rutina o tu familia**: es lo que hay que borrar primero.",
+                ]),
+                B("heading", "2. Cierra puertas"),
+                B("bullets", [
+                    "Redes en privado, sin ciudad, empresa ni lista de amigos visible. Revisa también fotos en las que te etiquetan otros.",
+                    "Nada de fotos de tu portal, tu calle, tu coche, tu matrícula o la vista desde tu casa. Desactiva la ubicación de la cámara.",
+                    "Apps deportivas (Strava y similares): perfil privado y **zona de privacidad** alrededor de tu casa. Tus rutas de carrera dibujan dónde vives.",
+                    "No publiques en tiempo real dónde estás: súbelo después, si acaso.",
+                    "Que el nombre de tu Wi-Fi no lleve tu nombre ni tu piso.",
+                ]),
+                B("heading", "3. Pide que borren tus datos"),
+                B("bullets", [
+                    "Ejerce tu **derecho de supresión** (art. 17 del RGPD) ante webs, guías o buscadores de personas que publiquen tu dirección o teléfono. Si no te responden en un mes, reclama ante la **AEPD**.",
+                    "Google tiene un formulario para pedir que retire resultados con datos personales como tu dirección o tu teléfono.",
+                    "Pide a tu operadora que tu número no figure en las guías telefónicas.",
+                ]),
+                B("heading", "4. Separa identidades"),
+                B("bullets", [
+                    "Un correo y un número distintos para el voluntariado, la ciberseguridad y cualquier actividad pública.",
+                    "Contraseñas únicas en un gestor y verificación en dos pasos en todo, empezando por el correo.",
+                    "Nunca cuentes en redes ni en el barrio lo que haces.",
+                ]),
+                B("tip", "Repite la auditoría cada 6 meses. Y recuerda: con uniforme te identificas por un número (la TIP de vigilante o tu número de voluntario), no por tu nombre."),
+            ]},
         ]}
 
   return all();
@@ -1886,6 +1916,8 @@ const AUTHORITY = (() => {
             "Compromiso de un mínimo de horas de servicio al año (lo fija cada agrupación).",
         ],
         steps: [
+            T("r-pc-0", 1, "habilidad", "Audita tu huella en internet",
+                        "Antes de ponerte el uniforme, haz la lección Academia › Ciber-Batman › Protege tu identidad: que nadie pueda encontrar dónde vives buscando tu nombre."),
             T("r-pc-1", 1, "comunidad", "Localiza tu agrupación",
                         "Busca «Protección Civil» + tu municipio, o pregunta en el ayuntamiento o en la Policía Local. Apunta teléfono, correo y cuándo hacen las reuniones o la formación."),
             T("r-pc-2", 2, "ley", "Pide tus certificados",
@@ -1920,6 +1952,8 @@ const AUTHORITY = (() => {
             "Informe de aptitud psicofísica de un centro de reconocimiento autorizado.",
         ],
         steps: [
+            T("r-vs-0", 1, "habilidad", "Audita tu huella en internet",
+                        "Antes de trabajar de cara al público, haz la lección Academia › Ciber-Batman › Protege tu identidad: que nadie pueda encontrar dónde vives buscando tu nombre."),
             T("r-vs-1", 1, "habilidad", "Elige un centro de formación homologado",
                         "Compara precio, horario (presencial u online), porcentaje de aprobados y si te preparan las pruebas físicas. Pide referencias."),
             T("r-vs-2", 2, "fisico", "Haz un test de las pruebas físicas",
@@ -1952,6 +1986,8 @@ const AUTHORITY = (() => {
         steps: [
             T("r-cb-1", 1, "ley", "Completa el módulo Ciber-Batman",
                         "Academia › Ciber-Batman: estafas, ayuda a víctimas, OSINT legal, peritaje y las líneas rojas que nunca se cruzan."),
+            T("r-cb-0", 2, "habilidad", "Audita tu propia huella",
+                        "Haz contigo mismo el OSINT de la lección «Protege tu identidad» y borra lo que revele dónde vives. Primero protégete tú; luego, a los demás."),
             T("r-cb-2", 2, "comunidad", "Sé el informático de confianza de tu familia",
                         "Revisa con tus padres, abuelos o vecinos mayores: doble factor en el correo y el banco, cómo reconocer un SMS falso y qué hacer si les estafan."),
             T("r-cb-3", 3, "comunidad", "Da tu primera charla anti-estafas",
