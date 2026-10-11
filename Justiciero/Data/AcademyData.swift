@@ -1,7 +1,7 @@
 import Foundation
 
 extension SkillModule {
-    static let all: [SkillModule] = [ley, auxilios, desescalada, defensa, observacion, ciudad, mentalidad, caminos, ciber]
+    static let all: [SkillModule] = [ley, auxilios, desescalada, defensa, intervencion, observacion, ciudad, mentalidad, caminos, ciber]
 
     // MARK: Ley
 
@@ -491,6 +491,87 @@ extension SkillModule {
                     "Nunca cuentes en redes ni en el barrio lo que haces.",
                 ]),
                 .tip("Repite la auditoría cada 6 meses. Y recuerda: con uniforme te identificas por un número (la TIP de vigilante o tu número de voluntario), no por tu nombre."),
+            ]),
+        ])
+
+    // MARK: Intervenir
+
+    static let intervencion = SkillModule(
+        id: "intervencion", title: "Intervenir: cuando no puedes esperar", icon: "hand.raised.fill", colorName: "red",
+        intro: "La policía tarda minutos en llegar y hay situaciones en las que esos minutos lo deciden todo. Este módulo te prepara para intervenir cuando de verdad hace falta: cuándo sí, cómo hacerlo con el menor riesgo y cómo no acabar siendo tú el denunciado. La meta nunca es ganar una pelea: es que la agresión pare.",
+        lessons: [
+            Lesson(id: "int-1", title: "Cuándo sí intervenir (y cuándo no)", minutes: 6, blocks: [
+                .paragraph("Intervenir físicamente está justificado cuando se cumplen **las tres** condiciones a la vez:"),
+                .steps([
+                    "**Una persona está sufriendo un daño grave ahora mismo** o va a sufrirlo en segundos: le están pegando en el suelo, la arrastran contra su voluntad, la están estrangulando.",
+                    "**Tu intervención puede cambiar el resultado**: puedes hacer que pare, que la víctima escape o que el agresor se vaya.",
+                    "**El riesgo es asumible**: no hay armas a la vista, no estás en clara inferioridad numérica y tienes por dónde salir.",
+                ]),
+                .heading("Cuándo no"),
+                .bullets([
+                    "**Para proteger cosas**: un móvil, una moto o un escaparate no valen ni un riesgo.",
+                    "**Si la agresión ya ha terminado** y el agresor se va: atiende a la víctima y describe al agresor.",
+                    "**Si hay un arma** y no hay una vida en peligro inmediato: distancia, barreras, 112 y testigos.",
+                    "**Si estás solo frente a un grupo**: busca aliados antes de acercarte.",
+                ]),
+                .tip("Ese análisis tiene que durar dos segundos. Por eso se entrena en el Simulador hasta que sea automático."),
+                .warning("Que la policía tarde no cambia la regla: el 112 se llama siempre, en cuanto puedas, aunque sea con el altavoz mientras actúas o pidiéndoselo a otra persona."),
+            ]),
+            Lesson(id: "int-2", title: "Lo que la ley te permite", minutes: 5, blocks: [
+                .paragraph("La ley española no te obliga a mirar: te **permite** defender a otra persona igual que a ti mismo (art. 20.4 del Código Penal), con tres condiciones:"),
+                .bullets([
+                    "**Agresión real y actual** contra esa persona.",
+                    "**Medio proporcionado**: lo mínimo necesario para que pare. Contra empujones, no puñetazos; contra puñetazos, no un objeto contundente.",
+                    "**Sin provocación** por tu parte.",
+                ]),
+                .paragraph("Además, puedes **retener al agresor in fraganti** para entregarlo a la policía (art. 490 de la Ley de Enjuiciamiento Criminal), con la fuerza mínima y avisando inmediatamente."),
+                .danger("En el momento en que el agresor deja de atacar, huye o queda en el suelo sin poder seguir, **todo lo que hagas a partir de ahí ya no es defensa**: es agresión. Un golpe de más convierte al héroe en acusado."),
+            ]),
+            Lesson(id: "int-3", title: "Intervenir en grupo", minutes: 4, blocks: [
+                .paragraph("Un solo testigo que interviene es un objetivo. Tres personas que se acercan a la vez son una fuerza que casi siempre hace que el agresor pare o se vaya sin que nadie tenga que tocarle."),
+                .steps([
+                    "**Recluta en voz alta y señalando**: «¡Tú y tú, venid conmigo! ¡Tú, llama al 112!»",
+                    "**Reparte papeles**: uno llama, otro se queda con la víctima, los demás se acercan contigo.",
+                    "**Acercaos juntos**, de frente y sin rodear del todo al agresor: que vea que tiene una salida.",
+                    "**Hablad alto**: «¡Para ya! ¡La policía está viniendo!» Muchas agresiones terminan aquí.",
+                ]),
+                .tip("La gente quiere ayudar, pero cada uno espera a que lo haga otro. En cuanto alguien da instrucciones concretas, los demás le siguen."),
+            ]),
+            Lesson(id: "int-4", title: "La escalera de intervención", minutes: 6, blocks: [
+                .paragraph("Empieza siempre por el escalón más bajo que funcione y sube solo si el anterior no basta. Puedes bajar en cualquier momento."),
+                .steps([
+                    "**Presencia**: acércate de forma visible, en guardia natural (la valla), con aliados si es posible.",
+                    "**Voz de mando**: órdenes cortas, alto y claro. «¡PARA! ¡DÉJALE! ¡ATRÁS!» Nada de insultos.",
+                    "**Interponerte**: colócate entre el agresor y la víctima, manos arriba, y haz que la víctima se aleje o cúbrela si está en el suelo.",
+                    "**Separar**: si siguen enganchados, apártalo desde atrás o desde un lado con la técnica del Dojo, sin golpear.",
+                    "**Controlar**: si sigue atacando, sujeción o control en el suelo seguro hasta que se calme o llegue la policía.",
+                    "**Defenderte**: los golpes solo si te atacan a ti o a la víctima y no hay otra forma de pararlo. Para crear un hueco, no para castigar.",
+                ]),
+                .warning("Fíjate en sus manos todo el tiempo. Si aparece un arma, el plan cambia: distancia, barreras (una silla, una mochila, un coche) y que se vaya."),
+            ]),
+            Lesson(id: "int-5", title: "Retener sin poner en riesgo una vida", minutes: 5, blocks: [
+                .paragraph("Si decides retener a alguien hasta que llegue la policía, tu responsabilidad sobre su vida empieza en ese momento. Personas han muerto por retenciones mal hechas en la calle."),
+                .bullets([
+                    "**Nunca presiones el cuello ni la garganta**, ni con el brazo ni con la rodilla.",
+                    "**Nunca pongas tu peso sobre su espalda o su pecho** si está boca abajo: provoca asfixia por posición en pocos minutos.",
+                    "**Ponlo de lado** en cuanto deje de resistirse y vigila que respire.",
+                    "**Habla con él**: «Tranquilo, no te voy a hacer daño, viene la policía». Baja la tensión de todos.",
+                    "**Si se resiste mucho, suéltalo y déjale ir.** Ya tienes su descripción. Ninguna retención vale una vida, la suya o la tuya.",
+                    "**Entrégalo en cuanto llegue la policía** y explica qué ha pasado.",
+                ]),
+                .danger("Si deja de hablar, se pone azul, vomita o deja de moverse: suelta de inmediato, ponlo de lado, comprueba si respira y empieza RCP si hace falta."),
+            ]),
+            Lesson(id: "int-6", title: "Después de intervenir", minutes: 4, blocks: [
+                .steps([
+                    "**Atiende a la víctima** y a ti mismo: primeros auxilios y, si alguien está herido, ambulancia.",
+                    "**Quédate hasta que llegue la policía** y cuenta exactamente lo que ha pasado, sin adornar ni minimizar.",
+                    "**Pide los datos de los testigos**: son tu mejor defensa si el agresor te denuncia.",
+                    "**Si usaste la fuerza**, tienes derecho a no declarar sin un abogado. Úsalo si te detienen o te citan como investigado.",
+                    "**Si te hiciste daño**, ve a urgencias y pide el parte de lesiones.",
+                    "**No publiques nada** en redes, ni vídeos ni comentarios.",
+                    "**Habla con alguien** en los días siguientes. Es normal temblar, no dormir bien o repasarlo mil veces.",
+                ]),
+                .tip("Escribe en la Bitácora lo que pasó esa misma noche: te servirá para declarar y para aprender."),
             ]),
         ])
 }
