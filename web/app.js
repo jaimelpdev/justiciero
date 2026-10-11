@@ -28,13 +28,14 @@ const CATEGORIES = {
 
 const PHASE_EMOJI = ["🏠", "🔥", "🏙️", "🔍", "🛡️", "🌙"];
 const MODULE_STYLE = {
-  ley: ["⚖️", "var(--info)"], ciber: ["💻", "var(--info)"], auxilios: ["⛑️", "var(--danger)"], desescalada: ["🗣️", "var(--success)"],
+  ley: ["⚖️", "var(--info)"], ciber: ["💻", "var(--info)"], intervencion: ["✋", "var(--danger)"], auxilios: ["⛑️", "var(--danger)"], desescalada: ["🗣️", "var(--success)"],
   defensa: ["🥋", "var(--orange)"], observacion: ["👁️", "var(--purple)"], ciudad: ["🌃", "#2dd4bf"],
   mentalidad: ["🧠", "#f472b6"], caminos: ["🧭", "var(--accent)"],
 };
 const SCENARIO_EMOJI = {
   tiron: "👜", "pelea-bar": "🍺", inconsciente: "🧍", "me-siguen": "👣", coche: "🚗",
   metro: "🚇", navaja: "🔪", puente: "🌉", venganza: "✊", incendio: "🔥",
+  "suelo-patadas": "🆘", arrastran: "🚐", "cuchillo-tercero": "⚠️", retencion: "🤲", huye: "🏃",
 };
 const GEAR_STATUS = {
   recomendado: { label: "Recomendado", emoji: "✅", color: "var(--success)" },
