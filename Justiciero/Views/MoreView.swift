@@ -7,6 +7,11 @@ struct MoreView: View {
     var body: some View {
         NavigationStack {
             List {
+                Section("Tu camino") {
+                    NavigationLink { AuthorityView() } label: {
+                        Label("Ruta a la autoridad", systemImage: "shield.checkered")
+                    }
+                }
                 Section("En la calle") {
                     NavigationLink { SucesosView() } label: {
                         Label("Sucesos en tu zona", systemImage: "newspaper.fill")

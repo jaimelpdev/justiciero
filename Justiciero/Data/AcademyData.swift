@@ -1,7 +1,7 @@
 import Foundation
 
 extension SkillModule {
-    static let all: [SkillModule] = [ley, auxilios, desescalada, defensa, observacion, ciudad, mentalidad, caminos]
+    static let all: [SkillModule] = [ley, auxilios, desescalada, defensa, observacion, ciudad, mentalidad, caminos, ciber]
 
     // MARK: Ley
 
@@ -388,6 +388,79 @@ extension SkillModule {
                     "**Enfermería, medicina, trabajo social, criminología, derecho**: carreras que protegen a la gente desde otro ángulo.",
                 ]),
                 .tip("Casi todas estas pruebas exigen buena forma física. Lo que has entrenado en este programa es una gran base."),
+            ]),
+        ])
+
+    // MARK: Ciber-Batman
+
+    static let ciber = SkillModule(
+        id: "ciber", title: "Ciber-Batman", icon: "lock.shield.fill", colorName: "blue",
+        intro: "La mayoría de los delitos que sufre hoy la gente de tu barrio no ocurren en un callejón, sino en el móvil. Con conocimientos de ciberseguridad puedes proteger a más personas que cualquier justiciero nocturno, siempre dentro de la ley.",
+        lessons: [
+            Lesson(id: "cib-1", title: "Las estafas más comunes", minutes: 6, blocks: [
+                .paragraph("Casi todas siguen el mismo patrón: **urgencia + autoridad o cariño + un pago o un código**. Si aprendes a ver el patrón, las ves venir todas."),
+                .bullets([
+                    "**El hijo en apuros**: «Hola mamá, se me ha roto el móvil, este es mi número nuevo. ¿Me haces un Bizum urgente?»",
+                    "**Falso banco, Correos o DGT**: un SMS con un enlace para «verificar tu cuenta», «pagar el envío» o «pagar una multa».",
+                    "**Falso técnico**: te llaman «de Microsoft» o de tu compañía para arreglar un virus y te piden instalar un programa de control remoto.",
+                    "**El código de verificación**: alguien te pide «el código que te acaba de llegar». Con él te roban el WhatsApp o autorizan un pago.",
+                    "**Bizum inverso**: en una compraventa, en vez de enviarte dinero te mandan una *solicitud* de pago para que la aceptes tú.",
+                    "**Inversiones milagro**: anuncios con famosos que prometen hacerte rico con criptomonedas. El dinero desaparece.",
+                    "**Estafa del amor**: alguien que conoces por internet, nunca puede hacer videollamada y acaba pidiendo dinero por una emergencia.",
+                ]),
+                .tip("La regla de oro que enseñarás a tu familia: **ningún banco, empresa ni organismo te pide nunca contraseñas ni códigos**. Ante la duda, cuelga y llama tú al número oficial."),
+            ]),
+            Lesson(id: "cib-2", title: "Ayudar a una víctima de estafa", minutes: 5, blocks: [
+                .paragraph("Los primeros minutos importan: cuanto antes se actúa, más posibilidades hay de recuperar el dinero y de que la policía pueda investigar."),
+                .steps([
+                    "**Llamar al banco ya**, al teléfono del reverso de la tarjeta: bloquear tarjetas y pedir que intenten parar o devolver la transferencia.",
+                    "**Recuperar el control**: cambiar primero la contraseña del correo, después la del banco y las redes. Activar la verificación en dos pasos y cerrar las sesiones abiertas.",
+                    "**Guardar pruebas, no borrar nada**: capturas con fecha y hora, números de teléfono, enlaces, nombres de perfiles, justificantes de pago.",
+                    "**Denunciar** en la Policía Nacional o la Guardia Civil, llevando todas las pruebas. Sin denuncia no hay investigación ni posible devolución.",
+                    "**Llamar al 017**, la línea de ayuda en ciberseguridad del INCIBE: gratuita y confidencial. Te orientan paso a paso.",
+                    "**Avisar a sus contactos** si han suplantado su identidad o su WhatsApp, para que nadie más pique.",
+                ]),
+                .warning("La víctima suele sentir vergüenza. Nunca le digas «¿cómo has picado?». Estas estafas las diseñan profesionales y caen personas de todas las edades y estudios."),
+            ]),
+            Lesson(id: "cib-3", title: "OSINT legal: qué sí y qué no", minutes: 5, blocks: [
+                .paragraph("OSINT es la investigación con **fuentes abiertas**: información que cualquiera puede consultar legalmente. Bien usada, ayuda a encontrar personas desaparecidas o a documentar una estafa para la policía."),
+                .heading("Sí"),
+                .bullets([
+                    "Buscar en webs, redes y registros públicos.",
+                    "Documentar con capturas fechadas y enlaces todo lo que encuentres.",
+                    "Entregar lo encontrado a la policía o a la organización que coordina la búsqueda.",
+                    "Participar en iniciativas organizadas, como las búsquedas de desaparecidos de Trace Labs.",
+                ]),
+                .heading("No"),
+                .bullets([
+                    "Entrar en cuentas, móviles u ordenadores ajenos, ni adivinar contraseñas.",
+                    "Contactar o engañar a sospechosos haciéndote pasar por otra persona.",
+                    "Publicar datos o fotos de nadie («doxing»), aunque creas que es culpable.",
+                    "Investigar a personas concretas por tu cuenta, fuera de una búsqueda organizada o un encargo legal.",
+                ]),
+                .warning("Exponer en redes a un supuesto delincuente puede arruinar la investigación policial, poner en peligro a inocentes y acabar en una denuncia contra ti."),
+            ]),
+            Lesson(id: "cib-4", title: "Peritaje: pruebas que valen en un juicio", minutes: 6, blocks: [
+                .paragraph("Un juez no condena por una captura de pantalla dudosa. Condena con pruebas que se pueden verificar. Eso es lo que hace un perito informático forense, y es probablemente el trabajo más «Batman» al que puedes aspirar con tu formación."),
+                .steps([
+                    "**Preservar**: no manipular el dispositivo original. Si está encendido, aislarlo de la red (modo avión) en vez de apagarlo sin criterio.",
+                    "**Adquirir**: hacer una copia forense bit a bit con bloqueador de escritura, y trabajar siempre sobre la copia.",
+                    "**Verificar**: calcular el hash (por ejemplo, SHA-256) del original y de la copia para demostrar que son idénticos.",
+                    "**Cadena de custodia**: documentar quién, cuándo, dónde y cómo ha tenido la evidencia en cada momento.",
+                    "**Informe pericial**: claro, reproducible y entendible por alguien que no sea técnico. Debes poder defenderlo ante el juez.",
+                ]),
+                .tip("Para conversaciones de WhatsApp o publicaciones en redes, una captura se puede impugnar. Existen servicios de certificación de evidencias digitales y el acta notarial que les dan validez."),
+            ]),
+            Lesson(id: "cib-5", title: "Líneas rojas que nunca se cruzan", minutes: 4, blocks: [
+                .paragraph("Saber atacar sistemas no te da permiso para hacerlo, ni siquiera contra un delincuente. Un hacker justiciero es, para la ley, un delincuente más, y sus «pruebas» no valen."),
+                .bullets([
+                    "**Acceso sin autorización** a sistemas o cuentas: delito (art. 197 bis del Código Penal).",
+                    "**Interceptar comunicaciones** o apoderarse de mensajes, correos o datos ajenos: delito de descubrimiento y revelación de secretos (art. 197).",
+                    "**Tumbar webs o dañar sistemas** (DDoS, borrar datos): delito de daños informáticos (arts. 264 y siguientes).",
+                    "**Hacerte pasar por otra persona** para engañar: puede ser usurpación de estado civil o estafa.",
+                    "**Atacar al atacante** («hack back»): ilegal aunque te hayan atacado a ti primero.",
+                ]),
+                .tip("Las pruebas de seguridad solo se hacen con **autorización por escrito** del propietario o dentro de programas de recompensas (bug bounty) que lo permitan expresamente."),
             ]),
         ])
 }

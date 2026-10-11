@@ -7,6 +7,13 @@ struct ProgramView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
+                    NavigationLink {
+                        AuthorityView()
+                    } label: {
+                        AuthorityCard()
+                    }
+                    .buttonStyle(.plain)
+
                     Callout(kind: .info, text: "Un programa de **12 meses** en 6 fases. Cada fase se desbloquea al completar el **80 %** de la anterior. No hay atajos: el orden existe para que llegues a la calle preparado.")
 
                     ForEach(Phase.all) { phase in

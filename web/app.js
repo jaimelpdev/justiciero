@@ -28,7 +28,7 @@ const CATEGORIES = {
 
 const PHASE_EMOJI = ["🏠", "🔥", "🏙️", "🔍", "🛡️", "🌙"];
 const MODULE_STYLE = {
-  ley: ["⚖️", "var(--info)"], auxilios: ["⛑️", "var(--danger)"], desescalada: ["🗣️", "var(--success)"],
+  ley: ["⚖️", "var(--info)"], ciber: ["💻", "var(--info)"], auxilios: ["⛑️", "var(--danger)"], desescalada: ["🗣️", "var(--success)"],
   defensa: ["🥋", "var(--orange)"], observacion: ["👁️", "var(--purple)"], ciudad: ["🌃", "#2dd4bf"],
   mentalidad: ["🧠", "#f472b6"], caminos: ["🧭", "var(--accent)"],
 };
@@ -188,7 +188,7 @@ function logDojoClass(b) {
 }
 /* ---------- Plan diario ---------- */
 
-const AUTO_KINDS = ["entreno", "dojo", "leccion", "mision", "kim", "escenario", "bitacora", "test"];
+const AUTO_KINDS = ["entreno", "dojo", "leccion", "mision", "kim", "escenario", "bitacora", "test", "ruta"];
 const BLOCKS = [["manana", "🌅", "Mañana"], ["tarde", "☀️", "Tarde"], ["noche", "🌙", "Noche"]];
 const weekdayIndex = (d) => (d.getDay() + 6) % 7; // lunes = 0
 
@@ -253,13 +253,20 @@ function resolveHabit(item) {
       r.href = `#/fase/${p.id}`;
       break;
     }
+    case "ruta": {
+      const route = currentRoute(), step = nextStep(route);
+      r.title = step ? `${route.title}: ${step.title}` : `${route.title}: ruta completada`;
+      r.detail = step ? step.detail : "Has completado todos los pasos de esta ruta. Elige otra en Más › Ruta a la autoridad.";
+      r.href = `#/ruta/${route.id}`;
+      break;
+    }
     case "kim": r.href = "#/kim"; break;
     case "escenario": r.href = "#/escenarios"; break;
     case "bitacora": r.href = "#/bitacora-nueva/reflexion"; break;
     case "test": r.href = "#/test"; break;
     case "salida": r.href = "#/salida"; break;
   }
-  if ((item.kind === "leccion" || item.kind === "mision") && habitDone(item)) {
+  if ((item.kind === "leccion" || item.kind === "mision" || item.kind === "ruta") && habitDone(item)) {
     r.detail = r.href && r.title !== item.title ? `Hecha. Si te apetece adelantar: ${r.title}.` : "Hecha.";
     r.title = item.title;
   }
@@ -281,6 +288,63 @@ function habitRow(item) {
         </div>
       </div>
     </div>`;
+}
+
+/* ---------- Ruta a la autoridad ---------- */
+
+const currentRoute = () => AUTHORITY.routes.find((r) => r.id === state.profile.route) || AUTHORITY.routes[0];
+const nextStep = (route) => route.steps.find((t) => !isDone(t));
+const routeCompletion = (route) => route.steps.filter(isDone).length / route.steps.length;
+
+function authorityCard() {
+  const r = currentRoute();
+  return link("#/autoridad", `<div class="tile-ico" style="background:var(--accent)">🛡️</div>
+    <div class="grow stack" style="gap:6px"><p class="title">Ruta a la autoridad</p><p class="small muted">Tu ruta: ${esc(r.title)}</p>${bar(routeCompletion(r), null, true)}</div>`, "card row chev hi");
+}
+
+const ROUTE_EMOJI = { proteccion: "⛑️", vigilante: "🛡️", ciber: "💻" };
+
+function viewAuthority() {
+  const mine = currentRoute().id;
+  return {
+    title: "Ruta a la autoridad", back: "#/mas",
+    html: `<div class="stack">
+      <p class="muted">${esc(AUTHORITY.intro)}</p>
+      ${callout("danger", AUTHORITY.warning)}
+      ${section("Elige tu ruta", "🧭")}
+      ${AUTHORITY.routes.map((r) => link(`#/ruta/${r.id}`, `
+        <span style="font-size:1.8rem;width:40px;text-align:center">${ROUTE_EMOJI[r.id] || "🛡️"}</span>
+        <div class="grow stack" style="gap:6px">
+          <div class="row"><p class="title grow">${esc(r.title)}</p>${r.id === mine ? pill("★ TU RUTA") : ""}</div>
+          <p class="tiny muted">${esc(r.time)} · ${r.steps.length} pasos</p>
+          <p class="small muted">${esc(r.study)}</p>
+          ${bar(routeCompletion(r), "var(--success)", true)}
+        </div>`, `card row top chev ${r.id === mine ? "hi" : ""}`)).join("")}
+      ${callout("tip", "Puedes avanzar en varias a la vez. La ruta principal es la que el plan diario te propone cada miércoles.")}
+    </div>`,
+  };
+}
+
+function viewRoute(id) {
+  const r = AUTHORITY.routes.find((x) => x.id === id);
+  if (!r) return null;
+  const mine = currentRoute().id === r.id;
+  const info = (emoji, title, text) => `<div class="row top"><span style="width:24px;text-align:center">${emoji}</span><div><p class="tiny muted" style="font-weight:700">${title}</p><p class="small">${esc(text)}</p></div></div>`;
+  return {
+    title: r.title, back: "#/autoridad",
+    html: `<div class="stack">
+      <div class="row"><span style="font-size:2.4rem">${ROUTE_EMOJI[r.id] || "🛡️"}</span><div><p class="h2">${esc(r.title)}</p><p class="tiny muted">${Math.round(routeCompletion(r) * 100)} % completado</p></div></div>
+      <p>${esc(r.summary)}</p>
+      ${mine ? `<p class="small" style="color:var(--accent);font-weight:700">★ Es tu ruta principal</p>` : `<button class="btn" data-act="route-choose" data-id="${r.id}">☆ Elegir como ruta principal</button>`}
+      <div class="card stack" style="gap:10px">${info("⏱", "Tiempo", r.time)}${info("📚", "Estudio", r.study)}${info("🛡️", "Qué puedes hacer", r.powers)}</div>
+      ${section("Requisitos", "✅")}
+      <div class="card stack" style="gap:8px">${r.requirements.map((x) => `<div class="row top"><span style="color:var(--accent)">◆</span><span class="small">${esc(x)}</span></div>`).join("")}</div>
+      ${section("Pasos", "🔢")}
+      ${r.steps.map((t) => taskRow(t)).join("")}
+      ${r.links.length ? section("Enlaces", "🔗") + `<div class="card stack" style="gap:10px">${r.links.map((l) => `<a class="linkbtn small" style="padding:0;display:block;text-align:left" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.title)} ↗</a>`).join("")}</div>` : ""}
+      ${callout("info", "Los requisitos y plazos son orientativos y pueden cambiar: confírmalos siempre en la agrupación, el centro de formación o la convocatoria oficial.")}
+    </div>`,
+  };
 }
 
 function dailyPlanSection() {
@@ -307,7 +371,7 @@ function dailyPlanSection() {
 
 function viewWeek() {
   const dailyIds = HABITS.daily.map((d) => d.id);
-  const KIND_ICON = { entreno: "💪", dojo: "🥋", mision: "🎯", kim: "👁️", escenario: "🎭", test: "⏱️", salida: "📍", voluntariado: "❤️", descanso: "🛌" };
+  const KIND_ICON = { entreno: "💪", dojo: "🥋", mision: "🎯", kim: "👁️", escenario: "🎭", test: "⏱️", salida: "📍", voluntariado: "❤️", descanso: "🛌", ruta: "🛡️" };
   const now = new Date();
   return {
     title: "Tu semana", back: "#/base",
@@ -420,6 +484,7 @@ function viewProgram() {
   return {
     title: "Programa", large: true,
     html: `<div class="stack">
+      ${authorityCard()}
       ${callout("info", "Un programa de **12 meses** en 6 fases. Cada fase se desbloquea al completar el **80 %** de la anterior. No hay atajos: el orden existe para que llegues a la calle preparado.")}
       ${PHASES.map((p) => {
         const un = isUnlocked(p), c = completion(p);
@@ -483,6 +548,8 @@ function viewMore() {
   return {
     title: "Más", large: true,
     html: `<div class="stack">
+      ${section("Tu camino")}
+      <div class="card list" style="padding:4px 16px">${item("#/autoridad", "🛡️", "Ruta a la autoridad")}</div>
       ${section("En la calle")}
       <div class="card list" style="padding:4px 16px">${item("#/sucesos", "📰", "Sucesos en tu zona")}${item("#/salida", "📍", "Salida segura")}${item("#/emergencias", "🆘", "Emergencias")}${item("#/equipo", "🎒", "Equipamiento")}</div>
       ${section("Tu progreso")}
@@ -1608,6 +1675,8 @@ const ROUTES = [
   [/^#\/bitacora-nueva\/(\w+)(?:\?t=(.*))?$/, (k, t) => viewJournalNew(k, t ? decodeURIComponent(t) : "")],
   [/^#\/sucesos$/, viewSucesos],
   [/^#\/semana$/, viewWeek],
+  [/^#\/autoridad$/, viewAuthority],
+  [/^#\/ruta\/([\w-]+)$/, viewRoute],
   [/^#\/perfil$/, viewProfile],
   [/^#\/dojo$/, viewDojo],
   [/^#\/cinturon\/(\d+)$/, viewBelt],
@@ -1619,7 +1688,7 @@ const ROUTES = [
 function tabFor(hash) {
   const map = { fase: "#/programa", entreno: "#/entreno", sesion: "#/entreno", test: "#/entreno", modulo: "#/academia", leccion: "#/academia",
     codigo: "#/academia", escenarios: "#/academia", escenario: "#/academia", kim: "#/academia",
-    sucesos: "#/mas", semana: "#/base", dojo: "#/entreno", cinturon: "#/entreno", tecnicas: "#/entreno", tecnica: "#/entreno", clase: "#/entreno" };
+    sucesos: "#/mas", semana: "#/base", autoridad: "#/mas", ruta: "#/mas", dojo: "#/entreno", cinturon: "#/entreno", tecnicas: "#/entreno", tecnica: "#/entreno", clase: "#/entreno" };
   const key = hash.split("/")[1];
   return TABS.find(([h]) => h === hash)?.[0] || map[key] || "#/mas";
 }
@@ -1693,8 +1762,9 @@ const ACTIONS = {
   "toggle-task": (d) => commit((s) => {
     const i = s.completedTasks.indexOf(d.id);
     if (i >= 0) { s.completedTasks.splice(i, 1); s.xp = Math.max(0, s.xp - XP.task); }
-    else { s.completedTasks.push(d.id); gainXP(XP.task); markActive(); markHabit("mision"); }
+    else { s.completedTasks.push(d.id); gainXP(XP.task); markActive(); markHabit(d.id.startsWith("r-") ? "ruta" : "mision"); }
   }),
+  "route-choose": (d) => { commit((s) => { s.profile.route = d.id; }); toast("Ruta principal elegida"); },
   "toggle-habit": (d) => {
     const item = plan().find((i) => i.id === d.id);
     if (!item) return;

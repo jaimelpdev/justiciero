@@ -71,8 +71,12 @@ struct DailyPlanSection: View {
 
 struct HabitRow: View {
     @EnvironmentObject private var store: ProgressStore
+    @AppStorage("authority.route") private var routeID = "proteccion"
     let item: HabitItem
     @State private var showingTest = false
+
+    private var route: AuthorityRoute { Authority.routes.first { $0.id == routeID } ?? Authority.proteccion }
+    private var step: ProgramTask? { store.nextStep(in: route) }
 
     private var nextLesson: (SkillModule, Lesson)? {
         for module in SkillModule.all {
@@ -86,7 +90,7 @@ struct HabitRow: View {
 
     /// La lección y la misión ya hechas hoy muestran su nombre genérico (la siguiente sería otra).
     private var doneGeneric: Bool {
-        (item.kind == .leccion || item.kind == .mision) && store.isDone(item)
+        (item.kind == .leccion || item.kind == .mision || item.kind == .ruta) && store.isDone(item)
     }
 
     private var title: String {
@@ -104,6 +108,7 @@ struct HabitRow: View {
         case .leccion: nextLesson.map { "Lección: \($0.1.title)" } ?? "Repasa una lección"
         case .mision: mission.map { "Misión: \($0.title)" } ?? "Misiones de la fase completadas"
         case .dojo: "Clase del Dojo · cinturón \(store.currentBelt.name.lowercased())"
+        case .ruta: step.map { "\(route.title): \($0.title)" } ?? "\(route.title): ruta completada"
         default: item.title
         }
     }
@@ -112,6 +117,7 @@ struct HabitRow: View {
         switch item.kind {
         case .leccion: nextLesson.map { "\($0.0.title) · \($0.1.minutes) min. Léela y márcala como aprendida." } ?? "Ya has aprendido todas las lecciones: repasa la que peor recuerdes."
         case .mision: mission?.detail ?? "Repasa las misiones de tu fase o adelanta el test físico."
+        case .ruta: step?.detail ?? "Has completado todos los pasos de esta ruta. Elige otra en Más › Ruta a la autoridad."
         default: item.detail
         }
     }
@@ -176,6 +182,8 @@ struct HabitRow: View {
             NavigationLink { JournalView() } label: { goLabel }
         case .salida:
             NavigationLink { SafeOutingView() } label: { goLabel }
+        case .ruta:
+            NavigationLink { RouteView(route: route) } label: { goLabel }
         case .test:
             Button { showingTest = true } label: { goLabel }
         default:
@@ -259,6 +267,7 @@ struct WeekPlanView: View {
         case .escenario: "theatermask.and.paintbrush.fill"
         case .test: "stopwatch.fill"
         case .salida: "location.fill"
+        case .ruta: "shield.checkered"
         case .voluntariado: "heart.fill"
         case .descanso: "bed.double.fill"
         default: "checkmark.circle"

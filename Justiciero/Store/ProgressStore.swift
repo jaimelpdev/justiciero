@@ -213,7 +213,7 @@ final class ProgressStore: ObservableObject {
             state.completedTasks.insert(task.id)
             state.xp += XP.task
             markActive()
-            markHabit(.mision)
+            markHabit(task.id.hasPrefix("r-") ? .ruta : .mision)
         }
     }
 
@@ -408,6 +408,15 @@ final class ProgressStore: ObservableObject {
 
     private func markHabit(_ kind: HabitKind) {
         state.habitLog[Self.dayKey(.now), default: []].insert("kind:" + kind.rawValue)
+    }
+
+    /// Siguiente paso pendiente de una ruta a la autoridad.
+    func nextStep(in route: AuthorityRoute) -> ProgramTask? {
+        route.steps.first { !isDone($0) }
+    }
+
+    func completion(of route: AuthorityRoute) -> Double {
+        Double(route.steps.filter { isDone($0) }.count) / Double(max(route.steps.count, 1))
     }
 
     func habitProgress(on date: Date = .now) -> (done: Int, total: Int) {
