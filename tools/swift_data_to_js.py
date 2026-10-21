@@ -16,7 +16,7 @@ OUT = ROOT / "web" / "data.js"
 
 # Tipos con argumentos etiquetados -> objetos JS.
 OBJECT_TYPES = {"Phase", "Exercise", "Workout", "WorkoutBlock", "SkillModule", "Lesson",
-                "Scenario", "ScenarioOption", "CodeRule", "GearItem", "Technique", "Belt", "DojoRound", "HabitItem", "WeekTemplate", "AuthorityRoute", "RouteLink"}
+                "Scenario", "ScenarioOption", "CodeRule", "GearItem", "Technique", "Belt", "DojoRound", "HabitItem", "WeekTemplate", "AuthorityRoute", "RouteLink", "MentalPractice"}
 
 
 def convert_literals(src: str) -> str:
@@ -127,6 +127,7 @@ def main():
     dojo = (DATA / "DojoData.swift").read_text()
     habits = (DATA / "HabitData.swift").read_text()
     authority = (DATA / "AuthorityData.swift").read_text()
+    mind = (DATA / "MentalData.swift").read_text()
 
     tips_body = body_of(program, "enum DailyTips")
     tips = re.search(r"static let all: \[String\] = (\[.*?\])\n", tips_body, re.S).group(1)
@@ -152,6 +153,8 @@ def main():
         + "\n  return { daily, weeks: weeks(), test };\n})();",
         "const AUTHORITY = (() => {" + convert_literals(extract_statics(body_of(authority, "enum Authority"))).replace(
             "const routes =", "const routes = () =>") + "\n  return { intro, warning, routes: routes() };\n})();",
+        "const MIND = (() => {" + convert_literals(extract_statics(body_of(mind, "enum Mind")))
+        + "\n  return { intro, professional, practices, sosSteps };\n})();",
     ]
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text("\n\n".join(parts) + "\n")

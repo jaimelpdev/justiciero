@@ -30,6 +30,8 @@ extension Phase {
         tasks: [
             ProgramTask("p0-01", 1, .mente, "Escribe tu porqué",
                         "Abre la Bitácora y escribe por qué quieres hacer esto. Sé sincero. Si la respuesta tiene que ver con rabia o venganza, habla antes con alguien de confianza o con un profesional: un protector actúa desde la calma, no desde la ira."),
+            ProgramTask("p0-14", 1, .mente, "Pide apoyo profesional (recomendado)",
+                        "Si has vivido maltrato, agresiones o acoso, pide cita con tu médico de cabecera para que te derive a un psicólogo, o contacta con la Oficina de Asistencia a las Víctimas del Delito de tu provincia. Es gratuito. Lee antes Academia › Fortaleza mental › Pedir ayuda también es entrenar."),
             ProgramTask("p0-02", 1, .fisico, "Evaluación física inicial",
                         "Ve a Más › Perfil y registra tu primer test: flexiones máximas, sentadillas en 1 minuto, plancha máxima y burpees en 1 minuto. No importa lo bajos que sean: es tu punto de partida."),
             ProgramTask("p0-03", 1, .mente, "Chequeo médico básico",

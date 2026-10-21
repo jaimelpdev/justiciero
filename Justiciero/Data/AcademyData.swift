@@ -1,7 +1,7 @@
 import Foundation
 
 extension SkillModule {
-    static let all: [SkillModule] = [ley, auxilios, desescalada, defensa, intervencion, observacion, ciudad, mentalidad, caminos, ciber]
+    static let all: [SkillModule] = [ley, auxilios, fortaleza, desescalada, defensa, intervencion, observacion, ciudad, mentalidad, caminos, ciber]
 
     // MARK: Ley
 
@@ -572,6 +572,72 @@ extension SkillModule {
                     "**Habla con alguien** en los días siguientes. Es normal temblar, no dormir bien o repasarlo mil veces.",
                 ]),
                 .tip("Escribe en la Bitácora lo que pasó esa misma noche: te servirá para declarar y para aprender."),
+            ]),
+        ])
+
+    // MARK: Fortaleza mental
+
+    static let fortaleza = SkillModule(
+        id: "fortaleza", title: "Fortaleza mental", icon: "heart.circle.fill", colorName: "purple",
+        intro: "La parte del entrenamiento que no se ve y que más importa. Si has vivido maltrato, agresiones o acoso, este módulo te ayuda a entender lo que le pasa a tu cuerpo y a tu mente, y a construir una fortaleza real. Complementa la ayuda de un profesional; no la sustituye.",
+        lessons: [
+            Lesson(id: "fm-1", title: "Lo que la violencia deja en el cuerpo", minutes: 6, blocks: [
+                .paragraph("Ante un peligro, el cerebro activa una alarma automática con tres respuestas posibles: **luchar, huir o bloquearse**. No las eliges tú: las elige tu sistema nervioso en milisegundos para que sobrevivas."),
+                .bullets([
+                    "**Bloquearse no es cobardía.** Es la respuesta más común cuando no se puede huir ni ganar: en el instituto, frente a alguien más fuerte, en una relación de la que no podías salir.",
+                    "Después de vivir violencia, esa alarma puede quedarse **demasiado sensible**: sobresaltos, estar siempre alerta, dormir mal, enfadarse rápido o sentirse vacío.",
+                    "Ciertas situaciones, tonos de voz u olores pueden **disparar** la alarma aunque ahora estés a salvo.",
+                ]),
+                .tip("Nada de esto significa que seas débil. Significa que tu cuerpo aprendió a protegerte. Lo que se aprende se puede reentrenar."),
+            ]),
+            Lesson(id: "fm-2", title: "Qué es la fortaleza de verdad", minutes: 5, blocks: [
+                .paragraph("Batman es un personaje que nunca curó su trauma: vive solo, obsesionado y en guerra permanente. Es buena ficción, pero no es el modelo a seguir."),
+                .paragraph("Lo que la psicología llama **resiliencia** se apoya en cuatro cosas que se pueden entrenar:"),
+                .steps([
+                    "**Regular el cuerpo**: saber bajar la alarma cuando se dispara (respiración, anclaje).",
+                    "**Tener un sentido**: saber por qué haces lo que haces y que sea algo que te importa.",
+                    "**Tener apoyo**: personas con las que hablar y profesionales cuando hace falta.",
+                    "**Sentirte capaz**: acumular pruebas reales de que puedes, paso a paso (entrenos, cinturones, servicios).",
+                ]),
+                .tip("La persona fuerte no es la que nunca cae. Es la que sabe cómo levantarse y a quién pedir la mano."),
+            ]),
+            Lesson(id: "fm-3", title: "Disparadores: cómo recuperar el control", minutes: 6, blocks: [
+                .paragraph("Un disparador es algo que activa la alarma porque se parece a lo que viviste. Conocer los tuyos es el primer paso para que no te controlen."),
+                .steps([
+                    "**Nótalo**: corazón acelerado, nudo en el estómago, ganas de huir o de atacar.",
+                    "**Nómbralo**: «Esto es mi alarma. Me está recordando algo del pasado».",
+                    "**Respira**: respiración táctica, al menos 4 ciclos.",
+                    "**Ánclate**: 5 cosas que ves, 4 que tocas, 3 que oyes.",
+                    "**Elige**: ahora decide qué haces, en vez de que decida la alarma por ti.",
+                ]),
+                .paragraph("Apunta en la Bitácora cuándo te pasa y qué lo disparó. Con el tiempo verás patrones y podrás anticiparte."),
+                .warning("Esto es crucial antes de intervenir en la calle: bajo estrés, la alarma puede bloquearte o hacerte reaccionar de más. Por eso el entrenamiento mental va antes que la intervención."),
+            ]),
+            Lesson(id: "fm-4", title: "Pedir ayuda también es entrenar", minutes: 6, blocks: [
+                .paragraph("Los atletas de élite tienen entrenador, fisio y psicólogo. Pedir ayuda no es de débiles: es de quien se toma en serio su preparación."),
+                .heading("Qué funciona"),
+                .bullets([
+                    "La **terapia cognitivo-conductual centrada en el trauma** y el **EMDR** son los tratamientos que la Organización Mundial de la Salud recomienda para las secuelas de experiencias traumáticas.",
+                    "No tienes que contar todo el primer día. Un buen profesional va a tu ritmo.",
+                ]),
+                .heading("Dónde conseguirla (España)"),
+                .bullets([
+                    "**Tu médico de cabecera**: puede derivarte al psicólogo de la Seguridad Social.",
+                    "**Oficinas de Asistencia a las Víctimas del Delito**: en todas las provincias, gratuitas, con atención psicológica.",
+                    "**016**: si fuiste víctima de violencia por parte de una pareja o expareja.",
+                    "**024**: atención a la conducta suicida, gratuita y 24 horas.",
+                ]),
+                .tip("Pedir cita es una misión de la Fase 0. Puede ser el paso más valiente de todo el programa."),
+            ]),
+            Lesson(id: "fm-5", title: "Cuidar la base", minutes: 4, blocks: [
+                .paragraph("La mente se apoya en el cuerpo. Antes que cualquier técnica, hay cuatro pilares:"),
+                .bullets([
+                    "**Dormir**: el sueño es cuando el cerebro procesa lo vivido. Tu plan diario ya incluye acostarte a tu hora.",
+                    "**Moverte**: el ejercicio es uno de los mejores reguladores del estado de ánimo y de la ansiedad.",
+                    "**Evitar el alcohol y las drogas** para «desconectar»: alivian un rato y empeoran la alarma después.",
+                    "**Rutina**: hacer lo mismo cada día da sensación de control y de seguridad.",
+                ]),
+                .tip("Los días malos, haz lo mínimo: respiración, una práctica corta y acostarte a tu hora. Eso también cuenta como un día de entrenamiento."),
             ]),
         ])
 }

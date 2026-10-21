@@ -375,12 +375,12 @@ enum DayBlock: String, CaseIterable {
 }
 
 enum HabitKind: String {
-    case habito, entreno, dojo, leccion, mision, kim, escenario, bitacora, test, salida, voluntariado, descanso, ruta
+    case habito, entreno, dojo, leccion, mision, kim, escenario, bitacora, test, salida, voluntariado, descanso, ruta, mental
 
     /// Las tareas de estos tipos se marcan solas al hacerlas en la app.
     var isAutomatic: Bool {
         switch self {
-        case .entreno, .dojo, .leccion, .mision, .kim, .escenario, .bitacora, .test, .ruta: true
+        case .entreno, .dojo, .leccion, .mision, .kim, .escenario, .bitacora, .test, .ruta, .mental: true
         default: false
         }
     }
@@ -422,4 +422,15 @@ struct AuthorityRoute: Identifiable, Hashable {
     /// Pasos como misiones (se guardan junto a las del programa; sus ids empiezan por "r-").
     let steps: [ProgramTask]
     let links: [RouteLink]
+}
+
+// MARK: - Fortaleza mental
+
+struct MentalPractice: Identifiable, Hashable {
+    let id: String
+    let title: String
+    let icon: String
+    let minutes: Int
+    let why: String
+    let steps: [String]
 }

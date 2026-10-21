@@ -33,6 +33,8 @@ const PHASES = (() => {
         tasks: [
             T("p0-01", 1, "mente", "Escribe tu porqué",
                         "Abre la Bitácora y escribe por qué quieres hacer esto. Sé sincero. Si la respuesta tiene que ver con rabia o venganza, habla antes con alguien de confianza o con un profesional: un protector actúa desde la calma, no desde la ira."),
+            T("p0-14", 1, "mente", "Pide apoyo profesional (recomendado)",
+                        "Si has vivido maltrato, agresiones o acoso, pide cita con tu médico de cabecera para que te derive a un psicólogo, o contacta con la Oficina de Asistencia a las Víctimas del Delito de tu provincia. Es gratuito. Lee antes Academia › Fortaleza mental › Pedir ayuda también es entrenar."),
             T("p0-02", 1, "fisico", "Evaluación física inicial",
                         "Ve a Más › Perfil y registra tu primer test: flexiones máximas, sentadillas en 1 minuto, plancha máxima y burpees en 1 minuto. No importa lo bajos que sean: es tu punto de partida."),
             T("p0-03", 1, "mente", "Chequeo médico básico",
@@ -518,7 +520,7 @@ const WORKOUTS = (() => {
 })();
 
 const MODULES = (() => {
-    const all = () => [ley, auxilios, desescalada, defensa, intervencion, observacion, ciudad, mentalidad, caminos, ciber]
+    const all = () => [ley, auxilios, fortaleza, desescalada, defensa, intervencion, observacion, ciudad, mentalidad, caminos, ciber]
 
 
     const ley = {
@@ -1079,6 +1081,71 @@ const MODULES = (() => {
                     "**Habla con alguien** en los días siguientes. Es normal temblar, no dormir bien o repasarlo mil veces.",
                 ]),
                 B("tip", "Escribe en la Bitácora lo que pasó esa misma noche: te servirá para declarar y para aprender."),
+            ]},
+        ]}
+
+
+    const fortaleza = {
+        id: "fortaleza", title: "Fortaleza mental", icon: "heart.circle.fill", colorName: "purple",
+        intro: "La parte del entrenamiento que no se ve y que más importa. Si has vivido maltrato, agresiones o acoso, este módulo te ayuda a entender lo que le pasa a tu cuerpo y a tu mente, y a construir una fortaleza real. Complementa la ayuda de un profesional; no la sustituye.",
+        lessons: [
+            {id: "fm-1", title: "Lo que la violencia deja en el cuerpo", minutes: 6, blocks: [
+                B("paragraph", "Ante un peligro, el cerebro activa una alarma automática con tres respuestas posibles: **luchar, huir o bloquearse**. No las eliges tú: las elige tu sistema nervioso en milisegundos para que sobrevivas."),
+                B("bullets", [
+                    "**Bloquearse no es cobardía.** Es la respuesta más común cuando no se puede huir ni ganar: en el instituto, frente a alguien más fuerte, en una relación de la que no podías salir.",
+                    "Después de vivir violencia, esa alarma puede quedarse **demasiado sensible**: sobresaltos, estar siempre alerta, dormir mal, enfadarse rápido o sentirse vacío.",
+                    "Ciertas situaciones, tonos de voz u olores pueden **disparar** la alarma aunque ahora estés a salvo.",
+                ]),
+                B("tip", "Nada de esto significa que seas débil. Significa que tu cuerpo aprendió a protegerte. Lo que se aprende se puede reentrenar."),
+            ]},
+            {id: "fm-2", title: "Qué es la fortaleza de verdad", minutes: 5, blocks: [
+                B("paragraph", "Batman es un personaje que nunca curó su trauma: vive solo, obsesionado y en guerra permanente. Es buena ficción, pero no es el modelo a seguir."),
+                B("paragraph", "Lo que la psicología llama **resiliencia** se apoya en cuatro cosas que se pueden entrenar:"),
+                B("steps", [
+                    "**Regular el cuerpo**: saber bajar la alarma cuando se dispara (respiración, anclaje).",
+                    "**Tener un sentido**: saber por qué haces lo que haces y que sea algo que te importa.",
+                    "**Tener apoyo**: personas con las que hablar y profesionales cuando hace falta.",
+                    "**Sentirte capaz**: acumular pruebas reales de que puedes, paso a paso (entrenos, cinturones, servicios).",
+                ]),
+                B("tip", "La persona fuerte no es la que nunca cae. Es la que sabe cómo levantarse y a quién pedir la mano."),
+            ]},
+            {id: "fm-3", title: "Disparadores: cómo recuperar el control", minutes: 6, blocks: [
+                B("paragraph", "Un disparador es algo que activa la alarma porque se parece a lo que viviste. Conocer los tuyos es el primer paso para que no te controlen."),
+                B("steps", [
+                    "**Nótalo**: corazón acelerado, nudo en el estómago, ganas de huir o de atacar.",
+                    "**Nómbralo**: «Esto es mi alarma. Me está recordando algo del pasado».",
+                    "**Respira**: respiración táctica, al menos 4 ciclos.",
+                    "**Ánclate**: 5 cosas que ves, 4 que tocas, 3 que oyes.",
+                    "**Elige**: ahora decide qué haces, en vez de que decida la alarma por ti.",
+                ]),
+                B("paragraph", "Apunta en la Bitácora cuándo te pasa y qué lo disparó. Con el tiempo verás patrones y podrás anticiparte."),
+                B("warning", "Esto es crucial antes de intervenir en la calle: bajo estrés, la alarma puede bloquearte o hacerte reaccionar de más. Por eso el entrenamiento mental va antes que la intervención."),
+            ]},
+            {id: "fm-4", title: "Pedir ayuda también es entrenar", minutes: 6, blocks: [
+                B("paragraph", "Los atletas de élite tienen entrenador, fisio y psicólogo. Pedir ayuda no es de débiles: es de quien se toma en serio su preparación."),
+                B("heading", "Qué funciona"),
+                B("bullets", [
+                    "La **terapia cognitivo-conductual centrada en el trauma** y el **EMDR** son los tratamientos que la Organización Mundial de la Salud recomienda para las secuelas de experiencias traumáticas.",
+                    "No tienes que contar todo el primer día. Un buen profesional va a tu ritmo.",
+                ]),
+                B("heading", "Dónde conseguirla (España)"),
+                B("bullets", [
+                    "**Tu médico de cabecera**: puede derivarte al psicólogo de la Seguridad Social.",
+                    "**Oficinas de Asistencia a las Víctimas del Delito**: en todas las provincias, gratuitas, con atención psicológica.",
+                    "**016**: si fuiste víctima de violencia por parte de una pareja o expareja.",
+                    "**024**: atención a la conducta suicida, gratuita y 24 horas.",
+                ]),
+                B("tip", "Pedir cita es una misión de la Fase 0. Puede ser el paso más valiente de todo el programa."),
+            ]},
+            {id: "fm-5", title: "Cuidar la base", minutes: 4, blocks: [
+                B("paragraph", "La mente se apoya en el cuerpo. Antes que cualquier técnica, hay cuatro pilares:"),
+                B("bullets", [
+                    "**Dormir**: el sueño es cuando el cerebro procesa lo vivido. Tu plan diario ya incluye acostarte a tu hora.",
+                    "**Moverte**: el ejercicio es uno de los mejores reguladores del estado de ánimo y de la ansiedad.",
+                    "**Evitar el alcohol y las drogas** para «desconectar»: alivian un rato y empeoran la alarma después.",
+                    "**Rutina**: hacer lo mismo cada día da sensación de control y de seguridad.",
+                ]),
+                B("tip", "Los días malos, haz lo mínimo: respiración, una práctica corta y acostarte a tu hora. Eso también cuenta como un día de entrenamiento."),
             ]},
         ]}
 
@@ -1983,9 +2050,9 @@ const HABITS = (() => {
         {id: "despertar", block: "manana", kind: "habito", title: "Levántate a tu hora",
                   detail: "La misma hora todos los días, también el fin de semana. Nada más levantarte, un vaso grande de agua y abre la persiana.",
                   minutes: 2, workout: null},
-        {id: "respiracion", block: "manana", kind: "habito", title: "Respiración táctica",
-                  detail: "5 minutos sentado: 4 s inspirar, 4 s retener, 4 s soltar, 4 s retener. Es lo que te mantendrá con la cabeza fría.",
-                  minutes: 5, workout: null},
+        {id: "mental", block: "manana", kind: "mental", title: "Entrenamiento mental",
+                  detail: "La práctica guiada de hoy: respiración, anclaje, pensamientos, logros… 5 a 10 minutos para fortalecer la mente.",
+                  minutes: 10, workout: null},
         {id: "leccion", block: "manana", kind: "leccion", title: "Lección del día",
                   detail: "Lee la siguiente lección de la Academia y márcala como aprendida.",
                   minutes: 5, workout: null},
@@ -2195,4 +2262,103 @@ const AUTHORITY = (() => {
         ]}
 
   return { intro, warning, routes: routes() };
+})();
+
+const MIND = (() => {
+    const intro = "La fortaleza mental no es no sentir miedo, rabia o tristeza: es sentirlos y aun así poder pensar con claridad y elegir qué hacer. Se entrena como un músculo, poco cada día. Cada día te toca una práctica distinta; puedes hacer cualquier otra cuando quieras."
+
+    const professional = "Si has vivido maltrato, agresiones o acoso, lo más eficaz es trabajarlo con un psicólogo con experiencia en trauma. Es gratis a través de tu médico de cabecera o de la Oficina de Asistencia a las Víctimas del Delito de tu provincia. Estas prácticas te ayudan en el día a día, pero no sustituyen esa ayuda."
+
+    const practices = [
+        {id: "respiracion", title: "Respiración táctica", icon: "wind", minutes: 5,
+                       why: "Es la forma más rápida de bajar las pulsaciones y recuperar el control del cuerpo. La usan policías, militares y deportistas de élite.",
+                       steps: [
+                           "Siéntate con la espalda recta y los pies en el suelo.",
+                           "Inspira por la nariz contando 4.",
+                           "Retén el aire contando 4.",
+                           "Suelta por la boca, despacio, contando 4.",
+                           "Mantén los pulmones vacíos contando 4.",
+                           "Repite durante 5 minutos. Si te cuesta, empieza con 3 segundos en cada fase.",
+                       ]},
+        {id: "anclaje", title: "Volver al presente (5-4-3-2-1)", icon: "hand.point.up.left.fill", minutes: 3,
+                       why: "Cuando un recuerdo o una situación te dispara, la mente se va al pasado o al peor futuro. Los sentidos te traen de vuelta al aquí y ahora, donde estás a salvo.",
+                       steps: [
+                           "Nombra en voz baja 5 cosas que puedes ver.",
+                           "4 cosas que puedes tocar. Tócalas y fíjate en su textura.",
+                           "3 cosas que puedes oír.",
+                           "2 cosas que puedes oler.",
+                           "1 cosa que puedes saborear, o una cosa buena de ti.",
+                           "Termina con tres respiraciones lentas y di: «Estoy aquí. Ahora estoy a salvo».",
+                       ]},
+        {id: "musculos", title: "Relajación muscular", icon: "figure.mind.and.body", minutes: 10,
+                       why: "El cuerpo guarda la tensión de lo que hemos vivido. Aprender a notar la diferencia entre tensión y relajación te da control sobre él.",
+                       steps: [
+                           "Túmbate o siéntate cómodo.",
+                           "Aprieta fuerte los puños durante 5 segundos… y suelta de golpe. Nota la diferencia 15 segundos.",
+                           "Haz lo mismo con brazos, hombros (súbelos a las orejas), cara (aprieta los ojos y la mandíbula), abdomen, piernas y pies.",
+                           "Termina recorriendo el cuerpo de arriba abajo con la atención, soltando lo que quede tenso.",
+                           "Hazlo por la noche: también te ayudará a dormir.",
+                       ]},
+        {id: "pensamientos", title: "Responder a la voz que te frena", icon: "text.bubble.fill", minutes: 10,
+                       why: "Después de vivir agresiones es normal tener una voz interior que dice «eres débil», «no vales», «te va a volver a pasar». No puedes callarla a la fuerza, pero sí aprender a responderle.",
+                       steps: [
+                           "Escribe en la Bitácora una situación reciente que te hizo sentir mal.",
+                           "Anota el pensamiento exacto que tuviste («soy un cobarde»).",
+                           "Pregúntate: ¿qué pruebas tengo de que es verdad? ¿Y de que no lo es?",
+                           "¿Qué le dirías a un amigo que pensara eso de sí mismo?",
+                           "Escribe una respuesta más justa y realista («Me bloqueé porque mi cuerpo intentó protegerme. Estoy entrenando para responder mejor»).",
+                       ]},
+        {id: "logros", title: "Diario de logros", icon: "star.fill", minutes: 5,
+                       why: "La mente que ha sufrido tiende a ver solo los fallos. Registrar lo que haces bien entrena a tu cerebro para ver también tu fuerza.",
+                       steps: [
+                           "Escribe en la Bitácora 3 cosas que has hecho bien hoy, por pequeñas que sean.",
+                           "Para cada una, escribe qué dice de ti («he entrenado aunque no me apetecía: soy constante»).",
+                           "Una vez a la semana, relee las entradas anteriores.",
+                       ]},
+        {id: "escalera", title: "Escalera de valentía", icon: "chart.line.uptrend.xyaxis", minutes: 10,
+                       why: "El miedo se reduce enfrentándolo poco a poco, nunca de golpe. Así se gana confianza real y no solo valor de un día.",
+                       steps: [
+                           "Haz una lista de 10 situaciones cotidianas que te dan miedo o ansiedad (hablar con un desconocido, decir que no, caminar por cierta calle de día…).",
+                           "Puntúa cada una del 0 al 10 según el miedo que te da.",
+                           "Empieza por una de 3 o 4. Hazla, y quédate en la situación hasta que la ansiedad baje a la mitad.",
+                           "Repítela hasta que ya no te cueste. Luego sube un peldaño.",
+                           "Importante: esta escalera es para situaciones del día a día. Los recuerdos traumáticos se trabajan con un profesional, no a solas.",
+                       ]},
+        {id: "ensayo", title: "Ensayo mental", icon: "brain.head.profile", minutes: 7,
+                       why: "Imaginar con detalle cómo respondes bien a una situación prepara al cerebro para hacerlo de verdad. Lo usan deportistas y equipos de emergencias.",
+                       steps: [
+                           "Cierra los ojos y respira lento un minuto.",
+                           "Elige un escenario del Simulador y visualízalo con todo detalle: el lugar, la luz, los sonidos.",
+                           "Nota cómo se acelera tu corazón… y cómo haces la respiración táctica.",
+                           "Visualízate actuando bien: valoras en 2 segundos, llamas al 112, usas tu voz con firmeza o te alejas.",
+                           "Termina imaginando que vuelves a casa sano. Abre los ojos.",
+                       ]},
+        {id: "autocompasion", title: "Carta a tu yo del pasado", icon: "envelope.open.fill", minutes: 10,
+                       why: "Muchas personas que han sufrido violencia cargan con culpa o vergüenza que no les corresponde. Tratarte con la compasión con la que tratarías a otro es una de las bases de la fortaleza.",
+                       steps: [
+                           "Piensa en ti en uno de esos momentos difíciles (en el instituto, en esa relación).",
+                           "Escríbele una carta en la Bitácora como lo haría alguien que le quiere y le entiende.",
+                           "Dile lo que necesitaba oír entonces: que no era culpa suya, que hizo lo que pudo.",
+                           "Termina contándole en quién te estás convirtiendo.",
+                           "Si te remueve mucho, para, haz el ejercicio 5-4-3-2-1 y habla con tu Alfred o con un profesional.",
+                       ]},
+        {id: "red", title: "Tu red de apoyo", icon: "person.3.fill", minutes: 5,
+                       why: "Batman tenía a Alfred, a Gordon y a Robin. Nadie es fuerte solo. Saber a quién acudir antes de necesitarlo es parte del entrenamiento.",
+                       steps: [
+                           "Escribe en la Bitácora el nombre de 3 personas con las que puedes hablar cuando estés mal.",
+                           "Para cada una, apunta cuándo y cómo contactarla.",
+                           "Añade un profesional: tu médico de cabecera, un psicólogo o la Oficina de Asistencia a las Víctimas de tu provincia.",
+                           "Esta semana, escribe o llama a una de esas personas sin motivo, solo para mantener el contacto.",
+                       ]},
+    ]
+
+    const sosSteps = [
+        "Para lo que estés haciendo. Si puedes, siéntate o apóyate en una pared.",
+        "Respira conmigo: 4 dentro, 4 retener, 4 fuera, 4 retener. Sigue el círculo de arriba.",
+        "Mira a tu alrededor y nombra 5 cosas que ves, 4 que tocas, 3 que oyes.",
+        "Pon una mano en el pecho y dite: «Esto es una reacción de mi cuerpo. Va a pasar. Ahora estoy a salvo».",
+        "Si sigue siendo muy fuerte, llama a tu contacto de confianza o a uno de los teléfonos de abajo. Pedir ayuda es parte del entrenamiento.",
+    ]
+
+  return { intro, professional, practices, sosSteps };
 })();

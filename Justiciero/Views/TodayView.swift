@@ -130,6 +130,11 @@ struct TodayView: View {
             } label: {
                 QuickAction(title: "Emergencia", icon: "sos", color: Theme.danger)
             }
+            NavigationLink {
+                SOSMindView()
+            } label: {
+                QuickAction(title: "Momento difícil", icon: "heart.circle.fill", color: Color.purple)
+            }
         }
         .buttonStyle(.plain)
     }

@@ -6,7 +6,7 @@
    ============================================================ */
 
 const STORAGE_KEY = "justiciero.v1";
-const XP = { task: 20, lesson: 15, workout: 30, scenarioPerPoint: 10, test: 25, journal: 5, dojoClass: 40, belt: 150 };
+const XP = { task: 20, lesson: 15, workout: 30, scenarioPerPoint: 10, test: 25, journal: 5, dojoClass: 40, belt: 150, mental: 15 };
 
 const RANKS = [
   { name: "Recluta", minXP: 0, emoji: "🧑", motto: "Todo héroe empezó sin saber nada." },
@@ -28,7 +28,7 @@ const CATEGORIES = {
 
 const PHASE_EMOJI = ["🏠", "🔥", "🏙️", "🔍", "🛡️", "🌙"];
 const MODULE_STYLE = {
-  ley: ["⚖️", "var(--info)"], ciber: ["💻", "var(--info)"], intervencion: ["✋", "var(--danger)"], auxilios: ["⛑️", "var(--danger)"], desescalada: ["🗣️", "var(--success)"],
+  ley: ["⚖️", "var(--info)"], ciber: ["💻", "var(--info)"], intervencion: ["✋", "var(--danger)"], fortaleza: ["💜", "var(--purple)"], auxilios: ["⛑️", "var(--danger)"], desescalada: ["🗣️", "var(--success)"],
   defensa: ["🥋", "var(--orange)"], observacion: ["👁️", "var(--purple)"], ciudad: ["🌃", "#2dd4bf"],
   mentalidad: ["🧠", "#f472b6"], caminos: ["🧭", "var(--accent)"],
 };
@@ -189,7 +189,7 @@ function logDojoClass(b) {
 }
 /* ---------- Plan diario ---------- */
 
-const AUTO_KINDS = ["entreno", "dojo", "leccion", "mision", "kim", "escenario", "bitacora", "test", "ruta"];
+const AUTO_KINDS = ["entreno", "dojo", "leccion", "mision", "kim", "escenario", "bitacora", "test", "ruta", "mental"];
 const BLOCKS = [["manana", "🌅", "Mañana"], ["tarde", "☀️", "Tarde"], ["noche", "🌙", "Noche"]];
 const weekdayIndex = (d) => (d.getDay() + 6) % 7; // lunes = 0
 
@@ -261,13 +261,14 @@ function resolveHabit(item) {
       r.href = `#/ruta/${route.id}`;
       break;
     }
+    case "mental": { const p = practiceOfTheDay(); r.title = `Mente: ${p.title}`; r.detail = `${p.minutes} min. ${p.why}`; r.href = `#/practica/${p.id}`; break; }
     case "kim": r.href = "#/kim"; break;
     case "escenario": r.href = "#/escenarios"; break;
     case "bitacora": r.href = "#/bitacora-nueva/reflexion"; break;
     case "test": r.href = "#/test"; break;
     case "salida": r.href = "#/salida"; break;
   }
-  if ((item.kind === "leccion" || item.kind === "mision" || item.kind === "ruta") && habitDone(item)) {
+  if (["leccion", "mision", "ruta", "mental"].includes(item.kind) && habitDone(item)) {
     r.detail = r.href && r.title !== item.title ? `Hecha. Si te apetece adelantar: ${r.title}.` : "Hecha.";
     r.title = item.title;
   }
@@ -289,6 +290,71 @@ function habitRow(item) {
         </div>
       </div>
     </div>`;
+}
+
+/* ---------- Entrenamiento mental ---------- */
+
+const PRACTICE_EMOJI = { respiracion: "🌬️", anclaje: "🖐️", musculos: "🧘", pensamientos: "💬", logros: "⭐", escalera: "🪜", ensayo: "🧠", autocompasion: "✉️", red: "🤝" };
+const practiceOfTheDay = () => MIND.practices[Math.floor(Date.now() / 86400000) % MIND.practices.length];
+const breathingCircle = () => `<div class="breath"><div class="breath-circle"></div><p class="breath-label"><span>Inspira</span><span>Retén</span><span>Suelta</span><span>Retén</span></p></div>`;
+
+function practiceRow(p, hi) {
+  return link(`#/practica/${p.id}`, `<div class="tile-ico" style="--c:var(--purple)">${PRACTICE_EMOJI[p.id] || "🧠"}</div>
+    <div class="grow"><p class="title">${esc(p.title)}</p><p class="tiny muted">${p.minutes} min</p></div>`, `card row chev ${hi ? "hi" : ""}`);
+}
+
+function viewMental() {
+  const today = practiceOfTheDay();
+  const mod = MODULES.find((m) => m.id === "fortaleza");
+  return {
+    title: "Entrenamiento mental", back: "#/mas",
+    html: `<div class="stack">
+      <p class="muted">${esc(MIND.intro)}</p>
+      ${callout("info", MIND.professional)}
+      <a class="btn" style="--c:var(--purple);color:#fff" href="#/sos-mental">💜 Momento difícil: calma guiada ahora</a>
+      ${section("Práctica de hoy", "☀️")}
+      ${practiceRow(today, true)}
+      ${section("Todas las prácticas", "📋")}
+      ${MIND.practices.map((p) => practiceRow(p, false)).join("")}
+      ${mod ? link(`#/modulo/${mod.id}`, `<div class="tile-ico" style="--c:var(--purple)">💜</div><div class="grow"><p class="title">${esc(mod.title)}</p><p class="tiny muted">${learnedCount(mod)}/${mod.lessons.length} lecciones</p></div>`) : ""}
+    </div>`,
+  };
+}
+
+function viewPractice(id) {
+  const p = MIND.practices.find((x) => x.id === id);
+  if (!p) return null;
+  return {
+    title: p.title, back: "#/mente",
+    html: `<div class="stack lesson">
+      <div class="row"><span style="font-size:2.2rem">${PRACTICE_EMOJI[p.id] || "🧠"}</span><div><p class="h2">${esc(p.title)}</p><p class="tiny muted">${p.minutes} minutos</p></div></div>
+      ${callout("info", `**Por qué funciona:** ${p.why}`)}
+      ${section("Paso a paso", "🔢")}
+      <ol style="--c:var(--purple)">${p.steps.map((x) => `<li><span>${md(x)}</span></li>`).join("")}</ol>
+      ${p.id === "respiracion" ? breathingCircle() : ""}
+      <button class="btn" style="--c:var(--purple);color:#fff" data-act="practice-done" data-id="${p.id}">✓ Hecho (+${XP.mental} XP)</button>
+      <p class="tiny muted">Si una práctica te remueve demasiado, para. Haz el ejercicio 5-4-3-2-1 y habla con alguien de confianza o con un profesional.</p>
+    </div>`,
+  };
+}
+
+function viewSOSMind() {
+  const p = state.profile;
+  const call = (label, number, color) => `<a class="card" style="color:${color};font-weight:700" href="${telLink(number)}">📞 ${label}</a>`;
+  return {
+    title: "Momento difícil", back: "#/base",
+    html: `<div class="stack lesson">
+      <p class="h2" style="font-size:1.3rem">Estás haciendo lo correcto. Vamos paso a paso.</p>
+      ${breathingCircle()}
+      <ol style="--c:var(--purple)">${MIND.sosSteps.map((x) => `<li><span>${md(x)}</span></li>`).join("")}</ol>
+      ${section("Habla con alguien", "📞")}
+      ${p.contactPhone ? call(`Llamar a ${esc(p.contactName || "tu contacto")}`, p.contactPhone, "var(--success)") : ""}
+      ${call("024 · Atención a la conducta suicida (gratis, 24 h)", "024", "var(--purple)")}
+      ${call("016 · Violencia de género (gratis, 24 h, no deja rastro)", "016", "var(--purple)")}
+      ${call("112 · Si estás en peligro ahora", "112", "var(--danger)")}
+      ${callout("info", "Para trabajar lo que viviste con ayuda profesional y gratuita: tu médico de cabecera o la **Oficina de Asistencia a las Víctimas del Delito** de tu provincia.")}
+    </div>`,
+  };
 }
 
 /* ---------- Ruta a la autoridad ---------- */
@@ -372,7 +438,7 @@ function dailyPlanSection() {
 
 function viewWeek() {
   const dailyIds = HABITS.daily.map((d) => d.id);
-  const KIND_ICON = { entreno: "💪", dojo: "🥋", mision: "🎯", kim: "👁️", escenario: "🎭", test: "⏱️", salida: "📍", voluntariado: "❤️", descanso: "🛌", ruta: "🛡️" };
+  const KIND_ICON = { entreno: "💪", dojo: "🥋", mision: "🎯", kim: "👁️", escenario: "🎭", test: "⏱️", salida: "📍", voluntariado: "❤️", descanso: "🛌", ruta: "🛡️", mental: "🧠" };
   const now = new Date();
   return {
     title: "Tu semana", back: "#/base",
@@ -476,6 +542,7 @@ function viewBase() {
         <a class="card center" href="#/salida" style="background:color-mix(in srgb, var(--info) 15%, transparent)"><div style="font-size:1.8rem">📍</div><strong style="color:var(--info)">Salida segura</strong></a>
         <a class="card center" href="#/emergencias" style="background:color-mix(in srgb, var(--danger) 15%, transparent)"><div style="font-size:1.8rem">🆘</div><strong style="color:var(--danger)">Emergencia</strong></a>
       </div>
+      <a class="card center" href="#/sos-mental" style="background:color-mix(in srgb, var(--purple) 15%, transparent)"><strong style="color:var(--purple)">💜 Momento difícil</strong></a>
     </div>`,
   };
 }
@@ -530,6 +597,7 @@ function viewAcademy() {
         <a class="card stack" style="gap:8px" href="#/escenarios"><div style="font-size:2rem">🎭</div><p class="title">Simulador</p><p class="tiny muted">${optimalScenarios()}/${SCENARIOS.length} óptimos</p></a>
         <a class="card stack" style="gap:8px" href="#/kim"><div style="font-size:2rem">👁️</div><p class="title">Juego de Kim</p><p class="tiny muted">Récord: ${state.kimBest} %</p></a>
       </div>
+      ${link("#/mente", `<div style="font-size:1.6rem">🧠</div><div class="grow"><p class="title">Entrenamiento mental</p><p class="small muted">${MIND.practices.length} prácticas guiadas · hoy: ${esc(practiceOfTheDay().title)}</p></div>`)}
       ${link("#/codigo", `<div style="font-size:1.6rem">📜</div><div class="grow"><p class="title">El Código del Vigilante</p><p class="small muted">Las ${CODE_RULES.length} reglas que nunca rompes</p></div>`)}
       ${section("Módulos", "📚")}
       ${MODULES.map((m) => {
@@ -549,6 +617,8 @@ function viewMore() {
   return {
     title: "Más", large: true,
     html: `<div class="stack">
+      ${section("Tu mente")}
+      <div class="card list" style="padding:4px 16px">${item("#/mente", "🧠", "Entrenamiento mental")}${item("#/sos-mental", "💜", "Momento difícil")}</div>
       ${section("Tu camino")}
       <div class="card list" style="padding:4px 16px">${item("#/autoridad", "🛡️", "Ruta a la autoridad")}</div>
       ${section("En la calle")}
@@ -916,6 +986,7 @@ function viewEmergency() {
     title: "Emergencias", back: "#/mas",
     html: `<div class="stack">
       <a class="sos" href="tel:112"><div class="n">112</div><div class="eyebrow">Emergencias</div><div class="tiny">Gratuito · Funciona sin saldo y sin cobertura de tu operador</div></a>
+      <a class="card" href="#/sos-mental" style="color:var(--purple);font-weight:700">💜 ¿Es un momento difícil para ti? Calma guiada y teléfonos de apoyo</a>
       ${callout("info", "**Qué decir:** dónde estás (calle, número, referencia), qué pasa, cuántos heridos, si hay armas y hacia dónde huyeron. No cuelgues hasta que te lo digan.")}
       ${p.contactPhone ? `${section("Tu contacto de confianza", "🤝")}
         <div class="grid2">
@@ -1677,6 +1748,9 @@ const ROUTES = [
   [/^#\/sucesos$/, viewSucesos],
   [/^#\/semana$/, viewWeek],
   [/^#\/autoridad$/, viewAuthority],
+  [/^#\/mente$/, viewMental],
+  [/^#\/practica\/([\w-]+)$/, viewPractice],
+  [/^#\/sos-mental$/, viewSOSMind],
   [/^#\/ruta\/([\w-]+)$/, viewRoute],
   [/^#\/perfil$/, viewProfile],
   [/^#\/dojo$/, viewDojo],
@@ -1689,7 +1763,7 @@ const ROUTES = [
 function tabFor(hash) {
   const map = { fase: "#/programa", entreno: "#/entreno", sesion: "#/entreno", test: "#/entreno", modulo: "#/academia", leccion: "#/academia",
     codigo: "#/academia", escenarios: "#/academia", escenario: "#/academia", kim: "#/academia",
-    sucesos: "#/mas", semana: "#/base", autoridad: "#/mas", ruta: "#/mas", dojo: "#/entreno", cinturon: "#/entreno", tecnicas: "#/entreno", tecnica: "#/entreno", clase: "#/entreno" };
+    sucesos: "#/mas", semana: "#/base", autoridad: "#/mas", ruta: "#/mas", mente: "#/mas", practica: "#/mas", "sos-mental": "#/base", dojo: "#/entreno", cinturon: "#/entreno", tecnicas: "#/entreno", tecnica: "#/entreno", clase: "#/entreno" };
   const key = hash.split("/")[1];
   return TABS.find(([h]) => h === hash)?.[0] || map[key] || "#/mas";
 }
@@ -1765,6 +1839,10 @@ const ACTIONS = {
     if (i >= 0) { s.completedTasks.splice(i, 1); s.xp = Math.max(0, s.xp - XP.task); }
     else { s.completedTasks.push(d.id); gainXP(XP.task); markActive(); markHabit(d.id.startsWith("r-") ? "ruta" : "mision"); }
   }),
+  "practice-done": () => {
+    commit((s) => { gainXP(XP.mental); markActive(); markHabit("mental"); }, false);
+    location.hash = "#/mente";
+  },
   "route-choose": (d) => { commit((s) => { s.profile.route = d.id; }); toast("Ruta principal elegida"); },
   "toggle-habit": (d) => {
     const item = plan().find((i) => i.id === d.id);
