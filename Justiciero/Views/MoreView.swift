@@ -7,6 +7,14 @@ struct MoreView: View {
     var body: some View {
         NavigationStack {
             List {
+                Section("Tu mente") {
+                    NavigationLink { MentalView() } label: {
+                        Label("Entrenamiento mental", systemImage: "brain.head.profile")
+                    }
+                    NavigationLink { SOSMindView() } label: {
+                        Label("Momento difícil", systemImage: "heart.circle.fill")
+                    }
+                }
                 Section("Tu camino") {
                     NavigationLink { AuthorityView() } label: {
                         Label("Ruta a la autoridad", systemImage: "shield.checkered")
@@ -99,6 +107,17 @@ struct EmergencyView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 28)
                     .background(Theme.danger, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                }
+                .buttonStyle(.plain)
+
+                NavigationLink {
+                    SOSMindView()
+                } label: {
+                    Label("¿Es un momento difícil para ti? Calma guiada y teléfonos de apoyo", systemImage: "heart.circle.fill")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(Color.purple)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .card()
                 }
                 .buttonStyle(.plain)
 

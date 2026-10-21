@@ -119,6 +119,7 @@ enum XP {
     static let test = 25
     static let journal = 5
     static let dojoClass = 40
+    static let mental = 15
     static let belt = 150
 }
 
@@ -359,6 +360,20 @@ final class ProgressStore: ObservableObject {
         state.dojoBelts.insert(belt.id)
         state.xp += XP.belt
         markActive()
+    }
+
+    // MARK: Entrenamiento mental
+
+    /// Práctica guiada que toca hoy (rota cada día).
+    var practiceOfTheDay: MentalPractice {
+        let day = Calendar.current.ordinality(of: .day, in: .era, for: .now) ?? 0
+        return Mind.practices[day % Mind.practices.count]
+    }
+
+    func completePractice(_ practice: MentalPractice) {
+        state.xp += XP.mental
+        markActive()
+        markHabit(.mental)
     }
 
     // MARK: Plan diario

@@ -332,6 +332,43 @@ extension Technique {
                   errors: ["Ponerse boca abajo o de espaldas.", "Intentar levantarse de frente cuando está cerca."],
                   drill: "Desde el suelo, gira sobre la cadera siguiendo un objeto que mueves a tu alrededor. Termina con levantada técnica. 2 minutos.",
                   partner: "Tu compañero camina despacio a tu alrededor; gira para mantener los pies hacia él y levántate cuando se aleje."),
+
+        // MARK: Marrón: intervención
+        Technique(id: "separar", name: "Separar a un agresor", kind: .autodefensa,
+                  summary: "Cuando alguien sigue golpeando a otra persona y la voz no basta: apartarlo sin golpearlo.",
+                  steps: [
+                      "Acércate por detrás o en diagonal, nunca de frente a sus puños.",
+                      "Pasa los brazos por debajo de sus axilas o rodea su cintura, pegando tu pecho a su espalda.",
+                      "Baja tu centro de gravedad y tira de él hacia atrás y hacia un lado, alejándolo de la víctima varios pasos.",
+                      "Háblale al oído con calma: «Ya está, se acabó, tranquilo».",
+                      "En cuanto haya distancia, suelta, ponte en guardia natural entre los dos y dirige a la víctima a un lugar seguro.",
+                  ],
+                  errors: ["Meterse de frente entre dos que se pegan (recibes de los dos).", "Agarrar del cuello.", "Seguir sujetando cuando ya ha parado."],
+                  drill: "Practica el movimiento con una mochila llena o un saco de ropa: agarrar, bajar el centro de gravedad y arrastrar 3 pasos atrás. 10 repeticiones.",
+                  partner: "Tu compañero simula golpear un cojín en el suelo; acércate por detrás, sepáralo y llévatelo 3 pasos atrás. Despacio, sin tirones bruscos."),
+        Technique(id: "escudo", name: "Cubrir a una víctima en el suelo", kind: .autodefensa,
+                  summary: "Si alguien está recibiendo patadas en el suelo, cada segundo cuenta: proteger su cabeza es lo primero.",
+                  steps: [
+                      "Entra por el lado de la víctima contrario al agresor.",
+                      "Interpón tu cuerpo, en guardia y en cuclillas o de rodillas, entre el agresor y la cabeza de la víctima.",
+                      "Protege tu cabeza con los antebrazos (cubrirse) y grita órdenes: «¡PARA! ¡YA ESTÁ!»",
+                      "Cuando el agresor se aleje, ayuda a la víctima a ponerse de lado o a levantarse y sácala de ahí.",
+                  ],
+                  errors: ["Darle la espalda al agresor.", "Quedarse de pie delante, donde llegan las patadas a tu cabeza."],
+                  drill: "Desde de pie, baja a la posición de escudo en menos de 2 segundos y vuelve a subir en guardia. 10 repeticiones.",
+                  partner: "Tu compañero, tumbado en la colchoneta, hace de víctima; entra, cubre su cabeza y simula ayudarle a levantarse."),
+        Technique(id: "control-suelo", name: "Control en el suelo seguro", kind: .autodefensa,
+                  summary: "Mantener en el suelo a alguien que sigue intentando agredir, hasta que se calme o llegue la policía, sin poner en riesgo su vida.",
+                  steps: [
+                      "Colócate de lado respecto a él, nunca sentado sobre su espalda ni sobre su pecho.",
+                      "Controla su brazo más cercano contra tu cuerpo y apoya tu cadera junto a la suya, con tus piernas abiertas para tener base.",
+                      "Tu peso va hacia el suelo a su lado, no encima de su tórax.",
+                      "Habla con él y vigila su respiración todo el tiempo.",
+                      "En cuanto deje de resistirse, ponlo de lado. Si sigue forcejeando con fuerza, suéltalo y crea distancia.",
+                  ],
+                  errors: ["Rodilla en el cuello o en la espalda.", "Sentarse sobre su espalda.", "Prolongar el control cuando ya no ataca."],
+                  drill: "Sin compañero, practica la posición con un saco o una almohada grande: base amplia, peso hacia el suelo y no hacia el objeto.",
+                  partner: "Tu compañero, boca arriba en la colchoneta, se resiste al 20 %. Mantén el control 30 segundos sin cargar peso en su pecho. Cambiad de papel."),
     ]
 }
 
@@ -504,10 +541,14 @@ extension Belt {
 
     static let marron = Belt(
         id: 5, name: "Marrón", colorHex: "A2662E", theme: "Bajo presión",
-        goal: "Que la técnica aguante el cansancio y el estrés, que es como llega una situación real.",
+        goal: "Que la técnica aguante el cansancio y el estrés, y saber intervenir para que una agresión pare: separar, cubrir y controlar sin poner vidas en riesgo.",
         minClasses: 15,
-        techniques: [],
+        techniques: ["separar", "escudo", "control-suelo"],
         exam: [
+            "Separo a un agresor desde atrás sin agarrar el cuello (practicado con compañero al 30 %).",
+            "Bajo a cubrir a una víctima en el suelo en menos de 2 segundos, protegiéndome la cabeza.",
+            "Mantengo un control en el suelo de 30 segundos sin poner peso en el pecho ni en la espalda de mi compañero.",
+            "He completado el módulo «Intervenir: cuando no puedes esperar» de la Academia.",
             "Mantengo la técnica limpia en el último asalto de la clase (comprobado en vídeo).",
             "Encadeno combinaciones de 4–6 golpes sin perder la guardia.",
             "Después de los burpees, mi primera reacción a «¡Sal!» es crear distancia.",
@@ -521,6 +562,9 @@ extension Belt {
             DojoRound(title: "Fatiga + decisión", kind: .acondicionamiento, seconds: 60, repeats: 4, rest: 30,
                       cue: "10 burpees y al terminar escucha: reacciona lo más rápido posible con técnica limpia.",
                       calls: ["¡Sal!", "¡Cúbrete!", "¡Valla!", "1-2 y sal", "¡Al suelo, levántate!"], pace: 6),
+            DojoRound(title: "Intervención", kind: .tecnica, seconds: 120, repeats: 3, rest: 30,
+                      cue: "Escucha la orden y ejecútala: voz de mando, interponerte, separar o cubrir. Solo o con compañero al 30 %.",
+                      calls: ["¡Voz: PARA!", "Interponte", "Separa", "Cubre a la víctima", "Control y de lado", "Suelta y distancia"], pace: 6),
             DojoRound(title: "Sombra final", kind: .sombra, seconds: 180, repeats: 3, rest: 60,
                       cue: "Cansado, pero limpio. Así es como de verdad importa.",
                       calls: ["1-2", "1-2-3-2", "Cúbrete y sal", "Frontal, paso atrás", "Chequeo, 2-3", "Rueda, 3-2", "Valla, 1-2, sal"], pace: 3),

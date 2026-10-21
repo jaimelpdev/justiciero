@@ -22,7 +22,7 @@ extension Scenario {
                 ScenarioOption(text: "Me meto a separarlos usando lo que he aprendido en clase.", score: 0,
                                feedback: "Tres contra uno ya es grave; tres contra dos, con alcohol de por medio, puede acabar con dos personas en el hospital. Además, en el lío pueden confundirte con un agresor."),
                 ScenarioOption(text: "Llamo al 112 desde una distancia segura, señalo a alguien concreto para que busque a la seguridad del bar y grito «¡Policía en camino!».", score: 2,
-                               feedback: "Muy bien. Llamar rompe el efecto espectador, implicar a alguien concreto multiplica la ayuda y gritar que viene la policía a menudo hace que los agresores huyan. Cuando se vayan, atiende al herido."),
+                               feedback: "Muy bien. Llamar rompe el efecto espectador, implicar a alguien concreto multiplica la ayuda y gritar que viene la policía a menudo hace que los agresores huyan. Si no paran y has reunido aliados, acercaos juntos (Academia › Intervenir). Cuando se vayan, atiende al herido."),
                 ScenarioOption(text: "Me voy, no es mi problema.", score: 0,
                                feedback: "Hay una persona en peligro grave y puedes pedir ayuda sin riesgo. No hacerlo puede ser incluso un delito de omisión del deber de socorro."),
             ],
@@ -131,14 +131,79 @@ extension Scenario {
                                feedback: "Un extintor puede servir para un conato pequeño y si tienes una salida segura a tu espalda. Con humo saliendo por la ventana y gritos, ya no es un conato: llama y evacúa."),
             ],
             lesson: "En un incendio, tu trabajo es avisar, evacuar y orientar a los bomberos."),
+
+        Scenario(
+            id: "suelo-patadas", title: "Patadas en el suelo", icon: "figure.fall",
+            situation: "Sales de un portal con un amigo. Un hombre está dando patadas en la cabeza a otro que está tirado en el suelo y ya no se defiende. No ves armas. La calle está vacía. Han llamado al 112 desde una ventana, pero la policía tardará.",
+            options: [
+                ScenarioOption(text: "Grabo con el móvil para que haya pruebas y espero a la policía.", score: 0,
+                               feedback: "Las patadas en la cabeza a alguien indefenso pueden matarle en segundos. Aquí esperar no es neutral: es dejar que pase."),
+                ScenarioOption(text: "Nos acercamos los dos gritando «¡PARA! ¡Policía en camino!». Si sigue, mi amigo me cubre mientras lo aparto por detrás y me pongo entre él y la víctima.", score: 2,
+                               feedback: "Correcto. Daño grave ahora, algo que podéis cambiar y riesgo asumible: es el caso en el que hay que intervenir. Primero voz y presencia; si no basta, separar sin golpear y cubrir la cabeza de la víctima. Después, posición lateral y vigilar que respire."),
+                ScenarioOption(text: "Corro hacia él y le doy un puñetazo para que pare.", score: 1,
+                               feedback: "Intervenir es lo correcto, pero empezar golpeando te pone en riesgo legal y físico: puede girarse contra ti o caer y golpearse la cabeza. Sube la escalera desde abajo: voz, interponerte, separar. El golpe, solo si te ataca a ti y no hay otra forma."),
+            ],
+            lesson: "Cuando hay daño grave ahora mismo y puedes pararlo con un riesgo asumible, se interviene. Siempre desde el escalón más bajo que funcione."),
+
+        Scenario(
+            id: "arrastran", title: "La arrastran hacia un coche", icon: "car.side.fill",
+            situation: "Por la noche ves a un hombre que agarra del brazo a una chica que grita «¡Suéltame, no te conozco!» y la arrastra hacia una furgoneta con la puerta abierta.",
+            options: [
+                ScenarioOption(text: "Apunto la matrícula, llamo al 112 y les sigo de lejos cuando se vayan.", score: 1,
+                               feedback: "Apuntar la matrícula y llamar es imprescindible, pero si la meten en la furgoneta puede ser demasiado tarde. Y nunca persigas un vehículo."),
+                ScenarioOption(text: "Grito con toda la fuerza «¡SUÉLTALA! ¡Llamad al 112!», me acerco señalando a la gente para que vengan y me pongo entre ella y la furgoneta.", score: 2,
+                               feedback: "Muy bien. Los segundos antes de que la suban al vehículo son los que importan: ruido, testigos y presencia física que corte el camino a la furgoneta. Fíjate en sus manos por si hay arma y, cuando la suelte, lleva a la chica hacia la luz y la gente. Apunta la matrícula."),
+                ScenarioOption(text: "Igual es su pareja y es una discusión. No me meto.", score: 0,
+                               feedback: "«No te conozco» y alguien arrastrado hacia un vehículo es una señal de alarma clara. Aunque fuera su pareja, nadie puede llevarse a otra persona a la fuerza."),
+            ],
+            lesson: "Impedir que se lleven a alguien a la fuerza justifica intervenir: ruido, testigos y cortar el paso al vehículo."),
+
+        Scenario(
+            id: "cuchillo-tercero", title: "Cuchillo contra otro", icon: "exclamationmark.octagon.fill",
+            situation: "En una plaza, un hombre muy alterado amenaza con un cuchillo a otro, que está acorralado contra una pared. Todavía no le ha herido. Hay varias personas mirando a distancia.",
+            options: [
+                ScenarioOption(text: "Me lanzo a por la mano del cuchillo para desarmarle.", score: 0,
+                               feedback: "Desarmar a alguien con un cuchillo es extremadamente peligroso incluso para expertos: en un forcejeo, los cortes son casi seguros, para ti o para la víctima."),
+                ScenarioOption(text: "Llamo al 112 diciendo «hay un cuchillo», recluto a la gente para hablarle todos a distancia, cojo una silla o una mochila como barrera y le doy al acorralado una vía para escapar.", score: 2,
+                               feedback: "Es lo que de verdad funciona. Con un cuchillo, la distancia y las barreras son tu vida. Muchas voces le distraen, la barrera te protege y abrir una salida a la víctima suele ser más eficaz que enfrentarse. Si ataca de verdad y no hay otra opción, la barrera es tu escudo."),
+                ScenarioOption(text: "Me alejo y no hago nada, es demasiado peligroso.", score: 1,
+                               feedback: "Protegerte es legítimo y nadie te obliga a arriesgar tu vida. Pero sí puedes llamar al 112 indicando que hay un arma, mantener la distancia y dirigir a la gente: eso también ayuda."),
+            ],
+            lesson: "Con un arma de por medio: distancia, barreras, muchas voces y una salida para la víctima. El cuerpo a cuerpo, solo si una vida depende de ello y no queda otra."),
+
+        Scenario(
+            id: "retencion", title: "Lo retienes y se resiste", icon: "hand.raised.slash.fill",
+            situation: "Has separado a un agresor que pegaba a una mujer y lo tienes en el suelo con un control. Se revuelve con fuerza, te insulta y dice que te va a matar. La policía aún no ha llegado.",
+            options: [
+                ScenarioOption(text: "Le pongo la rodilla en la espalda y aprieto hasta que se calme.", score: 0,
+                               feedback: "El peso sobre la espalda o el cuello de alguien boca abajo puede matarle por asfixia en pocos minutos. Personas han muerto así en la calle. Además, eso ya no es defensa: puede ser un delito grave."),
+                ScenarioOption(text: "Mantengo el control de lado sin cargar peso, le hablo con calma y, si no puedo sujetarle sin hacerle daño, le suelto, me aparto y protejo a la mujer.", score: 2,
+                               feedback: "Exacto. Tu objetivo era que dejara de pegarle, y eso ya lo has conseguido. Si retenerle exige hacerle daño, suéltale: tienes su descripción y la policía hará el resto."),
+                ScenarioOption(text: "Le doy un par de golpes para que deje de amenazarme.", score: 0,
+                               feedback: "Golpear a alguien que ya está controlado en el suelo es agresión, aunque te amenace. Es lo que convierte al que ayudó en el denunciado."),
+            ],
+            lesson: "Retener nunca vale una vida. Sin peso en el pecho ni en el cuello, de lado en cuanto se calme, y si no puedes sin hacer daño, suelta."),
+
+        Scenario(
+            id: "huye", title: "El agresor huye", icon: "figure.run",
+            situation: "Has gritado y te has interpuesto, y el hombre que estaba golpeando a un chaval sale corriendo. El chaval sangra por la nariz y está mareado.",
+            options: [
+                ScenarioOption(text: "Le persigo para que no se escape.", score: 0,
+                               feedback: "La agresión ya ha terminado: tu intervención ha funcionado. Perseguirle te aleja de la víctima, te lleva a un terreno que no conoces y convierte el siguiente encuentro en una pelea en la que la ley ya no te respalda igual."),
+                ScenarioOption(text: "Me quedo con el chaval, le siento, le tapo la nariz inclinándole hacia delante, vigilo si está desorientado y doy la descripción del agresor al 112.", score: 2,
+                               feedback: "Perfecto. Has ganado: la agresión ha parado. Ahora toca primeros auxilios (si hay golpe en la cabeza y está mareado, que le vea un médico) y ser el mejor testigo posible."),
+                ScenarioOption(text: "Le grabo mientras huye y lo subo a redes para que lo identifiquen.", score: 1,
+                               feedback: "La grabación puede servir a la policía, pero subirla a redes puede perjudicar la investigación y meterte en problemas. Entrégala a la policía y céntrate en el herido."),
+            ],
+            lesson: "Cuando el agresor huye, has ganado. Atiende a la víctima y sé un testigo excelente."),
     ]
 }
 
 extension CodeRule {
     static let all: [CodeRule] = [
         CodeRule(number: 1, title: "Tu vida primero", text: "Un héroe herido no salva a nadie. Si la escena no es segura, no entras."),
-        CodeRule(number: 2, title: "Llama antes de actuar", text: "El 112 es tu primera herramienta. Siempre. Y no es opcional."),
-        CodeRule(number: 3, title: "Testigo antes que luchador", text: "Lo más útil que puedes aportar ante un delito casi siempre es información precisa."),
+        CodeRule(number: 2, title: "El 112 siempre", text: "Antes de actuar o mientras actúas: con el altavoz o pidiéndoselo a otra persona. Aunque tarden, cada minuto que ganas cuenta."),
+        CodeRule(number: 3, title: "Intervén solo cuando hace falta", text: "Una persona en peligro grave ahora, algo que puedes cambiar y un riesgo asumible. Para todo lo demás, sé un testigo excelente."),
         CodeRule(number: 4, title: "Nunca armas", text: "Ni porras, ni navajas, ni nudilleras. Escalan el conflicto y te convierten en delincuente."),
         CodeRule(number: 5, title: "Nunca persigas", text: "Quien huye ya no es una amenaza inmediata. Tu persecución sí puede crear una."),
         CodeRule(number: 6, title: "No eres la policía", text: "No identificas, no registras, no interrogas, no castigas. Respeta su trabajo y colabora."),

@@ -25,6 +25,25 @@ struct AcademyView: View {
                     .buttonStyle(.plain)
 
                     NavigationLink {
+                        MentalView()
+                    } label: {
+                        HStack(spacing: 14) {
+                            Image(systemName: "brain.head.profile")
+                                .font(.title2)
+                                .foregroundStyle(Color.purple)
+                            VStack(alignment: .leading) {
+                                Text("Entrenamiento mental").font(.headline)
+                                Text("\(Mind.practices.count) prácticas guiadas · hoy: \(store.practiceOfTheDay.title)").font(.subheadline).foregroundStyle(Theme.muted)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right").foregroundStyle(Theme.muted)
+                        }
+                        .foregroundStyle(.white)
+                        .card()
+                    }
+                    .buttonStyle(.plain)
+
+                    NavigationLink {
                         CodeView()
                     } label: {
                         HStack(spacing: 14) {
