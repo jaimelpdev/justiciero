@@ -86,6 +86,10 @@ struct AppState: Codable {
     var dojoBelts: Set<Int> = []
     /// Tareas del plan diario hechas cada día ("yyyy-MM-dd" → ids y "kind:<tipo>").
     var habitLog: [String: Set<String>] = [:]
+    /// Check-in de reinicio de cada día ("yyyy-MM-dd" → true si fue un día libre, false si hubo recaída).
+    var rebootLog: [String: Bool] = [:]
+    /// Fin de la semana de reinicio activa (nil si no está activa).
+    var rebootUntil: Date?
 
     init() {}
 
@@ -108,6 +112,8 @@ struct AppState: Codable {
         dojoExam = try c.decodeIfPresent(Set<String>.self, forKey: .dojoExam) ?? []
         dojoBelts = try c.decodeIfPresent(Set<Int>.self, forKey: .dojoBelts) ?? []
         habitLog = try c.decodeIfPresent([String: Set<String>].self, forKey: .habitLog) ?? [:]
+        rebootLog = try c.decodeIfPresent([String: Bool].self, forKey: .rebootLog) ?? [:]
+        rebootUntil = try c.decodeIfPresent(Date.self, forKey: .rebootUntil)
     }
 }
 
@@ -376,6 +382,87 @@ final class ProgressStore: ObservableObject {
         markHabit(.mental)
     }
 
+    // MARK: Reinicio
+
+    /// Lección que toca: durante la semana de reinicio, primero las del módulo de reinicio.
+    var nextLesson: (SkillModule, Lesson)? {
+        let modules = isRebootActive()
+            ? SkillModule.all.filter { $0.id == "reinicio" } + SkillModule.all.filter { $0.id != "reinicio" }
+            : SkillModule.all
+        for module in modules {
+            if let lesson = module.lessons.first(where: { !isLearned($0) }) { return (module, lesson) }
+        }
+        return nil
+    }
+
+    func isRebootActive(on date: Date = .now) -> Bool {
+        guard let until = state.rebootUntil else { return false }
+        let start = Calendar.current.date(byAdding: .day, value: -Reboot.length, to: until) ?? until
+        return date >= Calendar.current.startOfDay(for: start) && date < until
+    }
+
+    /// Días que quedan de la semana de reinicio (contando hoy).
+    var rebootDaysLeft: Int {
+        guard let until = state.rebootUntil, isRebootActive() else { return 0 }
+        return max(1, Calendar.current.dateComponents([.day], from: Calendar.current.startOfDay(for: .now), to: until).day ?? 0)
+    }
+
+    func startReboot() {
+        let today = Calendar.current.startOfDay(for: .now)
+        state.rebootUntil = Calendar.current.date(byAdding: .day, value: Reboot.length, to: today)
+    }
+
+    func stopReboot() {
+        state.rebootUntil = nil
+    }
+
+    func rebootStatus(on date: Date = .now) -> Bool? {
+        state.rebootLog[Self.dayKey(date)]
+    }
+
+    /// Registra el check-in de hoy: día libre o recaída. Las dos respuestas cuentan como hábito cumplido:
+    /// lo que se entrena es la sinceridad y volver a empezar.
+    func checkInReboot(clean: Bool) {
+        let first = state.rebootLog[Self.dayKey(.now)] == nil
+        state.rebootLog[Self.dayKey(.now)] = clean
+        if first { state.xp += XP.mental }
+        markActive()
+        markHabit(.reinicio)
+    }
+
+    /// Días libres seguidos hasta hoy (si hoy aún no has hecho el check-in, cuenta hasta ayer).
+    var rebootStreak: Int {
+        let calendar = Calendar.current
+        var day = Date.now
+        if rebootStatus(on: day) == nil { day = calendar.date(byAdding: .day, value: -1, to: day) ?? day }
+        var count = 0
+        while rebootStatus(on: day) == true {
+            count += 1
+            guard let previous = calendar.date(byAdding: .day, value: -1, to: day) else { break }
+            day = previous
+        }
+        return count
+    }
+
+    var bestRebootStreak: Int {
+        let calendar = Calendar.current
+        let days = state.rebootLog.filter { $0.value }.keys.compactMap { Self.dayFormatter.date(from: $0) }.sorted()
+        var best = 0, run = 0
+        var previous: Date?
+        for day in days {
+            if let previous, calendar.dateComponents([.day], from: previous, to: day).day == 1 { run += 1 } else { run = 1 }
+            best = max(best, run)
+            previous = day
+        }
+        return best
+    }
+
+    /// Últimos 28 días, del más antiguo a hoy.
+    var rebootCalendar: [Date] {
+        let today = Calendar.current.startOfDay(for: .now)
+        return (0..<28).reversed().compactMap { Calendar.current.date(byAdding: .day, value: -$0, to: today) }
+    }
+
     // MARK: Plan diario
 
     static func dayKey(_ date: Date) -> String { dayFormatter.string(from: date) }
@@ -385,8 +472,13 @@ final class ProgressStore: ObservableObject {
         let weekday = Calendar.current.component(.weekday, from: date) // 1 = domingo
         let index = (weekday + 5) % 7
         let phase = currentPhase.id
-        let template = Habits.weeks.last(where: { $0.minPhase <= phase }) ?? Habits.weeks[0]
-        var items = Habits.daily + template.days[index]
+        var items: [HabitItem]
+        if isRebootActive(on: date) {
+            items = Habits.daily + Reboot.daily + Reboot.week.days[index]
+        } else {
+            let template = Habits.weeks.last(where: { $0.minPhase <= phase }) ?? Habits.weeks[0]
+            items = Habits.daily + template.days[index]
+        }
         if index == 6 && testDue(at: date) { items.append(Habits.test) }
         let order = DayBlock.allCases
         return items.enumerated()

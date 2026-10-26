@@ -128,6 +128,7 @@ def main():
     habits = (DATA / "HabitData.swift").read_text()
     authority = (DATA / "AuthorityData.swift").read_text()
     mind = (DATA / "MentalData.swift").read_text()
+    reboot = (DATA / "RebootData.swift").read_text()
 
     tips_body = body_of(program, "enum DailyTips")
     tips = re.search(r"static let all: \[String\] = (\[.*?\])\n", tips_body, re.S).group(1)
@@ -155,6 +156,8 @@ def main():
             "const routes =", "const routes = () =>") + "\n  return { intro, warning, routes: routes() };\n})();",
         "const MIND = (() => {" + convert_literals(extract_statics(body_of(mind, "enum Mind")))
         + "\n  return { intro, professional, practices, sosSteps };\n})();",
+        "const REBOOT = (() => {" + convert_literals(extract_statics(body_of(reboot, "enum Reboot")))
+        + "\n  return { intro, professional, urgeIntro, urgeSteps, distractions, barriers, daily, week, length };\n})();",
     ]
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text("\n\n".join(parts) + "\n")

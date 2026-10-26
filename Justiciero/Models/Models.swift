@@ -375,12 +375,12 @@ enum DayBlock: String, CaseIterable {
 }
 
 enum HabitKind: String {
-    case habito, entreno, dojo, leccion, mision, kim, escenario, bitacora, test, salida, voluntariado, descanso, ruta, mental
+    case habito, entreno, dojo, leccion, mision, kim, escenario, bitacora, test, salida, voluntariado, descanso, ruta, mental, reinicio
 
     /// Las tareas de estos tipos se marcan solas al hacerlas en la app.
     var isAutomatic: Bool {
         switch self {
-        case .entreno, .dojo, .leccion, .mision, .kim, .escenario, .bitacora, .test, .ruta, .mental: true
+        case .entreno, .dojo, .leccion, .mision, .kim, .escenario, .bitacora, .test, .ruta, .mental, .reinicio: true
         default: false
         }
     }

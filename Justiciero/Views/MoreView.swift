@@ -14,6 +14,9 @@ struct MoreView: View {
                     NavigationLink { SOSMindView() } label: {
                         Label("Momento difícil", systemImage: "heart.circle.fill")
                     }
+                    NavigationLink { RebootView() } label: {
+                        Label("Reinicio", systemImage: "arrow.counterclockwise.circle.fill")
+                    }
                 }
                 Section("Tu camino") {
                     NavigationLink { AuthorityView() } label: {

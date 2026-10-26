@@ -30,7 +30,7 @@ const PHASE_EMOJI = ["🏠", "🔥", "🏙️", "🔍", "🛡️", "🌙"];
 const MODULE_STYLE = {
   ley: ["⚖️", "var(--info)"], ciber: ["💻", "var(--info)"], intervencion: ["✋", "var(--danger)"], fortaleza: ["💜", "var(--purple)"], auxilios: ["⛑️", "var(--danger)"], desescalada: ["🗣️", "var(--success)"],
   defensa: ["🥋", "var(--orange)"], observacion: ["👁️", "var(--purple)"], ciudad: ["🌃", "#2dd4bf"],
-  mentalidad: ["🧠", "#f472b6"], caminos: ["🧭", "var(--accent)"],
+  mentalidad: ["🧠", "#f472b6"], caminos: ["🧭", "var(--accent)"], reinicio: ["🔄", "var(--teal)"],
 };
 const SCENARIO_EMOJI = {
   tiron: "👜", "pelea-bar": "🍺", inconsciente: "🧍", "me-siguen": "👣", coche: "🚗",
@@ -83,6 +83,9 @@ function defaultState() {
     dojoExam: [],
     dojoBelts: [],
     habitLog: {},
+    rebootLog: {},
+    rebootUntil: null,
+    rebootBarriers: [],
   };
 }
 
@@ -189,7 +192,7 @@ function logDojoClass(b) {
 }
 /* ---------- Plan diario ---------- */
 
-const AUTO_KINDS = ["entreno", "dojo", "leccion", "mision", "kim", "escenario", "bitacora", "test", "ruta", "mental"];
+const AUTO_KINDS = ["entreno", "dojo", "leccion", "mision", "kim", "escenario", "bitacora", "test", "ruta", "mental", "reinicio"];
 const BLOCKS = [["manana", "🌅", "Mañana"], ["tarde", "☀️", "Tarde"], ["noche", "🌙", "Noche"]];
 const weekdayIndex = (d) => (d.getDay() + 6) % 7; // lunes = 0
 
@@ -197,7 +200,9 @@ function plan(date = new Date()) {
   const phase = currentPhase().id;
   const template = [...HABITS.weeks].reverse().find((w) => w.minPhase <= phase) || HABITS.weeks[0];
   const idx = weekdayIndex(date);
-  const items = [...HABITS.daily, ...template.days[idx]];
+  const items = isRebootActive(date)
+    ? [...HABITS.daily, ...REBOOT.daily, ...REBOOT.week.days[idx]]
+    : [...HABITS.daily, ...template.days[idx]];
   const last = state.tests[state.tests.length - 1];
   if (idx === 6 && (!last || date.getTime() - last.date >= 25 * 86400000)) items.push(HABITS.test);
   const order = BLOCKS.map((b) => b[0]);
@@ -232,7 +237,9 @@ function currentWeekDays() {
   return [...Array(7)].map((_, i) => { const d = new Date(monday); d.setDate(monday.getDate() + i); return d; });
 }
 function nextLesson() {
-  for (const m of MODULES) { const l = m.lessons.find((x) => !state.completedLessons.includes(x.id)); if (l) return [m, l]; }
+  // Durante la semana de reinicio, primero las lecciones del módulo de reinicio.
+  const modules = isRebootActive() ? [...MODULES.filter((m) => m.id === "reinicio"), ...MODULES.filter((m) => m.id !== "reinicio")] : MODULES;
+  for (const m of modules) { const l = m.lessons.find((x) => !state.completedLessons.includes(x.id)); if (l) return [m, l]; }
   return null;
 }
 /** Título, detalle y enlace concretos de una tarea del plan. */
@@ -267,6 +274,12 @@ function resolveHabit(item) {
     case "bitacora": r.href = "#/bitacora-nueva/reflexion"; break;
     case "test": r.href = "#/test"; break;
     case "salida": r.href = "#/salida"; break;
+    case "reinicio": {
+      const st = rebootStatus();
+      if (st !== undefined) r.title = st ? "Check-in de reinicio: día libre" : "Check-in de reinicio: hecho";
+      r.href = "#/reinicio";
+      break;
+    }
   }
   if (["leccion", "mision", "ruta", "mental"].includes(item.kind) && habitDone(item)) {
     r.detail = r.href && r.title !== item.title ? `Hecha. Si te apetece adelantar: ${r.title}.` : "Hecha.";
@@ -312,6 +325,7 @@ function viewMental() {
       <p class="muted">${esc(MIND.intro)}</p>
       ${callout("info", MIND.professional)}
       <a class="btn" style="--c:var(--purple);color:#fff" href="#/sos-mental">💜 Momento difícil: calma guiada ahora</a>
+      <a class="btn ghost" href="#/reinicio">🔄 Reinicio: recuperar el control de un hábito</a>
       ${section("Práctica de hoy", "☀️")}
       ${practiceRow(today, true)}
       ${section("Todas las prácticas", "📋")}
@@ -353,6 +367,116 @@ function viewSOSMind() {
       ${call("016 · Violencia de género (gratis, 24 h, no deja rastro)", "016", "var(--purple)")}
       ${call("112 · Si estás en peligro ahora", "112", "var(--danger)")}
       ${callout("info", "Para trabajar lo que viviste con ayuda profesional y gratuita: tu médico de cabecera o la **Oficina de Asistencia a las Víctimas del Delito** de tu provincia.")}
+    </div>`,
+  };
+}
+
+/* ---------- Reinicio ---------- */
+
+function isRebootActive(date = new Date()) {
+  if (!state.rebootUntil) return false;
+  const start = new Date(state.rebootUntil);
+  start.setDate(start.getDate() - REBOOT.length);
+  return date >= start && date.getTime() < state.rebootUntil;
+}
+function rebootDaysLeft() {
+  if (!isRebootActive()) return 0;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  return Math.max(1, Math.round((state.rebootUntil - today.getTime()) / 86400000));
+}
+const rebootStatus = (d = new Date()) => (state.rebootLog || {})[dayKey(d)];
+function rebootStreak() {
+  const d = new Date();
+  if (rebootStatus(d) === undefined) d.setDate(d.getDate() - 1);
+  let n = 0;
+  while (rebootStatus(d) === true && n < 3650) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+function bestRebootStreak() {
+  const days = Object.keys(state.rebootLog || {}).filter((k) => state.rebootLog[k]).sort()
+    .map((k) => { const [y, m, d] = k.split("-").map(Number); return new Date(y, m - 1, d, 12).getTime(); });
+  let best = 0, run = 0;
+  days.forEach((t, i) => { run = i > 0 && Math.round((t - days[i - 1]) / 86400000) === 1 ? run + 1 : 1; best = Math.max(best, run); });
+  return best;
+}
+
+function rebootCard() {
+  const n = rebootStreak();
+  return link("#/reinicio", `<span style="font-size:1.5rem">🔄</span><div class="grow"><p class="title">Reinicio</p>
+    <p class="small muted">${n} ${n === 1 ? "día libre" : "días libres"} · quedan ${rebootDaysLeft()} de ${REBOOT.length}</p></div>`);
+}
+
+function viewReboot() {
+  const st = rebootStatus();
+  const mod = MODULES.find((m) => m.id === "reinicio");
+  const barriers = state.rebootBarriers || [];
+  const days = [...Array(28)].map((_, i) => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - 27 + i); return d; });
+  const dayColor = (v) => (v === true ? "var(--success)" : v === false ? "var(--teal)" : "var(--card-hi)");
+  const streakN = rebootStreak();
+  return {
+    title: "Reinicio", back: "#/mas",
+    html: `<div class="stack">
+      <div class="grid2">${stat(streakN, streakN === 1 ? "día libre seguido" : "días libres seguidos", "🔥")}${stat(bestRebootStreak(), "tu mejor racha", "🏆")}</div>
+      <div class="card stack" style="gap:10px">
+        <p class="title">¿Cómo ha ido hoy?</p>
+        ${st === true ? `<p style="color:var(--success)">Día libre. Uno más. Así se recupera el control.</p>`
+          : st === false ? `<p class="muted">Has sido sincero, y eso ya es entrenar. Escribe en la Bitácora qué pasó justo antes y vuelve a empezar esta noche. Tu mejor racha sigue ahí.</p>
+            <a class="linkbtn small" style="color:var(--teal);font-weight:700" href="#/bitacora-nueva/reflexion?t=${encodeURIComponent("Reinicio: qué pasó antes")}">✎ Escribir en la Bitácora</a>`
+          : `<p class="small muted">Hazlo antes de dormir, con sinceridad. Las dos respuestas cuentan como hábito cumplido.</p>`}
+        <div class="grid2">
+          <button class="btn" style="--c:${st === true ? "var(--success)" : "var(--card-hi)"};${st === true ? "" : "color:var(--text)"}" data-act="reboot-checkin" data-v="1">✓ Hoy libre</button>
+          <button class="btn" style="--c:${st === false ? "var(--teal)" : "var(--card-hi)"};${st === false ? "" : "color:var(--text)"}" data-act="reboot-checkin" data-v="0">↺ He recaído</button>
+        </div>
+      </div>
+      <a class="btn" style="--c:var(--teal)" href="#/impulso">🌊 Tengo un impulso ahora</a>
+      <div class="card hi stack" style="gap:10px">
+        ${isRebootActive()
+          ? `<p class="title" style="color:var(--teal)">🔄 Semana de reinicio activa</p>
+            <p class="small muted">Te ${rebootDaysLeft() === 1 ? "queda 1 día" : `quedan ${rebootDaysLeft()} días`}. Tu plan diario se centra en la mente y los hábitos, con menos carga física.</p>
+            <button class="linkbtn small muted" data-act="reboot-stop">Terminar antes</button>`
+          : `<p class="small muted">${esc(REBOOT.intro)}</p>
+            <button class="btn" style="--c:var(--teal)" data-act="reboot-start">▶ Empezar semana de reinicio (${REBOOT.length} días)</button>`}
+      </div>
+      <div class="card stack" style="gap:8px">
+        <p class="title">Últimos 28 días</p>
+        <div class="days28">${days.map((d) => { const v = rebootStatus(d); return `<span style="background:${dayColor(v)};${v === undefined ? "color:var(--muted)" : "color:#000"}">${d.getDate()}</span>`; }).join("")}</div>
+        <p class="tiny muted">Verde: día libre · Turquesa: recaída (información, no fracaso) · Gris: sin check-in</p>
+      </div>
+      ${section("Barreras en tu entorno", "🔒")}
+      <div class="card list" style="padding:4px 16px">${REBOOT.barriers.map((b, i) => `
+        <button class="list-item" data-act="reboot-barrier" data-i="${i}"><span class="check sq ${barriers.includes(i) ? "on" : ""}">${barriers.includes(i) ? "✓" : ""}</span><span class="grow small">${esc(b)}</span></button>`).join("")}</div>
+      ${mod ? section("Entiende lo que te pasa", "📖") + link(`#/modulo/${mod.id}`, `<div class="tile-ico" style="--c:var(--teal)">🔄</div><div class="grow"><p class="title">${esc(mod.title)}</p><p class="tiny muted">${learnedCount(mod)}/${mod.lessons.length} lecciones</p></div>`) : ""}
+      ${callout("info", REBOOT.professional)}
+    </div>`,
+  };
+}
+
+let urgeStart = null;
+const URGE_SECONDS = 15 * 60;
+function urgeTimerHTML() {
+  if (!urgeStart) return `<button class="btn" style="--c:var(--teal)" data-act="urge-start">⏱ Empezar 15 minutos</button>`;
+  const left = Math.max(0, URGE_SECONDS - Math.floor((Date.now() - urgeStart) / 1000));
+  return left > 0
+    ? `<div class="card hi center stack" style="gap:8px"><div class="big-timer">${mmss(left)}</div>${bar(1 - left / URGE_SECONDS, "var(--teal)")}
+        <p class="tiny muted">Sigue con una distracción. El impulso está bajando aunque no lo notes.</p></div>`
+    : `<div class="card hi center stack" style="gap:8px"><p class="h2" style="color:var(--success)">La ola ha pasado.</p>
+        <p class="small muted">Lo has surfeado. Cada vez que lo haces, el siguiente impulso llega con menos fuerza.</p></div>`;
+}
+setInterval(() => { const el = document.getElementById("urge-timer"); if (el && urgeStart) el.innerHTML = urgeTimerHTML(); }, 1000);
+
+function viewUrge() {
+  const p = state.profile;
+  return {
+    title: "La ola pasa", back: "#/reinicio",
+    html: `<div class="stack lesson">
+      <p class="h2" style="font-size:1.2rem">${esc(REBOOT.urgeIntro)}</p>
+      <div id="urge-timer">${urgeTimerHTML()}</div>
+      ${breathingCircle()}
+      <ol style="--c:var(--teal)">${REBOOT.urgeSteps.map((x) => `<li><span>${md(x)}</span></li>`).join("")}</ol>
+      ${section("Ideas para estos 15 minutos", "✨")}
+      <ul style="--c:var(--teal)">${REBOOT.distractions.map((x) => `<li><span>${md(x)}</span></li>`).join("")}</ul>
+      ${p.contactPhone ? `<a class="btn" style="--c:var(--success)" href="${telLink(p.contactPhone)}">📞 Llamar a ${esc(p.contactName || "tu contacto")}</a>` : ""}
+      <p class="tiny muted">Si te sientes muy mal, no solo con el impulso, abre <a href="#/sos-mental" style="color:var(--purple)">Momento difícil</a> o habla con un profesional.</p>
     </div>`,
   };
 }
@@ -437,13 +561,15 @@ function dailyPlanSection() {
 }
 
 function viewWeek() {
-  const dailyIds = HABITS.daily.map((d) => d.id);
-  const KIND_ICON = { entreno: "💪", dojo: "🥋", mision: "🎯", kim: "👁️", escenario: "🎭", test: "⏱️", salida: "📍", voluntariado: "❤️", descanso: "🛌", ruta: "🛡️", mental: "🧠" };
+  const dailyIds = [...HABITS.daily, ...REBOOT.daily].map((d) => d.id);
+  const KIND_ICON = { entreno: "💪", dojo: "🥋", mision: "🎯", kim: "👁️", escenario: "🎭", test: "⏱️", salida: "📍", voluntariado: "❤️", descanso: "🛌", ruta: "🛡️", mental: "🧠", reinicio: "🔄" };
   const now = new Date();
   return {
     title: "Tu semana", back: "#/base",
     html: `<div class="stack">
-      <p class="muted">Cada día tiene los mismos hábitos fijos (levantarte a tu hora, respiración, lección, bitácora y dormir a tu hora) más el entrenamiento que toca. El plan cambia cuando avanzas de fase.</p>
+      <p class="muted">${isRebootActive()
+        ? "Semana de reinicio: a los hábitos fijos se suman el check-in y el móvil fuera del dormitorio, con menos carga física y más tiempo para la mente, la gente y lo que te gusta."
+        : "Cada día tiene los mismos hábitos fijos (levantarte a tu hora, respiración, lección, bitácora y dormir a tu hora) más el entrenamiento que toca. El plan cambia cuando avanzas de fase."}</p>
       ${currentWeekDays().map((d) => {
         const isToday = dayKey(d) === dayKey(now);
         const future = d > now && !isToday;
@@ -525,6 +651,7 @@ function viewBase() {
       <div class="grid3">
         ${stat(streak(), "Racha (días)", "🔥")}${stat(workoutsThisWeek(), "Entrenos semana", "🏃")}${stat(programWeek(), "Semana", "📅")}
       </div>
+      ${isRebootActive() ? rebootCard() : ""}
       ${dailyPlanSection()}
       ${link(`#/fase/${phase.id}`, `
         <div class="grow stack" style="gap:8px">
@@ -618,7 +745,7 @@ function viewMore() {
     title: "Más", large: true,
     html: `<div class="stack">
       ${section("Tu mente")}
-      <div class="card list" style="padding:4px 16px">${item("#/mente", "🧠", "Entrenamiento mental")}${item("#/sos-mental", "💜", "Momento difícil")}</div>
+      <div class="card list" style="padding:4px 16px">${item("#/mente", "🧠", "Entrenamiento mental")}${item("#/sos-mental", "💜", "Momento difícil")}${item("#/reinicio", "🔄", "Reinicio")}</div>
       ${section("Tu camino")}
       <div class="card list" style="padding:4px 16px">${item("#/autoridad", "🛡️", "Ruta a la autoridad")}</div>
       ${section("En la calle")}
@@ -1751,6 +1878,8 @@ const ROUTES = [
   [/^#\/mente$/, viewMental],
   [/^#\/practica\/([\w-]+)$/, viewPractice],
   [/^#\/sos-mental$/, viewSOSMind],
+  [/^#\/reinicio$/, viewReboot],
+  [/^#\/impulso$/, viewUrge],
   [/^#\/ruta\/([\w-]+)$/, viewRoute],
   [/^#\/perfil$/, viewProfile],
   [/^#\/dojo$/, viewDojo],
@@ -1763,7 +1892,7 @@ const ROUTES = [
 function tabFor(hash) {
   const map = { fase: "#/programa", entreno: "#/entreno", sesion: "#/entreno", test: "#/entreno", modulo: "#/academia", leccion: "#/academia",
     codigo: "#/academia", escenarios: "#/academia", escenario: "#/academia", kim: "#/academia",
-    sucesos: "#/mas", semana: "#/base", autoridad: "#/mas", ruta: "#/mas", mente: "#/mas", practica: "#/mas", "sos-mental": "#/base", dojo: "#/entreno", cinturon: "#/entreno", tecnicas: "#/entreno", tecnica: "#/entreno", clase: "#/entreno" };
+    sucesos: "#/mas", semana: "#/base", autoridad: "#/mas", ruta: "#/mas", mente: "#/mas", practica: "#/mas", reinicio: "#/mas", impulso: "#/mas", "sos-mental": "#/base", dojo: "#/entreno", cinturon: "#/entreno", tecnicas: "#/entreno", tecnica: "#/entreno", clase: "#/entreno" };
   const key = hash.split("/")[1];
   return TABS.find(([h]) => h === hash)?.[0] || map[key] || "#/mas";
 }
@@ -1783,6 +1912,7 @@ function render() {
 
   if (hash !== lastHash && !hash.startsWith("#/sesion")) session = null;
   if (hash !== lastHash && hash !== "#/sucesos") sucesosAll = false;
+  if (hash !== lastHash && hash !== "#/impulso") urgeStart = null;
   if (hash !== lastHash && !hash.startsWith("#/clase")) { if (dojoClass) stopSpeech(); dojoClass = null; }
   if (hash !== lastHash && !hash.startsWith("#/escenario/")) scenarioPlay = null;
   if (hash !== lastHash && hash !== "#/kim") kim = { stage: "menu", hard: kim.hard };
@@ -1843,6 +1973,26 @@ const ACTIONS = {
     commit((s) => { gainXP(XP.mental); markActive(); markHabit("mental"); }, false);
     location.hash = "#/mente";
   },
+  "reboot-checkin": (d) => commit((s) => {
+    s.rebootLog = s.rebootLog || {};
+    if (s.rebootLog[dayKey()] === undefined) gainXP(XP.mental);
+    s.rebootLog[dayKey()] = d.v === "1";
+    markActive();
+    markHabit("reinicio");
+  }),
+  "reboot-start": () => commit((s) => {
+    const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + REBOOT.length);
+    s.rebootUntil = d.getTime();
+  }),
+  "reboot-stop": () => {
+    if (confirm("¿Terminar la semana de reinicio? Tu plan volverá al de tu fase. El contador y tu mejor racha se mantienen.")) commit((s) => { s.rebootUntil = null; });
+  },
+  "reboot-barrier": (d) => commit((s) => {
+    const i = Number(d.i), list = s.rebootBarriers || (s.rebootBarriers = []);
+    const at = list.indexOf(i);
+    if (at >= 0) list.splice(at, 1); else list.push(i);
+  }),
+  "urge-start": () => { urgeStart = Date.now(); render(); },
   "route-choose": (d) => { commit((s) => { s.profile.route = d.id; }); toast("Ruta principal elegida"); },
   "toggle-habit": (d) => {
     const item = plan().find((i) => i.id === d.id);

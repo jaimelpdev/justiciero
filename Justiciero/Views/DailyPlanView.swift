@@ -78,12 +78,7 @@ struct HabitRow: View {
     private var route: AuthorityRoute { Authority.routes.first { $0.id == routeID } ?? Authority.proteccion }
     private var step: ProgramTask? { store.nextStep(in: route) }
 
-    private var nextLesson: (SkillModule, Lesson)? {
-        for module in SkillModule.all {
-            if let lesson = module.lessons.first(where: { !store.isLearned($0) }) { return (module, lesson) }
-        }
-        return nil
-    }
+    private var nextLesson: (SkillModule, Lesson)? { store.nextLesson }
 
     private var workout: Workout? { Workout.all.first { $0.id == item.workout } }
     private var mission: ProgramTask? { store.nextTasks(limit: 1).first }
@@ -110,6 +105,12 @@ struct HabitRow: View {
         case .dojo: "Clase del Dojo · cinturón \(store.currentBelt.name.lowercased())"
         case .ruta: step.map { "\(route.title): \($0.title)" } ?? "\(route.title): ruta completada"
         case .mental: "Mente: \(store.practiceOfTheDay.title)"
+        case .reinicio:
+            switch store.rebootStatus() {
+            case true?: "Check-in de reinicio: día libre"
+            case false?: "Check-in de reinicio: hecho"
+            case nil: item.title
+            }
         default: item.title
         }
     }
@@ -188,6 +189,8 @@ struct HabitRow: View {
             NavigationLink { RouteView(route: route) } label: { goLabel }
         case .mental:
             NavigationLink { PracticeView(practice: store.practiceOfTheDay) } label: { goLabel }
+        case .reinicio:
+            NavigationLink { RebootView() } label: { goLabel }
         case .test:
             Button { showingTest = true } label: { goLabel }
         default:
@@ -218,14 +221,16 @@ struct WeekPlanView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                Text("Cada día tiene los mismos hábitos fijos (levantarte a tu hora, respiración, lección, bitácora y dormir a tu hora) más el entrenamiento que toca. El plan cambia cuando avanzas de fase.")
+                Text(store.isRebootActive()
+                     ? "Semana de reinicio: a los hábitos fijos se suman el check-in y el móvil fuera del dormitorio, con menos carga física y más tiempo para la mente, la gente y lo que te gusta."
+                     : "Cada día tiene los mismos hábitos fijos (levantarte a tu hora, respiración, lección, bitácora y dormir a tu hora) más el entrenamiento que toca. El plan cambia cuando avanzas de fase.")
                     .foregroundStyle(Theme.muted)
 
                 ForEach(store.currentWeekDays, id: \.self) { day in
                     let isToday = Calendar.current.isDateInToday(day)
                     let isFuture = day > Date.now && !isToday
                     let progress = store.habitProgress(on: day)
-                    let specific = store.plan(for: day).filter { item in !Habits.daily.contains(where: { $0.id == item.id }) }
+                    let specific = store.plan(for: day).filter { item in !(Habits.daily + Reboot.daily).contains(where: { $0.id == item.id }) }
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Text(Self.dayFormatter.string(from: day).capitalized).font(.headline)
@@ -273,6 +278,7 @@ struct WeekPlanView: View {
         case .salida: "location.fill"
         case .ruta: "shield.checkered"
         case .mental: "heart.circle.fill"
+        case .reinicio: "arrow.counterclockwise.circle.fill"
         case .voluntariado: "heart.fill"
         case .descanso: "bed.double.fill"
         default: "checkmark.circle"
