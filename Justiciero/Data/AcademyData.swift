@@ -1,7 +1,7 @@
 import Foundation
 
 extension SkillModule {
-    static let all: [SkillModule] = [ley, auxilios, fortaleza, desescalada, defensa, intervencion, observacion, ciudad, mentalidad, caminos, ciber]
+    static let all: [SkillModule] = [ley, auxilios, fortaleza, reinicio, desescalada, defensa, intervencion, observacion, ciudad, mentalidad, caminos, ciber]
 
     // MARK: Ley
 
@@ -638,6 +638,77 @@ extension SkillModule {
                     "**Rutina**: hacer lo mismo cada día da sensación de control y de seguridad.",
                 ]),
                 .tip("Los días malos, haz lo mínimo: respiración, una práctica corta y acostarte a tu hora. Eso también cuenta como un día de entrenamiento."),
+            ]),
+        ])
+    static let reinicio = SkillModule(
+        id: "reinicio", title: "Reiniciar: recuperar el control", icon: "arrow.counterclockwise.circle.fill", colorName: "teal",
+        intro: "Cómo dejar un hábito que te quita energía y ánimo, como el consumo diario de porno, con lo que sabemos de verdad sobre hábitos y sin mitos. No se trata de castigarte, sino de recuperar el control.",
+        lessons: [
+            Lesson(id: "rp-1", title: "Qué le pasa a tu cabeza", minutes: 5, blocks: [
+                .paragraph("Todo hábito sigue el mismo bucle: **disparador → conducta → recompensa**. Después de años repitiéndolo, el cerebro lo hace casi en automático: aburrimiento o estrés, móvil, contenido, alivio rápido."),
+                .bullets([
+                    "Los estudios relacionan el **uso compulsivo** (sentir que no puedes parar aunque quieras) con peor ánimo, más ansiedad, menos concentración y menos ganas de hacer cosas.",
+                    "La relación va en los dos sentidos: estar mal empuja a consumir, y consumir sin control hace que te sientas peor. Por eso cuidar la mente y los hábitos a la vez funciona mejor.",
+                    "El cerebro es **plástico**: igual que aprendió el bucle, puede aprender otro. Las primeras semanas son las más difíciles; después el impulso pierde fuerza.",
+                ]),
+                .tip("Si empezaste muy joven, no es un fallo tuyo: el hábito se formó antes de que pudieras elegir. Lo que sí puedes elegir es lo que haces a partir de hoy."),
+            ]),
+            Lesson(id: "rp-2", title: "Mitos: lo que no es verdad", minutes: 5, blocks: [
+                .paragraph("Hay mucha información falsa sobre este tema. Lo importante:"),
+                .bullets([
+                    "**Dejarlo no provoca cáncer ni ningún daño físico.** Lo que hay son estudios que asocian eyacular con frecuencia con un riesgo algo menor de cáncer de próstata, pero son asociaciones, no causa-efecto. Además, si tienes relaciones con tu pareja, sigues eyaculando con normalidad.",
+                    "**No hay «superpoderes».** Lo que prometen algunos foros (más testosterona, más carisma, imán para atraer) no tiene respaldo científico. Lo que sí notarás es más tiempo, más energía mental y sentir que mandas tú.",
+                    "**El objetivo no es dejar el sexo.** Ni la masturbación ni el sexo con tu pareja son el problema. El problema es el consumo diario y compulsivo que te deja sin ganas.",
+                    "**Los primeros días pueden ser raros**: irritabilidad, ansiedad, dormir peor o ánimo bajo. Es normal y pasa en unos días o semanas.",
+                ]),
+                .warning("Si notas dolor, bultos o molestias al orinar, ve al médico: eso no tiene que ver con dejar el hábito y conviene revisarlo."),
+            ]),
+            Lesson(id: "rp-3", title: "Tus disparadores", minutes: 5, blocks: [
+                .paragraph("Casi nadie recae por casualidad. Suele pasar en los mismos momentos. Recuerda la palabra **HALT** (en inglés: hambre, enfado, soledad y cansancio):"),
+                .bullets([
+                    "**Hambre** o mal cuerpo en general.",
+                    "**Enfado** o estrés: después de discutir o de un mal día.",
+                    "**Soledad** y aburrimiento: tardes sin plan, fines de semana vacíos.",
+                    "**Cansancio**: por la noche, en la cama con el móvil.",
+                ]),
+                .steps([
+                    "Durante una semana, cada vez que notes el impulso, apunta en la Bitácora la hora, dónde estabas y cómo te sentías.",
+                    "Al final de la semana busca el patrón: ¿siempre de noche? ¿después de discutir? ¿cuando te aburres?",
+                    "Para cada disparador, prepara una respuesta concreta (siguiente lección).",
+                ]),
+            ]),
+            Lesson(id: "rp-4", title: "Diseña tu entorno", minutes: 6, blocks: [
+                .paragraph("La fuerza de voluntad se agota; el entorno no. Lo más eficaz es **poner difícil lo que quieres dejar** y fácil lo que quieres hacer."),
+                .steps([
+                    "En el iPhone: **Ajustes › Tiempo de uso › Restricciones de contenido y privacidad** › actívalo › **Restricciones de contenido › Contenido web › Limitar sitios web para adultos**.",
+                    "Que el código de Tiempo de uso lo ponga **otra persona** (tu pareja, alguien de confianza). Si lo sabes tú, lo quitarás en un mal momento.",
+                    "**El móvil duerme fuera del dormitorio.** Un despertador barato soluciona la excusa.",
+                    "Deja de seguir las cuentas que te llevan al contenido y limpia el historial y los favoritos.",
+                    "Llena tus horas de riesgo: si es por la noche, ten preparado un libro, una ducha o estiramientos.",
+                ]),
+                .tip("No hace falta que se lo cuentes a nadie si no quieres. Para pedir que te pongan el código basta con decir: «Estoy intentando usar menos el móvil»."),
+            ]),
+            Lesson(id: "rp-5", title: "Surfear el impulso", minutes: 5, blocks: [
+                .paragraph("El impulso es como una ola: sube, llega a un pico y baja sola, normalmente en **15 o 20 minutos**. Si no le haces caso, cada vez vuelve con menos fuerza."),
+                .steps([
+                    "**Para y cambia de sitio**: sal de la habitación y deja el móvil.",
+                    "**Nómbralo** sin pelearte: «Es un impulso, no una orden».",
+                    "**Respira** y nota dónde lo sientes en el cuerpo. Obsérvalo como si fuera el tiempo que hace.",
+                    "**Haz otra cosa** durante 15 minutos: ejercicio, una ducha, salir, hablar con alguien.",
+                ]),
+                .paragraph("Prepara también **planes si-entonces**, que según los estudios duplican las posibilidades de cumplir un propósito: «**Si** estoy en la cama y me aburro, **entonces** dejo el móvil en el salón y leo». «**Si** discuto con alguien, **entonces** salgo a caminar 10 minutos»."),
+                .tip("El botón «Tengo un impulso ahora» de la pantalla de Reinicio te guía con un temporizador de 15 minutos."),
+            ]),
+            Lesson(id: "rp-6", title: "Recaídas, pareja y ayuda", minutes: 6, blocks: [
+                .paragraph("Casi todo el mundo recae alguna vez. Lo peligroso no es la recaída, sino pensar «ya lo he estropeado todo, total…» y volver al consumo diario. Los psicólogos lo llaman **efecto de violación de la abstinencia**."),
+                .bullets([
+                    "Una recaída es **información**, no un fracaso: ¿qué pasó antes? ¿Qué barrera faltaba?",
+                    "Márcala con sinceridad en el check-in, escribe qué aprendiste y **vuelve a empezar esa misma noche**.",
+                    "Tu mejor racha no desaparece: sigue ahí como prueba de lo que eres capaz.",
+                ]),
+                .paragraph("**Con tu pareja**: no estás obligado a contárselo, pero muchas personas sienten un gran alivio al hacerlo y ganan una aliada. Cuéntalo como lo que es: un hábito que quieres dejar porque te hace sentir mal. Algunas personas notan que, al dejarlo, mejoran el deseo y la conexión en pareja."),
+                .paragraph("**Cuándo pedir ayuda profesional**: si llevas tiempo intentándolo y no puedes, si te genera mucha angustia o problemas con tu pareja o tu trabajo. La OMS reconoce el **trastorno por comportamiento sexual compulsivo** y tiene tratamiento: un psicólogo o un sexólogo pueden ayudarte. Empieza por tu médico de cabecera."),
+                .tip("Pedir ayuda es exactamente lo que haría alguien fuerte. Batman tenía a Alfred."),
             ]),
         ])
 }

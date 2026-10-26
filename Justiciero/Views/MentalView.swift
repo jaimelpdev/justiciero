@@ -19,6 +19,14 @@ struct MentalView: View {
                 }
                 .buttonStyle(PrimaryButtonStyle(color: Color.purple))
 
+                NavigationLink {
+                    RebootView()
+                } label: {
+                    Label("Reinicio: recuperar el control de un hábito", systemImage: "arrow.counterclockwise.circle.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(PrimaryButtonStyle(color: Theme.cardHighlight))
+
                 SectionHeader(title: "Práctica de hoy", icon: "sun.max.fill")
                 NavigationLink {
                     PracticeView(practice: store.practiceOfTheDay)

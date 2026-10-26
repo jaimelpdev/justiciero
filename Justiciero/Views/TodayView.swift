@@ -18,6 +18,14 @@ struct TodayView: View {
                 VStack(spacing: 16) {
                     header
                     statsRow
+                    if store.isRebootActive() {
+                        NavigationLink {
+                            RebootView()
+                        } label: {
+                            RebootCard()
+                        }
+                        .buttonStyle(.plain)
+                    }
                     DailyPlanSection()
                     phaseCard
                     NavigationLink {

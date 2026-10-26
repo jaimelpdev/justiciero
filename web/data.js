@@ -520,7 +520,7 @@ const WORKOUTS = (() => {
 })();
 
 const MODULES = (() => {
-    const all = () => [ley, auxilios, fortaleza, desescalada, defensa, intervencion, observacion, ciudad, mentalidad, caminos, ciber]
+    const all = () => [ley, auxilios, fortaleza, reinicio, desescalada, defensa, intervencion, observacion, ciudad, mentalidad, caminos, ciber]
 
 
     const ley = {
@@ -1146,6 +1146,77 @@ const MODULES = (() => {
                     "**Rutina**: hacer lo mismo cada día da sensación de control y de seguridad.",
                 ]),
                 B("tip", "Los días malos, haz lo mínimo: respiración, una práctica corta y acostarte a tu hora. Eso también cuenta como un día de entrenamiento."),
+            ]},
+        ]}
+    const reinicio = {
+        id: "reinicio", title: "Reiniciar: recuperar el control", icon: "arrow.counterclockwise.circle.fill", colorName: "teal",
+        intro: "Cómo dejar un hábito que te quita energía y ánimo, como el consumo diario de porno, con lo que sabemos de verdad sobre hábitos y sin mitos. No se trata de castigarte, sino de recuperar el control.",
+        lessons: [
+            {id: "rp-1", title: "Qué le pasa a tu cabeza", minutes: 5, blocks: [
+                B("paragraph", "Todo hábito sigue el mismo bucle: **disparador → conducta → recompensa**. Después de años repitiéndolo, el cerebro lo hace casi en automático: aburrimiento o estrés, móvil, contenido, alivio rápido."),
+                B("bullets", [
+                    "Los estudios relacionan el **uso compulsivo** (sentir que no puedes parar aunque quieras) con peor ánimo, más ansiedad, menos concentración y menos ganas de hacer cosas.",
+                    "La relación va en los dos sentidos: estar mal empuja a consumir, y consumir sin control hace que te sientas peor. Por eso cuidar la mente y los hábitos a la vez funciona mejor.",
+                    "El cerebro es **plástico**: igual que aprendió el bucle, puede aprender otro. Las primeras semanas son las más difíciles; después el impulso pierde fuerza.",
+                ]),
+                B("tip", "Si empezaste muy joven, no es un fallo tuyo: el hábito se formó antes de que pudieras elegir. Lo que sí puedes elegir es lo que haces a partir de hoy."),
+            ]},
+            {id: "rp-2", title: "Mitos: lo que no es verdad", minutes: 5, blocks: [
+                B("paragraph", "Hay mucha información falsa sobre este tema. Lo importante:"),
+                B("bullets", [
+                    "**Dejarlo no provoca cáncer ni ningún daño físico.** Lo que hay son estudios que asocian eyacular con frecuencia con un riesgo algo menor de cáncer de próstata, pero son asociaciones, no causa-efecto. Además, si tienes relaciones con tu pareja, sigues eyaculando con normalidad.",
+                    "**No hay «superpoderes».** Lo que prometen algunos foros (más testosterona, más carisma, imán para atraer) no tiene respaldo científico. Lo que sí notarás es más tiempo, más energía mental y sentir que mandas tú.",
+                    "**El objetivo no es dejar el sexo.** Ni la masturbación ni el sexo con tu pareja son el problema. El problema es el consumo diario y compulsivo que te deja sin ganas.",
+                    "**Los primeros días pueden ser raros**: irritabilidad, ansiedad, dormir peor o ánimo bajo. Es normal y pasa en unos días o semanas.",
+                ]),
+                B("warning", "Si notas dolor, bultos o molestias al orinar, ve al médico: eso no tiene que ver con dejar el hábito y conviene revisarlo."),
+            ]},
+            {id: "rp-3", title: "Tus disparadores", minutes: 5, blocks: [
+                B("paragraph", "Casi nadie recae por casualidad. Suele pasar en los mismos momentos. Recuerda la palabra **HALT** (en inglés: hambre, enfado, soledad y cansancio):"),
+                B("bullets", [
+                    "**Hambre** o mal cuerpo en general.",
+                    "**Enfado** o estrés: después de discutir o de un mal día.",
+                    "**Soledad** y aburrimiento: tardes sin plan, fines de semana vacíos.",
+                    "**Cansancio**: por la noche, en la cama con el móvil.",
+                ]),
+                B("steps", [
+                    "Durante una semana, cada vez que notes el impulso, apunta en la Bitácora la hora, dónde estabas y cómo te sentías.",
+                    "Al final de la semana busca el patrón: ¿siempre de noche? ¿después de discutir? ¿cuando te aburres?",
+                    "Para cada disparador, prepara una respuesta concreta (siguiente lección).",
+                ]),
+            ]},
+            {id: "rp-4", title: "Diseña tu entorno", minutes: 6, blocks: [
+                B("paragraph", "La fuerza de voluntad se agota; el entorno no. Lo más eficaz es **poner difícil lo que quieres dejar** y fácil lo que quieres hacer."),
+                B("steps", [
+                    "En el iPhone: **Ajustes › Tiempo de uso › Restricciones de contenido y privacidad** › actívalo › **Restricciones de contenido › Contenido web › Limitar sitios web para adultos**.",
+                    "Que el código de Tiempo de uso lo ponga **otra persona** (tu pareja, alguien de confianza). Si lo sabes tú, lo quitarás en un mal momento.",
+                    "**El móvil duerme fuera del dormitorio.** Un despertador barato soluciona la excusa.",
+                    "Deja de seguir las cuentas que te llevan al contenido y limpia el historial y los favoritos.",
+                    "Llena tus horas de riesgo: si es por la noche, ten preparado un libro, una ducha o estiramientos.",
+                ]),
+                B("tip", "No hace falta que se lo cuentes a nadie si no quieres. Para pedir que te pongan el código basta con decir: «Estoy intentando usar menos el móvil»."),
+            ]},
+            {id: "rp-5", title: "Surfear el impulso", minutes: 5, blocks: [
+                B("paragraph", "El impulso es como una ola: sube, llega a un pico y baja sola, normalmente en **15 o 20 minutos**. Si no le haces caso, cada vez vuelve con menos fuerza."),
+                B("steps", [
+                    "**Para y cambia de sitio**: sal de la habitación y deja el móvil.",
+                    "**Nómbralo** sin pelearte: «Es un impulso, no una orden».",
+                    "**Respira** y nota dónde lo sientes en el cuerpo. Obsérvalo como si fuera el tiempo que hace.",
+                    "**Haz otra cosa** durante 15 minutos: ejercicio, una ducha, salir, hablar con alguien.",
+                ]),
+                B("paragraph", "Prepara también **planes si-entonces**, que según los estudios duplican las posibilidades de cumplir un propósito: «**Si** estoy en la cama y me aburro, **entonces** dejo el móvil en el salón y leo». «**Si** discuto con alguien, **entonces** salgo a caminar 10 minutos»."),
+                B("tip", "El botón «Tengo un impulso ahora» de la pantalla de Reinicio te guía con un temporizador de 15 minutos."),
+            ]},
+            {id: "rp-6", title: "Recaídas, pareja y ayuda", minutes: 6, blocks: [
+                B("paragraph", "Casi todo el mundo recae alguna vez. Lo peligroso no es la recaída, sino pensar «ya lo he estropeado todo, total…» y volver al consumo diario. Los psicólogos lo llaman **efecto de violación de la abstinencia**."),
+                B("bullets", [
+                    "Una recaída es **información**, no un fracaso: ¿qué pasó antes? ¿Qué barrera faltaba?",
+                    "Márcala con sinceridad en el check-in, escribe qué aprendiste y **vuelve a empezar esa misma noche**.",
+                    "Tu mejor racha no desaparece: sigue ahí como prueba de lo que eres capaz.",
+                ]),
+                B("paragraph", "**Con tu pareja**: no estás obligado a contárselo, pero muchas personas sienten un gran alivio al hacerlo y ganan una aliada. Cuéntalo como lo que es: un hábito que quieres dejar porque te hace sentir mal. Algunas personas notan que, al dejarlo, mejoran el deseo y la conexión en pareja."),
+                B("paragraph", "**Cuándo pedir ayuda profesional**: si llevas tiempo intentándolo y no puedes, si te genera mucha angustia o problemas con tu pareja o tu trabajo. La OMS reconoce el **trastorno por comportamiento sexual compulsivo** y tiene tratamiento: un psicólogo o un sexólogo pueden ayudarte. Empieza por tu médico de cabecera."),
+                B("tip", "Pedir ayuda es exactamente lo que haría alguien fuerte. Batman tenía a Alfred."),
             ]},
         ]}
 
@@ -2361,4 +2432,94 @@ const MIND = (() => {
     ]
 
   return { intro, professional, practices, sosSteps };
+})();
+
+const REBOOT = (() => {
+    const intro = "Un hábito que llevas años repitiendo no se rompe con fuerza de voluntad a pelo: se rompe cambiando el entorno, entendiendo tus disparadores y teniendo un plan para cuando llegue el impulso. Activa la semana de reinicio y durante 14 días tu plan diario se centra en la mente y en los hábitos, con menos carga física."
+
+    const professional = "Si llevas mucho tiempo intentándolo solo y no lo consigues, o te genera mucho malestar, un psicólogo o un sexólogo pueden ayudarte. Es un tema muy habitual en consulta y se trabaja sin juzgarte. Puedes empezar por tu médico de cabecera."
+
+    const urgeIntro = "Un impulso es una ola: sube, llega a un pico y baja sola, normalmente en 15 o 20 minutos. No tienes que ganarle a la ola, solo surfearla sin hacerle caso."
+
+    const urgeSteps = [
+        "**Cambia de sitio ya.** Levántate, sal de la habitación y deja el móvil en otra parte. Si estás en la cama, enciende la luz.",
+        "**Ponle nombre:** «Esto es un impulso. Es incómodo, pero no es una orden. Va a bajar».",
+        "**Respira** 4 ciclos de respiración táctica siguiendo el círculo.",
+        "**Activa el cuerpo** 2 minutos: 20 sentadillas, 10 flexiones o una ducha fría o templada.",
+        "**Haz una distracción** de la lista de abajo hasta que pase el temporizador.",
+        "**Si sigue fuerte**, escribe a alguien o sal a la calle a caminar 10 minutos.",
+    ]
+
+    const distractions = [
+        "Sal a caminar 10 minutos, aunque sea a la esquina.",
+        "Llama o escribe a un amigo, a tu pareja o a un familiar.",
+        "Una clase corta del Dojo o una serie de sombra (boxeo al aire).",
+        "Ducha, lavarte la cara con agua fría, beber un vaso de agua.",
+        "Algo con las manos: cocinar, ordenar un cajón, montar, tocar un instrumento.",
+        "Un escenario del Simulador o una partida del Juego de Kim.",
+        "Escribe en la Bitácora qué ha disparado el impulso.",
+    ]
+
+    const barriers = [
+        "Activa el bloqueo de sitios para adultos del iPhone: Ajustes › Tiempo de uso › Restricciones de contenido y privacidad › Restricciones de contenido › Contenido web › Limitar sitios web para adultos.",
+        "Pon un código de Tiempo de uso que no sepas tú: que lo elija tu pareja o alguien de confianza.",
+        "El móvil duerme fuera del dormitorio. Usa un despertador normal.",
+        "Deja de seguir cuentas y perfiles que te llevan al contenido.",
+        "Nada de pantallas en la cama ni en el baño.",
+        "Ten preparada una alternativa para tus horas de riesgo (la noche, el aburrimiento, después de discutir).",
+    ]
+
+    const checkin = {id: "reinicio", block: "noche", kind: "reinicio", title: "Check-in de reinicio",
+                                   detail: "Antes de dormir, marca si hoy ha sido un día libre o si has recaído. Con sinceridad y sin castigarte.",
+                                   minutes: 1, workout: null}
+    const phoneOut = {id: "movil-fuera", block: "noche", kind: "habito", title: "Móvil fuera del dormitorio",
+                                    detail: "Déjalo cargando en otra habitación. Es la barrera que más funciona por la noche.",
+                                    minutes: 1, workout: null}
+
+    const daily = [checkin, phoneOut]
+
+    const walk = {id: "paseo", block: "tarde", kind: "habito", title: "Paseo al aire libre",
+                                detail: "30 minutos fuera de casa y sin pantallas. La luz natural y el movimiento suben el ánimo y bajan la ansiedad.",
+                                minutes: 30, workout: null}
+    const social = {id: "contacto", block: "tarde", kind: "habito", title: "Contacto real",
+                                  detail: "Queda con alguien, llama a un amigo o haz un plan con tu pareja. El aislamiento alimenta el hábito.",
+                                  minutes: 30, workout: null}
+    const hands = {id: "manos", block: "tarde", kind: "habito", title: "Algo con las manos",
+                                 detail: "Cocinar, arreglar algo, dibujar, un instrumento… Una actividad que te guste y que no sea una pantalla.",
+                                 minutes: 30, workout: null}
+    const surf = {id: "surfear", block: "tarde", kind: "habito", title: "Ensaya tu plan de impulso",
+                                detail: "Abre «Tengo un impulso ahora» y léelo con calma. Escribe en la Bitácora tu plan si-entonces: «Si es de noche y me aburro, entonces…».",
+                                minutes: 10, workout: null}
+    const outdoor = {id: "aire-libre", block: "tarde", kind: "habito", title: "Actividad larga fuera",
+                                   detail: "Una excursión, deporte con amigos o un plan con tu pareja. Llena el sábado de cosas que te gusten.",
+                                   minutes: 120, workout: null}
+    const rest = {id: "descanso", block: "tarde", kind: "descanso", title: "Descanso activo",
+                                detail: "Camina 30 minutos tranquilo y estira. Hoy toca recargar.",
+                                minutes: 30, workout: null}
+    const review = {id: "revision", block: "noche", kind: "habito", title: "Revisión semanal",
+                                  detail: "Mira tu contador de reinicio: ¿qué días fueron más difíciles y por qué? Escribe en la bitácora una barrera nueva para la semana que viene.",
+                                  minutes: 10, workout: null}
+    const cuevaA = {id: "entreno-cueva-a", block: "tarde", kind: "entreno", title: "Cueva A · Fuerza base",
+                                  detail: "El ejercicio es tu mejor aliado: descarga tensión y mejora el ánimo. Versión fácil si estás cansado.",
+                                  minutes: 25, workout: "cueva-a"}
+    const cuevaB = {id: "entreno-cueva-b", block: "tarde", kind: "entreno", title: "Cueva B · Resistencia",
+                                  detail: "Sesión guiada en casa. Si llega un impulso, este es un buen momento para entrenar.",
+                                  minutes: 25, workout: "cueva-b"}
+    const mobility = {id: "entreno-movilidad", block: "tarde", kind: "entreno", title: "Movilidad y calma",
+                                    detail: "15 minutos de movilidad y respiración para bajar revoluciones.",
+                                    minutes: 15, workout: "movilidad"}
+
+    const week = {minPhase: 0, days: [
+        [cuevaA, walk],
+        [mobility, surf],
+        [cuevaB, social],
+        [mobility, hands],
+        [cuevaA, walk],
+        [outdoor, social],
+        [rest, review],
+    ]}
+
+    const length = 14
+
+  return { intro, professional, urgeIntro, urgeSteps, distractions, barriers, daily, week, length };
 })();
