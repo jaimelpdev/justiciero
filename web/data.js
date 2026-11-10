@@ -407,6 +407,161 @@ const WORKOUTS = (() => {
         easier: "Rodillas apoyadas."}
 
 
+    const inclinePushup = {id: "pushup-incline", name: "Flexiones inclinadas", icon: "figure.strengthtraining.traditional",
+        howTo: "Manos en el borde de una mesa estable o en la encimera, cuerpo recto. Baja el pecho hasta el borde y empuja. Cuanto más baja la superficie, más difícil.",
+        easier: "Hazlas contra la pared."}
+    const kneePushup = {id: "pushup-knee", name: "Flexiones de rodillas", icon: "figure.strengthtraining.traditional",
+        howTo: "Rodillas en el suelo y línea recta de rodillas a cabeza. Baja el pecho casi al suelo con los codos a 45° y empuja.",
+        easier: "Flexiones inclinadas en una mesa."}
+    const declinePushup = {id: "pushup-decline", name: "Flexiones declinadas", icon: "figure.strengthtraining.traditional",
+        howTo: "Pies sobre una silla o el sofá y manos en el suelo. Cuerpo recto, baja controlado y empuja. Trabaja más hombro y pecho alto.",
+        easier: "Flexiones normales."}
+    const diamondPushup = {id: "pushup-diamond", name: "Flexiones diamante", icon: "figure.strengthtraining.traditional",
+        howTo: "Manos juntas bajo el pecho formando un rombo con pulgares e índices. Codos pegados al cuerpo. Mucho tríceps.",
+        easier: "Manos al ancho de hombros con codos pegados."}
+    const archerPushup = {id: "pushup-archer", name: "Flexiones arquero", icon: "figure.strengthtraining.traditional",
+        howTo: "Manos muy abiertas. Baja hacia un lado doblando ese brazo mientras el otro se queda casi estirado. Alterna lados. Paso previo a la flexión a una mano.",
+        easier: "Flexiones diamante."}
+    const pike = {id: "pike", name: "Flexiones en pica", icon: "figure.strengthtraining.functional",
+        howTo: "Cadera alta formando una V invertida. Dobla los codos y lleva la cabeza hacia el suelo, por delante de las manos. Fortalece los hombros.",
+        easier: "Pies más lejos de las manos y recorrido corto."}
+    const pikeElevated = {id: "pike-elevated", name: "Pica con pies elevados", icon: "figure.strengthtraining.functional",
+        howTo: "Como la flexión en pica pero con los pies en una silla, para cargar más peso en los hombros. Baja la cabeza despacio.",
+        easier: "Flexiones en pica en el suelo."}
+    const towelRow = {id: "row-towel", name: "Remo con toalla en puerta", icon: "figure.strengthtraining.traditional",
+        howTo: "Pasa una toalla por el pomo de ambos lados de una puerta CERRADA y con pestillo. Agarra los extremos, inclínate hacia atrás con el cuerpo recto y tira de ti hacia la puerta juntando las escápulas.",
+        easier: "Inclínate menos."}
+    const rowFeetUp = {id: "row-feet", name: "Remo invertido con pies elevados", icon: "figure.strengthtraining.traditional",
+        howTo: "Como el remo invertido bajo una mesa MUY robusta, pero con los pies en una silla para que el cuerpo quede horizontal. Pecho a la mesa.",
+        easier: "Remo invertido con los pies en el suelo."}
+    const towelRowOneArm = {id: "row-towel-one", name: "Remo a una mano con toalla", icon: "figure.strengthtraining.traditional",
+        howTo: "Como el remo con toalla en la puerta pero agarrando con una sola mano. Sin girar el tronco. Repeticiones por brazo.",
+        easier: "Remo con toalla a dos manos."}
+    const deadHang = {id: "hang", name: "Colgarse de la barra", icon: "figure.climbing",
+        howTo: "Cuélgate de la barra con los brazos estirados y los hombros activos (aléjalos de las orejas). Fortalece el agarre y prepara las dominadas. Comprueba antes que la barra está bien sujeta.",
+        easier: "Con los pies apoyados en una silla para quitar peso."}
+    const negativePullup = {id: "pullup-negative", name: "Dominadas negativas", icon: "figure.climbing",
+        howTo: "Sube con ayuda de una silla hasta tener la barbilla sobre la barra y baja lo más despacio posible (3–5 s) hasta estirar los brazos.",
+        easier: "Colgarse de la barra."}
+    const assistedPullup = {id: "pullup-assisted", name: "Dominadas asistidas", icon: "figure.climbing",
+        howTo: "Un pie apoyado en una silla detrás de ti: tira con los brazos y usa la pierna solo lo justo para completar la subida.",
+        easier: "Dominadas negativas."}
+    const pullup = {id: "pullup", name: "Dominadas", icon: "figure.climbing",
+        howTo: "Agarre algo más ancho que los hombros. Tira hasta pasar la barbilla por encima de la barra, sin balancearte, y baja controlado hasta estirar los brazos.",
+        easier: "Dominadas asistidas con una silla."}
+    const sitToStand = {id: "sit-stand", name: "Sentarse y levantarse", icon: "figure.strengthtraining.functional",
+        howTo: "De pie delante de una silla, siéntate despacio y levántate sin ayudarte con las manos. Pies firmes y rodillas hacia fuera.",
+        easier: "Ayúdate con las manos en los muslos."}
+    const reverseLunge = {id: "lunge-back", name: "Zancada hacia atrás", icon: "figure.walk",
+        howTo: "Da un paso largo hacia atrás y baja hasta que las dos rodillas formen 90°. Vuelve empujando con el talón delantero. Es más suave para las rodillas que la zancada hacia delante.",
+        easier: "Apóyate en una pared y baja menos."}
+    const jumpSquat = {id: "squat-jump", name: "Sentadilla con salto", icon: "figure.jumprope",
+        howTo: "Sentadilla normal y salta hacia arriba con fuerza. Aterriza suave sobre la parte delantera del pie y baja directamente a la siguiente.",
+        easier: "Sentadilla rápida subiendo de puntillas, sin saltar."}
+    const pauseSquat = {id: "squat-pause", name: "Sentadilla con pausa", icon: "figure.strengthtraining.functional",
+        howTo: "Baja en 3 segundos, aguanta 2 segundos abajo sin rebotar y sube con fuerza. Sin impacto y muy exigente.",
+        easier: "Pausa de 1 segundo."}
+    const pistolBox = {id: "pistol-box", name: "Sentadilla a una pierna a banco", icon: "figure.strengthtraining.functional",
+        howTo: "De pie sobre una pierna delante de una silla, la otra estirada al frente. Siéntate despacio con una pierna y levántate con ella. Repeticiones por pierna.",
+        easier: "Sentadilla búlgara."}
+    const singleLegBridge = {id: "bridge-single", name: "Puente a una pierna", icon: "figure.cooldown",
+        howTo: "Como el puente de glúteo pero con una pierna estirada en el aire. Sube la cadera sin que se incline. Repeticiones por pierna.",
+        easier: "Puente con las dos piernas."}
+    const singleLegRDL = {id: "rdl-single", name: "Peso muerto a una pierna", icon: "figure.strengthtraining.functional",
+        howTo: "De pie sobre una pierna, inclina el tronco hacia delante con la espalda recta mientras la otra pierna sube atrás. Baja hasta notar estiramiento detrás del muslo y sube apretando glúteo.",
+        easier: "Con la punta del pie de atrás tocando el suelo."}
+    const deadBug = {id: "deadbug", name: "Dead bug", icon: "figure.core.training",
+        howTo: "Boca arriba, brazos al techo y rodillas a 90°. Estira a la vez un brazo y la pierna contraria sin despegar la zona lumbar del suelo. Alterna. Repeticiones por lado.",
+        easier: "Mueve solo las piernas."}
+    const birdDog = {id: "birddog", name: "Bird dog", icon: "figure.pilates",
+        howTo: "A cuatro patas, estira a la vez un brazo y la pierna contraria hasta formar una línea. Aguanta 2 s sin girar la cadera. Repeticiones por lado.",
+        easier: "Estira solo la pierna."}
+    const legRaises = {id: "legraise", name: "Elevaciones de piernas", icon: "figure.core.training",
+        howTo: "Boca arriba con las manos bajo los glúteos. Sube las piernas estiradas hasta la vertical y bájalas despacio sin tocar el suelo ni arquear la espalda.",
+        easier: "Con las rodillas dobladas."}
+    const plankTaps = {id: "plank-taps", name: "Plancha con toques de hombro", icon: "figure.core.training",
+        howTo: "En plancha alta (brazos estirados), toca el hombro contrario con una mano y alterna sin mover la cadera. Pies algo separados.",
+        easier: "Con las rodillas apoyadas."}
+    const march = {id: "march", name: "Marcha con rodillas altas", icon: "figure.walk",
+        howTo: "Sin saltar: marcha en el sitio subiendo las rodillas a la altura de la cadera y moviendo los brazos rápido. Cero impacto, mucho pulso.",
+        easier: "Ritmo más lento."}
+    const skaters = {id: "skaters", name: "Saltos de patinador", icon: "figure.skating",
+        howTo: "Salta lateralmente de un pie al otro, aterrizando suave y llevando la pierna libre por detrás. Como un patinador de velocidad.",
+        easier: "Paso lateral sin salto."}
+    const kneeStrikes = {id: "knees", name: "Rodillazos alternos", icon: "figure.kickboxing",
+        howTo: "Guardia alta. Sube la rodilla con fuerza hacia delante mientras bajas las manos como si agarraras una cabeza imaginaria. Alterna piernas, al aire o a un cojín sujeto contra la pared.",
+        easier: "Ritmo lento, sin bajar las manos."}
+    const slips = {id: "slips", name: "Esquivas y desplazamientos", icon: "figure.boxing",
+        howTo: "Guardia alta y rodillas flexionadas. Esquiva doblando un poco las rodillas y moviendo la cabeza a un lado y a otro, y desplázate en ángulo con pasos cortos. Nunca cruces los pies.",
+        easier: "Solo desplazamientos."}
+    const briskWalk = {id: "walk", name: "Caminata rápida", icon: "figure.walk",
+        howTo: "Camina rápido moviendo los brazos, a un ritmo en el que te cueste un poco hablar. Por zonas iluminadas si es tarde.",
+        easier: "Ritmo cómodo."}
+
+    const library = [
+        jumpingJacks,
+        squats,
+        pushups,
+        glutebridge,
+        plank,
+        sidePlank,
+        superman,
+        climbers,
+        lunges,
+        chairDips,
+        burpees,
+        invertedRow,
+        bulgarian,
+        hollow,
+        shadowBoxing,
+        sprawl,
+        breakfallBack,
+        breakfallSide,
+        roll,
+        mobility,
+        hipStretch,
+        hamstring,
+        boxBreathing,
+        warmJog,
+        easyRun,
+        strides,
+        balance,
+        precision,
+        stepUps,
+        quadruped,
+        inclinePushup,
+        kneePushup,
+        declinePushup,
+        diamondPushup,
+        archerPushup,
+        pike,
+        pikeElevated,
+        towelRow,
+        rowFeetUp,
+        towelRowOneArm,
+        deadHang,
+        negativePullup,
+        assistedPullup,
+        pullup,
+        sitToStand,
+        reverseLunge,
+        jumpSquat,
+        pauseSquat,
+        pistolBox,
+        singleLegBridge,
+        singleLegRDL,
+        deadBug,
+        birdDog,
+        legRaises,
+        plankTaps,
+        march,
+        skaters,
+        kneeStrikes,
+        slips,
+        briskWalk,
+    ]
+
+
     const all = () => [cuevaA, cuevaB, movilidad, caidas, forjaFuerza, forjaCombate, carrera, agilidad, guardian]
 
     const cuevaA = {
@@ -2230,6 +2385,33 @@ const AUTHORITY = (() => {
 
     const routes = () => [proteccion, vigilante, ciber]
 
+    const mallorca = [
+        B("paragraph", "Si vives en Mallorca, estos son los equipos y contactos con los que vas a trabajar. La confianza de la autoridad empieza por conocerla."),
+        B("heading", "Emergencias y policía"),
+        B("bullets", [
+            "**112**: emergencias en todas las Illes Balears. Si dudas a quién llamar, llama aquí.",
+            "**092**: Policía Local en Palma y en los municipios grandes. En los pueblos pequeños, llama al 112.",
+            "**091**: Policía Nacional, en las ciudades más grandes.",
+            "**062**: Guardia Civil, que cubre la mayoría de pueblos de la isla.",
+            "**AlertCops**: app oficial del Ministerio del Interior para avisar a Policía Nacional y Guardia Civil por chat, incluso sin hablar.",
+        ]),
+        B("heading", "Protección Civil en Mallorca"),
+        B("bullets", [
+            "Casi todos los ayuntamientos de la isla tienen agrupación de voluntarios de Protección Civil (Palma, Calvià, Marratxí, Llucmajor, Inca, Manacor…). Pregunta en el tuyo o en la Policía Local.",
+            "La formación del voluntariado y de las policías locales de Baleares la coordina el **ISPIB** (Institut de Seguretat Pública de les Illes Balears).",
+            "En verano hay muchísimos servicios preventivos: fiestas patronales, verbenas, Sant Joan, conciertos, carreras populares y playas. Es la mejor época para empezar y que te conozcan.",
+            "**Cruz Roja Illes Balears** también busca voluntariado de socorros y emergencias, incluido el de playas.",
+        ]),
+        B("heading", "Conocer a la autoridad de tu zona"),
+        B("bullets", [
+            "Policía Nacional y Guardia Civil tienen **delegados de participación ciudadana**: pide hablar con ellos en tu comisaría o cuartel.",
+            "Muchas Policías Locales de Mallorca tienen policía de barrio o de proximidad que se reúne con las asociaciones de vecinos. Ve a esas reuniones.",
+            "Preséntate siempre con tu nombre y tu agrupación. La confianza llega por la cara que conocen, no por la que escondes.",
+        ]),
+        B("tip", "Si algún día quieres opositar a Policía Local en Baleares, te pedirán un certificado de catalán (el nivel lo fija cada convocatoria). Puedes sacarlo con las pruebas oficiales del Govern o en la Escuela Oficial de Idiomas, sin prisa."),
+        B("warning", "Ningún cuerpo en Mallorca ni en España trabaja con particulares enmascarados. Si ocultas la cara en un incidente, la policía que llega te tratará como sospechoso. Y si acabas implicado en un delito, el Código Penal lo castiga más: actuar con disfraz es una agravante (art. 22.2)."),
+    ]
+
     const proteccion = {
         id: "proteccion", title: "Protección Civil", icon: "cross.case.fill",
         summary: "Voluntario con uniforme en la agrupación de tu municipio. Patrullas preventivas en fiestas, conciertos y emergencias, codo con codo con la Policía Local y los servicios de emergencia. Es la forma más rápida de que la policía de tu ciudad te conozca y confíe en ti.",
@@ -2332,7 +2514,7 @@ const AUTHORITY = (() => {
             {title: "Trace Labs (búsqueda de desaparecidos con OSINT)", url: "https://www.tracelabs.org/"},
         ]}
 
-  return { intro, warning, routes: routes() };
+  return { intro, warning, routes: routes(), mallorca };
 })();
 
 const MIND = (() => {
@@ -2522,4 +2704,870 @@ const REBOOT = (() => {
     const length = 14
 
   return { intro, professional, urgeIntro, urgeSteps, distractions, barriers, daily, week, length };
+})();
+
+const PLAN = (() => {
+    const jumpingJacks = {id: "jacks", name: "Jumping jacks", icon: "figure.mixed.cardio",
+        howTo: "Salta abriendo piernas y brazos a la vez, y vuelve a cerrar. Ritmo constante.",
+        easier: "Sin saltar: abre una pierna cada vez mientras subes los brazos."}
+    const squats = {id: "squat", name: "Sentadillas", icon: "figure.strengthtraining.functional",
+        howTo: "Pies al ancho de hombros. Baja como si te sentaras en una silla, espalda recta, rodillas en la dirección de los pies. Sube empujando con los talones.",
+        easier: "Siéntate y levántate de una silla de verdad."}
+    const pushups = {id: "pushup", name: "Flexiones", icon: "figure.strengthtraining.traditional",
+        howTo: "Manos algo más anchas que los hombros, cuerpo en línea recta de cabeza a talones. Baja el pecho casi al suelo y empuja. Codos a unos 45°, no abiertos en cruz.",
+        easier: "Apoya las rodillas, o hazlas con las manos en una mesa o pared."}
+    const glutebridge = {id: "bridge", name: "Puente de glúteo", icon: "figure.cooldown",
+        howTo: "Tumbado boca arriba, rodillas dobladas. Eleva la cadera apretando glúteos hasta formar una línea recta hombros-rodillas. Aguanta 1 s arriba.",
+        easier: "Reduce el recorrido."}
+    const plank = {id: "plank", name: "Plancha", icon: "figure.core.training",
+        howTo: "Apoyado en antebrazos y puntas de los pies. Cuerpo recto, abdomen y glúteos apretados. No dejes caer la cadera.",
+        easier: "Apoya las rodillas."}
+    const sidePlank = {id: "sideplank", name: "Plancha lateral", icon: "figure.core.training",
+        howTo: "De lado, apoyado en un antebrazo, cadera arriba y cuerpo recto. El tiempo indicado es por cada lado.",
+        easier: "Apoya la rodilla de abajo."}
+    const superman = {id: "superman", name: "Superman", icon: "figure.pilates",
+        howTo: "Boca abajo, eleva a la vez brazos estirados y piernas, aguanta 2 s y baja despacio. Fortalece la espalda.",
+        easier: "Eleva solo brazo y pierna contrarios alternando."}
+    const climbers = {id: "climbers", name: "Mountain climbers", icon: "figure.run",
+        howTo: "En posición de flexión, lleva las rodillas al pecho alternando, rápido pero sin perder la línea del cuerpo.",
+        easier: "Hazlo despacio, paso a paso."}
+    const lunges = {id: "lunge", name: "Zancadas", icon: "figure.walk",
+        howTo: "Da un paso largo y baja hasta que ambas rodillas formen 90°. La rodilla trasera casi roza el suelo. Alterna piernas.",
+        easier: "Paso más corto y bajada parcial, apoyándote en una pared."}
+    const chairDips = {id: "dips", name: "Fondos en silla", icon: "figure.strengthtraining.traditional",
+        howTo: "Manos en el borde de una silla estable (contra la pared), piernas delante. Baja doblando codos hasta 90° y sube.",
+        easier: "Piernas dobladas y recorrido corto."}
+    const burpees = {id: "burpee", name: "Burpees", icon: "figure.cross.training",
+        howTo: "De pie, agáchate, manos al suelo, salta atrás a plancha, vuelve a recoger y salta arriba. Ritmo controlado.",
+        easier: "Sin flexión y sin salto: da los pasos atrás y adelante."}
+    const invertedRow = {id: "row", name: "Remo invertido", icon: "figure.strengthtraining.traditional",
+        howTo: "Bajo una mesa MUY robusta (o con barra baja en un parque), agarra el borde y tira del pecho hacia él con el cuerpo recto. Comprueba antes que la mesa no vuelque.",
+        easier: "Con toalla en una puerta cerrada: tira de ti hacia la puerta inclinado hacia atrás."}
+    const bulgarian = {id: "bulgarian", name: "Sentadilla búlgara", icon: "figure.strengthtraining.functional",
+        howTo: "Pie trasero apoyado en una silla o sofá, baja con la pierna delantera. Repeticiones por pierna.",
+        easier: "Zancada estática con ambos pies en el suelo."}
+    const hollow = {id: "hollow", name: "Hollow hold", icon: "figure.core.training",
+        howTo: "Boca arriba, zona lumbar pegada al suelo, eleva hombros y piernas estiradas formando una «banana». Aguanta.",
+        easier: "Rodillas dobladas o brazos a los lados."}
+    const shadowBoxing = {id: "shadow", name: "Sombra (boxeo)", icon: "figure.boxing",
+        howTo: "Guardia alta, barbilla abajo. Golpes rectos y desplazamientos ligeros. Respira al golpear. Usa la técnica que hayas aprendido en el Dojo.",
+        easier: "Ritmo suave, solo desplazamientos y guardia."}
+    const sprawl = {id: "sprawl", name: "Sprawls", icon: "figure.cross.training",
+        howTo: "Como un burpee rápido sin salto: echa las piernas atrás y la cadera al suelo para «defender un derribo», y vuelve a guardia.",
+        easier: "Pasos atrás en vez de salto."}
+    const breakfallBack = {id: "ukemi-back", name: "Caída hacia atrás", icon: "figure.fall",
+        howTo: "SOBRE COLCHONETA O COLCHÓN. Desde sentado: barbilla al pecho, ruedas hacia atrás y golpeas el suelo con ambos brazos estirados a 45° para repartir el impacto. Cuando lo domines, desde cuclillas.",
+        easier: "Solo el gesto de barbilla al pecho y rodar suave sobre la espalda."}
+    const breakfallSide = {id: "ukemi-side", name: "Caída lateral", icon: "figure.fall",
+        howTo: "SOBRE COLCHONETA. Desde cuclillas, extiende una pierna cruzando por delante, cae de lado y golpea el suelo con el brazo de ese lado. Barbilla siempre al pecho. Alterna lados.",
+        easier: "Desde sentado, solo el balanceo y el golpe de brazo."}
+    const roll = {id: "roll", name: "Rodada hacia delante", icon: "figure.gymnastics",
+        howTo: "SOBRE COLCHONETA. Rodada diagonal por el hombro (no por la cabeza) hasta la cadera contraria y te levantas. Sigue la progresión de la técnica «Rodada hacia delante» del Dojo.",
+        easier: "Rodada desde rodillas, muy despacio."}
+    const mobility = {id: "mobility", name: "Movilidad articular", icon: "figure.flexibility",
+        howTo: "Círculos de cuello, hombros, cadera, rodillas y tobillos. 10 en cada sentido, sin forzar.",
+        easier: "Sentado en una silla."}
+    const hipStretch = {id: "hip", name: "Estiramiento de cadera", icon: "figure.flexibility",
+        howTo: "Postura de zancada con rodilla trasera en el suelo, empuja la cadera adelante. Tiempo por lado.",
+        easier: "Apoya las manos en una silla."}
+    const hamstring = {id: "hamstring", name: "Estiramiento isquios", icon: "figure.flexibility",
+        howTo: "Sentado con piernas estiradas, inclínate hacia delante con la espalda recta. Sin rebotes.",
+        easier: "Una pierna cada vez, la otra doblada."}
+    const boxBreathing = {id: "breath", name: "Respiración cuadrada", icon: "wind",
+        howTo: "4 s inspirar por la nariz, 4 s retener, 4 s soltar por la boca, 4 s retener. Repetir.",
+        easier: "Usa 3 s en cada fase."}
+    const warmJog = {id: "jog-warm", name: "Calentamiento caminando/trote", icon: "figure.walk",
+        howTo: "Camina rápido o trota muy suave. Deberías poder hablar sin problema.",
+        easier: "Solo caminar."}
+    const easyRun = {id: "jog", name: "Carrera suave", icon: "figure.run",
+        howTo: "Ritmo en el que puedas mantener una conversación. Si te ahogas, camina 1 min y vuelve a trotar.",
+        easier: "Alterna 1 min trote y 1 min caminando."}
+    const strides = {id: "strides", name: "Progresivos", icon: "figure.run",
+        howTo: "Acelera poco a poco durante 20 s hasta casi tu máxima velocidad y vuelve caminando.",
+        easier: "Llega solo al 70 % de tu velocidad."}
+    const balance = {id: "balance", name: "Equilibrio en línea", icon: "figure.stand",
+        howTo: "Camina sobre una línea del suelo o un bordillo BAJO (menos de 20 cm), mirando al frente. Ida y vuelta.",
+        easier: "Sobre una línea pintada en el suelo."}
+    const precision = {id: "precision", name: "Saltos de precisión", icon: "figure.jumprope",
+        howTo: "A nivel del suelo: salta con los pies juntos de una marca a otra (1–1,5 m) y aterriza suave y en silencio, sobre la parte delantera del pie, flexionando rodillas.",
+        easier: "Distancia más corta."}
+    const stepUps = {id: "stepup", name: "Subidas a banco", icon: "figure.step.training",
+        howTo: "Sube a un banco o escalón estable con una pierna, baja controlado. Repeticiones por pierna.",
+        easier: "Escalón más bajo."}
+    const quadruped = {id: "quad", name: "Cuadrupedia", icon: "figure.play",
+        howTo: "A cuatro patas con rodillas a 2 cm del suelo, avanza moviendo mano y pie contrarios a la vez.",
+        easier: "Rodillas apoyadas."}
+
+
+    const inclinePushup = {id: "pushup-incline", name: "Flexiones inclinadas", icon: "figure.strengthtraining.traditional",
+        howTo: "Manos en el borde de una mesa estable o en la encimera, cuerpo recto. Baja el pecho hasta el borde y empuja. Cuanto más baja la superficie, más difícil.",
+        easier: "Hazlas contra la pared."}
+    const kneePushup = {id: "pushup-knee", name: "Flexiones de rodillas", icon: "figure.strengthtraining.traditional",
+        howTo: "Rodillas en el suelo y línea recta de rodillas a cabeza. Baja el pecho casi al suelo con los codos a 45° y empuja.",
+        easier: "Flexiones inclinadas en una mesa."}
+    const declinePushup = {id: "pushup-decline", name: "Flexiones declinadas", icon: "figure.strengthtraining.traditional",
+        howTo: "Pies sobre una silla o el sofá y manos en el suelo. Cuerpo recto, baja controlado y empuja. Trabaja más hombro y pecho alto.",
+        easier: "Flexiones normales."}
+    const diamondPushup = {id: "pushup-diamond", name: "Flexiones diamante", icon: "figure.strengthtraining.traditional",
+        howTo: "Manos juntas bajo el pecho formando un rombo con pulgares e índices. Codos pegados al cuerpo. Mucho tríceps.",
+        easier: "Manos al ancho de hombros con codos pegados."}
+    const archerPushup = {id: "pushup-archer", name: "Flexiones arquero", icon: "figure.strengthtraining.traditional",
+        howTo: "Manos muy abiertas. Baja hacia un lado doblando ese brazo mientras el otro se queda casi estirado. Alterna lados. Paso previo a la flexión a una mano.",
+        easier: "Flexiones diamante."}
+    const pike = {id: "pike", name: "Flexiones en pica", icon: "figure.strengthtraining.functional",
+        howTo: "Cadera alta formando una V invertida. Dobla los codos y lleva la cabeza hacia el suelo, por delante de las manos. Fortalece los hombros.",
+        easier: "Pies más lejos de las manos y recorrido corto."}
+    const pikeElevated = {id: "pike-elevated", name: "Pica con pies elevados", icon: "figure.strengthtraining.functional",
+        howTo: "Como la flexión en pica pero con los pies en una silla, para cargar más peso en los hombros. Baja la cabeza despacio.",
+        easier: "Flexiones en pica en el suelo."}
+    const towelRow = {id: "row-towel", name: "Remo con toalla en puerta", icon: "figure.strengthtraining.traditional",
+        howTo: "Pasa una toalla por el pomo de ambos lados de una puerta CERRADA y con pestillo. Agarra los extremos, inclínate hacia atrás con el cuerpo recto y tira de ti hacia la puerta juntando las escápulas.",
+        easier: "Inclínate menos."}
+    const rowFeetUp = {id: "row-feet", name: "Remo invertido con pies elevados", icon: "figure.strengthtraining.traditional",
+        howTo: "Como el remo invertido bajo una mesa MUY robusta, pero con los pies en una silla para que el cuerpo quede horizontal. Pecho a la mesa.",
+        easier: "Remo invertido con los pies en el suelo."}
+    const towelRowOneArm = {id: "row-towel-one", name: "Remo a una mano con toalla", icon: "figure.strengthtraining.traditional",
+        howTo: "Como el remo con toalla en la puerta pero agarrando con una sola mano. Sin girar el tronco. Repeticiones por brazo.",
+        easier: "Remo con toalla a dos manos."}
+    const deadHang = {id: "hang", name: "Colgarse de la barra", icon: "figure.climbing",
+        howTo: "Cuélgate de la barra con los brazos estirados y los hombros activos (aléjalos de las orejas). Fortalece el agarre y prepara las dominadas. Comprueba antes que la barra está bien sujeta.",
+        easier: "Con los pies apoyados en una silla para quitar peso."}
+    const negativePullup = {id: "pullup-negative", name: "Dominadas negativas", icon: "figure.climbing",
+        howTo: "Sube con ayuda de una silla hasta tener la barbilla sobre la barra y baja lo más despacio posible (3–5 s) hasta estirar los brazos.",
+        easier: "Colgarse de la barra."}
+    const assistedPullup = {id: "pullup-assisted", name: "Dominadas asistidas", icon: "figure.climbing",
+        howTo: "Un pie apoyado en una silla detrás de ti: tira con los brazos y usa la pierna solo lo justo para completar la subida.",
+        easier: "Dominadas negativas."}
+    const pullup = {id: "pullup", name: "Dominadas", icon: "figure.climbing",
+        howTo: "Agarre algo más ancho que los hombros. Tira hasta pasar la barbilla por encima de la barra, sin balancearte, y baja controlado hasta estirar los brazos.",
+        easier: "Dominadas asistidas con una silla."}
+    const sitToStand = {id: "sit-stand", name: "Sentarse y levantarse", icon: "figure.strengthtraining.functional",
+        howTo: "De pie delante de una silla, siéntate despacio y levántate sin ayudarte con las manos. Pies firmes y rodillas hacia fuera.",
+        easier: "Ayúdate con las manos en los muslos."}
+    const reverseLunge = {id: "lunge-back", name: "Zancada hacia atrás", icon: "figure.walk",
+        howTo: "Da un paso largo hacia atrás y baja hasta que las dos rodillas formen 90°. Vuelve empujando con el talón delantero. Es más suave para las rodillas que la zancada hacia delante.",
+        easier: "Apóyate en una pared y baja menos."}
+    const jumpSquat = {id: "squat-jump", name: "Sentadilla con salto", icon: "figure.jumprope",
+        howTo: "Sentadilla normal y salta hacia arriba con fuerza. Aterriza suave sobre la parte delantera del pie y baja directamente a la siguiente.",
+        easier: "Sentadilla rápida subiendo de puntillas, sin saltar."}
+    const pauseSquat = {id: "squat-pause", name: "Sentadilla con pausa", icon: "figure.strengthtraining.functional",
+        howTo: "Baja en 3 segundos, aguanta 2 segundos abajo sin rebotar y sube con fuerza. Sin impacto y muy exigente.",
+        easier: "Pausa de 1 segundo."}
+    const pistolBox = {id: "pistol-box", name: "Sentadilla a una pierna a banco", icon: "figure.strengthtraining.functional",
+        howTo: "De pie sobre una pierna delante de una silla, la otra estirada al frente. Siéntate despacio con una pierna y levántate con ella. Repeticiones por pierna.",
+        easier: "Sentadilla búlgara."}
+    const singleLegBridge = {id: "bridge-single", name: "Puente a una pierna", icon: "figure.cooldown",
+        howTo: "Como el puente de glúteo pero con una pierna estirada en el aire. Sube la cadera sin que se incline. Repeticiones por pierna.",
+        easier: "Puente con las dos piernas."}
+    const singleLegRDL = {id: "rdl-single", name: "Peso muerto a una pierna", icon: "figure.strengthtraining.functional",
+        howTo: "De pie sobre una pierna, inclina el tronco hacia delante con la espalda recta mientras la otra pierna sube atrás. Baja hasta notar estiramiento detrás del muslo y sube apretando glúteo.",
+        easier: "Con la punta del pie de atrás tocando el suelo."}
+    const deadBug = {id: "deadbug", name: "Dead bug", icon: "figure.core.training",
+        howTo: "Boca arriba, brazos al techo y rodillas a 90°. Estira a la vez un brazo y la pierna contraria sin despegar la zona lumbar del suelo. Alterna. Repeticiones por lado.",
+        easier: "Mueve solo las piernas."}
+    const birdDog = {id: "birddog", name: "Bird dog", icon: "figure.pilates",
+        howTo: "A cuatro patas, estira a la vez un brazo y la pierna contraria hasta formar una línea. Aguanta 2 s sin girar la cadera. Repeticiones por lado.",
+        easier: "Estira solo la pierna."}
+    const legRaises = {id: "legraise", name: "Elevaciones de piernas", icon: "figure.core.training",
+        howTo: "Boca arriba con las manos bajo los glúteos. Sube las piernas estiradas hasta la vertical y bájalas despacio sin tocar el suelo ni arquear la espalda.",
+        easier: "Con las rodillas dobladas."}
+    const plankTaps = {id: "plank-taps", name: "Plancha con toques de hombro", icon: "figure.core.training",
+        howTo: "En plancha alta (brazos estirados), toca el hombro contrario con una mano y alterna sin mover la cadera. Pies algo separados.",
+        easier: "Con las rodillas apoyadas."}
+    const march = {id: "march", name: "Marcha con rodillas altas", icon: "figure.walk",
+        howTo: "Sin saltar: marcha en el sitio subiendo las rodillas a la altura de la cadera y moviendo los brazos rápido. Cero impacto, mucho pulso.",
+        easier: "Ritmo más lento."}
+    const skaters = {id: "skaters", name: "Saltos de patinador", icon: "figure.skating",
+        howTo: "Salta lateralmente de un pie al otro, aterrizando suave y llevando la pierna libre por detrás. Como un patinador de velocidad.",
+        easier: "Paso lateral sin salto."}
+    const kneeStrikes = {id: "knees", name: "Rodillazos alternos", icon: "figure.kickboxing",
+        howTo: "Guardia alta. Sube la rodilla con fuerza hacia delante mientras bajas las manos como si agarraras una cabeza imaginaria. Alterna piernas, al aire o a un cojín sujeto contra la pared.",
+        easier: "Ritmo lento, sin bajar las manos."}
+    const slips = {id: "slips", name: "Esquivas y desplazamientos", icon: "figure.boxing",
+        howTo: "Guardia alta y rodillas flexionadas. Esquiva doblando un poco las rodillas y moviendo la cabeza a un lado y a otro, y desplázate en ángulo con pasos cortos. Nunca cruces los pies.",
+        easier: "Solo desplazamientos."}
+    const briskWalk = {id: "walk", name: "Caminata rápida", icon: "figure.walk",
+        howTo: "Camina rápido moviendo los brazos, a un ritmo en el que te cueste un poco hablar. Por zonas iluminadas si es tarde.",
+        easier: "Ritmo cómodo."}
+
+    const library = [
+        jumpingJacks,
+        squats,
+        pushups,
+        glutebridge,
+        plank,
+        sidePlank,
+        superman,
+        climbers,
+        lunges,
+        chairDips,
+        burpees,
+        invertedRow,
+        bulgarian,
+        hollow,
+        shadowBoxing,
+        sprawl,
+        breakfallBack,
+        breakfallSide,
+        roll,
+        mobility,
+        hipStretch,
+        hamstring,
+        boxBreathing,
+        warmJog,
+        easyRun,
+        strides,
+        balance,
+        precision,
+        stepUps,
+        quadruped,
+        inclinePushup,
+        kneePushup,
+        declinePushup,
+        diamondPushup,
+        archerPushup,
+        pike,
+        pikeElevated,
+        towelRow,
+        rowFeetUp,
+        towelRowOneArm,
+        deadHang,
+        negativePullup,
+        assistedPullup,
+        pullup,
+        sitToStand,
+        reverseLunge,
+        jumpSquat,
+        pauseSquat,
+        pistolBox,
+        singleLegBridge,
+        singleLegRDL,
+        deadBug,
+        birdDog,
+        legRaises,
+        plankTaps,
+        march,
+        skaters,
+        kneeStrikes,
+        slips,
+        briskWalk,
+    ]
+
+    const intro = "Responde unas preguntas y la app te monta un programa de 12 semanas a tu medida: qué entrenar cada día, cuántas series y repeticiones, y cuándo subir de nivel. Como las apps de entreno personalizadas, pero orientado a lo que necesita un protector: fuerza, resistencia, combate y saber caer."
+
+    const blocks = ["Base", "Construcción", "Rendimiento"]
+
+    const blockNotes = [
+        "Aprende la técnica de cada ejercicio. Termina cada serie sintiendo que podías hacer 2 o 3 repeticiones más.",
+        "Ejercicios más difíciles y más volumen. Aquí es donde tu cuerpo empieza a cambiar.",
+        "Las variantes más exigentes. Ritmo e intensidad de alguien que puede responder cuando hace falta.",
+    ]
+
+    const deloadNote = "Semana de descarga: una serie menos en cada ejercicio. El cuerpo se hace fuerte descansando; no te la saltes."
+
+
+    const push = [
+        {exercise: inclinePushup, reps: 10, seconds: null, perSide: false, impact: false},
+        {exercise: kneePushup, reps: 10, seconds: null, perSide: false, impact: false},
+        {exercise: pushups, reps: 8, seconds: null, perSide: false, impact: false},
+        {exercise: declinePushup, reps: 8, seconds: null, perSide: false, impact: false},
+        {exercise: diamondPushup, reps: 8, seconds: null, perSide: false, impact: false},
+        {exercise: archerPushup, reps: 5, seconds: null, perSide: true, impact: false},
+    ]
+
+    const push2 = [
+        {exercise: chairDips, reps: 8, seconds: null, perSide: false, impact: false},
+        {exercise: chairDips, reps: 12, seconds: null, perSide: false, impact: false},
+        {exercise: pike, reps: 6, seconds: null, perSide: false, impact: false},
+        {exercise: pike, reps: 10, seconds: null, perSide: false, impact: false},
+        {exercise: pikeElevated, reps: 6, seconds: null, perSide: false, impact: false},
+        {exercise: pikeElevated, reps: 10, seconds: null, perSide: false, impact: false},
+    ]
+
+    const pull = [
+        {exercise: towelRow, reps: 10, seconds: null, perSide: false, impact: false},
+        {exercise: towelRow, reps: 15, seconds: null, perSide: false, impact: false},
+        {exercise: invertedRow, reps: 8, seconds: null, perSide: false, impact: false},
+        {exercise: invertedRow, reps: 12, seconds: null, perSide: false, impact: false},
+        {exercise: rowFeetUp, reps: 8, seconds: null, perSide: false, impact: false},
+        {exercise: towelRowOneArm, reps: 8, seconds: null, perSide: true, impact: false},
+    ]
+
+    const pullBar = [
+        {exercise: deadHang, reps: null, seconds: 20, perSide: false, impact: false},
+        {exercise: negativePullup, reps: 3, seconds: null, perSide: false, impact: false},
+        {exercise: negativePullup, reps: 5, seconds: null, perSide: false, impact: false},
+        {exercise: assistedPullup, reps: 6, seconds: null, perSide: false, impact: false},
+        {exercise: pullup, reps: 3, seconds: null, perSide: false, impact: false},
+        {exercise: pullup, reps: 6, seconds: null, perSide: false, impact: false},
+    ]
+
+    const back = [
+        {exercise: birdDog, reps: 8, seconds: null, perSide: true, impact: false},
+        {exercise: superman, reps: 10, seconds: null, perSide: false, impact: false},
+        {exercise: superman, reps: 15, seconds: null, perSide: false, impact: false},
+    ]
+
+    const leg = [
+        {exercise: sitToStand, reps: 12, seconds: null, perSide: false, impact: false},
+        {exercise: squats, reps: 15, seconds: null, perSide: false, impact: false},
+        {exercise: reverseLunge, reps: 10, seconds: null, perSide: true, impact: false},
+        {exercise: bulgarian, reps: 10, seconds: null, perSide: true, impact: false},
+        {exercise: jumpSquat, reps: 12, seconds: null, perSide: false, impact: true},
+        {exercise: pauseSquat, reps: 12, seconds: null, perSide: false, impact: false},
+        {exercise: pistolBox, reps: 6, seconds: null, perSide: true, impact: false},
+    ]
+
+    const hinge = [
+        {exercise: glutebridge, reps: 15, seconds: null, perSide: false, impact: false},
+        {exercise: glutebridge, reps: 20, seconds: null, perSide: false, impact: false},
+        {exercise: singleLegBridge, reps: 10, seconds: null, perSide: true, impact: false},
+        {exercise: singleLegRDL, reps: 8, seconds: null, perSide: true, impact: false},
+        {exercise: singleLegRDL, reps: 12, seconds: null, perSide: true, impact: false},
+    ]
+
+    const core = [
+        {exercise: deadBug, reps: 8, seconds: null, perSide: true, impact: false},
+        {exercise: plank, reps: null, seconds: 30, perSide: false, impact: false},
+        {exercise: hollow, reps: null, seconds: 20, perSide: false, impact: false},
+        {exercise: plankTaps, reps: 10, seconds: null, perSide: true, impact: false},
+        {exercise: legRaises, reps: 10, seconds: null, perSide: false, impact: false},
+        {exercise: hollow, reps: null, seconds: 45, perSide: false, impact: false},
+    ]
+
+    const core2 = [
+        {exercise: sidePlank, reps: null, seconds: 15, perSide: false, impact: false},
+        {exercise: sidePlank, reps: null, seconds: 25, perSide: false, impact: false},
+        {exercise: sidePlank, reps: null, seconds: 40, perSide: false, impact: false},
+    ]
+
+    const cardio = [
+        {exercise: march, reps: null, seconds: 30, perSide: false, impact: false},
+        {exercise: jumpingJacks, reps: null, seconds: 30, perSide: false, impact: true},
+        {exercise: climbers, reps: null, seconds: 30, perSide: false, impact: false},
+        {exercise: skaters, reps: null, seconds: 30, perSide: false, impact: true},
+        {exercise: burpees, reps: null, seconds: 30, perSide: false, impact: true},
+    ]
+
+    const combat = [
+        {exercise: shadowBoxing, reps: null, seconds: 60, perSide: false, impact: false},
+        {exercise: slips, reps: null, seconds: 45, perSide: false, impact: false},
+        {exercise: kneeStrikes, reps: null, seconds: 30, perSide: false, impact: false},
+        {exercise: sprawl, reps: null, seconds: 30, perSide: false, impact: true},
+    ]
+
+
+    const nutritionIntro = "Entrenar sin comer bien es como patrullar sin dormir. Estas cifras son una estimación para empezar (fórmula de Mifflin-St Jeor): ajústalas según cómo cambie tu peso en 2–3 semanas."
+
+    const nutritionWarning = "Si tienes o has tenido problemas con la comida (atracones, restricción, purgas), no cuentes calorías: usa solo el método del plato y habla con tu médico o un dietista-nutricionista. Si eres menor de edad, no hagas dieta para perder peso sin supervisión."
+
+    const plate = [
+        "**Mitad del plato: verdura y hortaliza.** Ensalada, pisto, judías verdes, tumbet, crema de calabacín…",
+        "**Un cuarto: proteína.** Pollo, pavo, huevos, pescado, atún, legumbres, tofu, ternera magra.",
+        "**Un cuarto: hidratos.** Arroz, pasta, patata, pan integral, avena, legumbres.",
+        "**Un chorrito de aceite de oliva** y fruta de postre.",
+        "**Agua** como bebida principal. El alcohol frena la recuperación y el sueño.",
+    ]
+
+    const sampleDay = [
+        "**Desayuno:** tostadas de pan integral con tomate, aceite y huevos revueltos, o yogur con avena y fruta.",
+        "**Media mañana:** fruta y un puñado de frutos secos, o un bocadillo pequeño de pavo.",
+        "**Comida:** lentejas o garbanzos con verduras, o arroz con pollo y ensalada. Fruta.",
+        "**Merienda (antes o después de entrenar):** yogur o vaso de leche con plátano.",
+        "**Cena:** pescado o tortilla con verdura y patata. Si tienes hambre por la noche, más verdura.",
+    ]
+
+    const nutritionTips = [
+        "Prioriza la proteína en cada comida: ayuda a ganar músculo y a no pasar hambre.",
+        "Para perder grasa, no bajes de golpe: un déficit pequeño se mantiene; uno grande se abandona.",
+        "Pésate como mucho una vez por semana, el mismo día, en ayunas. Fíjate en la tendencia, no en un día.",
+        "Duerme 7–9 horas: con sueño corto se come más y se recupera peor.",
+        "No necesitas suplementos para empezar. Si algún día los usas, que sea con consejo profesional.",
+    ]
+
+  return { intro, blocks, blockNotes, deloadNote, push, push2, pull, pullBar, back, leg, hinge, core, core2, cardio, combat, nutritionIntro, nutritionWarning, plate, sampleDay, nutritionTips, ex: { mobility, briskWalk, easyRun, warmJog, strides } };
+})();
+
+const EXERCISES = (() => {
+    const jumpingJacks = {id: "jacks", name: "Jumping jacks", icon: "figure.mixed.cardio",
+        howTo: "Salta abriendo piernas y brazos a la vez, y vuelve a cerrar. Ritmo constante.",
+        easier: "Sin saltar: abre una pierna cada vez mientras subes los brazos."}
+    const squats = {id: "squat", name: "Sentadillas", icon: "figure.strengthtraining.functional",
+        howTo: "Pies al ancho de hombros. Baja como si te sentaras en una silla, espalda recta, rodillas en la dirección de los pies. Sube empujando con los talones.",
+        easier: "Siéntate y levántate de una silla de verdad."}
+    const pushups = {id: "pushup", name: "Flexiones", icon: "figure.strengthtraining.traditional",
+        howTo: "Manos algo más anchas que los hombros, cuerpo en línea recta de cabeza a talones. Baja el pecho casi al suelo y empuja. Codos a unos 45°, no abiertos en cruz.",
+        easier: "Apoya las rodillas, o hazlas con las manos en una mesa o pared."}
+    const glutebridge = {id: "bridge", name: "Puente de glúteo", icon: "figure.cooldown",
+        howTo: "Tumbado boca arriba, rodillas dobladas. Eleva la cadera apretando glúteos hasta formar una línea recta hombros-rodillas. Aguanta 1 s arriba.",
+        easier: "Reduce el recorrido."}
+    const plank = {id: "plank", name: "Plancha", icon: "figure.core.training",
+        howTo: "Apoyado en antebrazos y puntas de los pies. Cuerpo recto, abdomen y glúteos apretados. No dejes caer la cadera.",
+        easier: "Apoya las rodillas."}
+    const sidePlank = {id: "sideplank", name: "Plancha lateral", icon: "figure.core.training",
+        howTo: "De lado, apoyado en un antebrazo, cadera arriba y cuerpo recto. El tiempo indicado es por cada lado.",
+        easier: "Apoya la rodilla de abajo."}
+    const superman = {id: "superman", name: "Superman", icon: "figure.pilates",
+        howTo: "Boca abajo, eleva a la vez brazos estirados y piernas, aguanta 2 s y baja despacio. Fortalece la espalda.",
+        easier: "Eleva solo brazo y pierna contrarios alternando."}
+    const climbers = {id: "climbers", name: "Mountain climbers", icon: "figure.run",
+        howTo: "En posición de flexión, lleva las rodillas al pecho alternando, rápido pero sin perder la línea del cuerpo.",
+        easier: "Hazlo despacio, paso a paso."}
+    const lunges = {id: "lunge", name: "Zancadas", icon: "figure.walk",
+        howTo: "Da un paso largo y baja hasta que ambas rodillas formen 90°. La rodilla trasera casi roza el suelo. Alterna piernas.",
+        easier: "Paso más corto y bajada parcial, apoyándote en una pared."}
+    const chairDips = {id: "dips", name: "Fondos en silla", icon: "figure.strengthtraining.traditional",
+        howTo: "Manos en el borde de una silla estable (contra la pared), piernas delante. Baja doblando codos hasta 90° y sube.",
+        easier: "Piernas dobladas y recorrido corto."}
+    const burpees = {id: "burpee", name: "Burpees", icon: "figure.cross.training",
+        howTo: "De pie, agáchate, manos al suelo, salta atrás a plancha, vuelve a recoger y salta arriba. Ritmo controlado.",
+        easier: "Sin flexión y sin salto: da los pasos atrás y adelante."}
+    const invertedRow = {id: "row", name: "Remo invertido", icon: "figure.strengthtraining.traditional",
+        howTo: "Bajo una mesa MUY robusta (o con barra baja en un parque), agarra el borde y tira del pecho hacia él con el cuerpo recto. Comprueba antes que la mesa no vuelque.",
+        easier: "Con toalla en una puerta cerrada: tira de ti hacia la puerta inclinado hacia atrás."}
+    const bulgarian = {id: "bulgarian", name: "Sentadilla búlgara", icon: "figure.strengthtraining.functional",
+        howTo: "Pie trasero apoyado en una silla o sofá, baja con la pierna delantera. Repeticiones por pierna.",
+        easier: "Zancada estática con ambos pies en el suelo."}
+    const hollow = {id: "hollow", name: "Hollow hold", icon: "figure.core.training",
+        howTo: "Boca arriba, zona lumbar pegada al suelo, eleva hombros y piernas estiradas formando una «banana». Aguanta.",
+        easier: "Rodillas dobladas o brazos a los lados."}
+    const shadowBoxing = {id: "shadow", name: "Sombra (boxeo)", icon: "figure.boxing",
+        howTo: "Guardia alta, barbilla abajo. Golpes rectos y desplazamientos ligeros. Respira al golpear. Usa la técnica que hayas aprendido en el Dojo.",
+        easier: "Ritmo suave, solo desplazamientos y guardia."}
+    const sprawl = {id: "sprawl", name: "Sprawls", icon: "figure.cross.training",
+        howTo: "Como un burpee rápido sin salto: echa las piernas atrás y la cadera al suelo para «defender un derribo», y vuelve a guardia.",
+        easier: "Pasos atrás en vez de salto."}
+    const breakfallBack = {id: "ukemi-back", name: "Caída hacia atrás", icon: "figure.fall",
+        howTo: "SOBRE COLCHONETA O COLCHÓN. Desde sentado: barbilla al pecho, ruedas hacia atrás y golpeas el suelo con ambos brazos estirados a 45° para repartir el impacto. Cuando lo domines, desde cuclillas.",
+        easier: "Solo el gesto de barbilla al pecho y rodar suave sobre la espalda."}
+    const breakfallSide = {id: "ukemi-side", name: "Caída lateral", icon: "figure.fall",
+        howTo: "SOBRE COLCHONETA. Desde cuclillas, extiende una pierna cruzando por delante, cae de lado y golpea el suelo con el brazo de ese lado. Barbilla siempre al pecho. Alterna lados.",
+        easier: "Desde sentado, solo el balanceo y el golpe de brazo."}
+    const roll = {id: "roll", name: "Rodada hacia delante", icon: "figure.gymnastics",
+        howTo: "SOBRE COLCHONETA. Rodada diagonal por el hombro (no por la cabeza) hasta la cadera contraria y te levantas. Sigue la progresión de la técnica «Rodada hacia delante» del Dojo.",
+        easier: "Rodada desde rodillas, muy despacio."}
+    const mobility = {id: "mobility", name: "Movilidad articular", icon: "figure.flexibility",
+        howTo: "Círculos de cuello, hombros, cadera, rodillas y tobillos. 10 en cada sentido, sin forzar.",
+        easier: "Sentado en una silla."}
+    const hipStretch = {id: "hip", name: "Estiramiento de cadera", icon: "figure.flexibility",
+        howTo: "Postura de zancada con rodilla trasera en el suelo, empuja la cadera adelante. Tiempo por lado.",
+        easier: "Apoya las manos en una silla."}
+    const hamstring = {id: "hamstring", name: "Estiramiento isquios", icon: "figure.flexibility",
+        howTo: "Sentado con piernas estiradas, inclínate hacia delante con la espalda recta. Sin rebotes.",
+        easier: "Una pierna cada vez, la otra doblada."}
+    const boxBreathing = {id: "breath", name: "Respiración cuadrada", icon: "wind",
+        howTo: "4 s inspirar por la nariz, 4 s retener, 4 s soltar por la boca, 4 s retener. Repetir.",
+        easier: "Usa 3 s en cada fase."}
+    const warmJog = {id: "jog-warm", name: "Calentamiento caminando/trote", icon: "figure.walk",
+        howTo: "Camina rápido o trota muy suave. Deberías poder hablar sin problema.",
+        easier: "Solo caminar."}
+    const easyRun = {id: "jog", name: "Carrera suave", icon: "figure.run",
+        howTo: "Ritmo en el que puedas mantener una conversación. Si te ahogas, camina 1 min y vuelve a trotar.",
+        easier: "Alterna 1 min trote y 1 min caminando."}
+    const strides = {id: "strides", name: "Progresivos", icon: "figure.run",
+        howTo: "Acelera poco a poco durante 20 s hasta casi tu máxima velocidad y vuelve caminando.",
+        easier: "Llega solo al 70 % de tu velocidad."}
+    const balance = {id: "balance", name: "Equilibrio en línea", icon: "figure.stand",
+        howTo: "Camina sobre una línea del suelo o un bordillo BAJO (menos de 20 cm), mirando al frente. Ida y vuelta.",
+        easier: "Sobre una línea pintada en el suelo."}
+    const precision = {id: "precision", name: "Saltos de precisión", icon: "figure.jumprope",
+        howTo: "A nivel del suelo: salta con los pies juntos de una marca a otra (1–1,5 m) y aterriza suave y en silencio, sobre la parte delantera del pie, flexionando rodillas.",
+        easier: "Distancia más corta."}
+    const stepUps = {id: "stepup", name: "Subidas a banco", icon: "figure.step.training",
+        howTo: "Sube a un banco o escalón estable con una pierna, baja controlado. Repeticiones por pierna.",
+        easier: "Escalón más bajo."}
+    const quadruped = {id: "quad", name: "Cuadrupedia", icon: "figure.play",
+        howTo: "A cuatro patas con rodillas a 2 cm del suelo, avanza moviendo mano y pie contrarios a la vez.",
+        easier: "Rodillas apoyadas."}
+
+
+    const inclinePushup = {id: "pushup-incline", name: "Flexiones inclinadas", icon: "figure.strengthtraining.traditional",
+        howTo: "Manos en el borde de una mesa estable o en la encimera, cuerpo recto. Baja el pecho hasta el borde y empuja. Cuanto más baja la superficie, más difícil.",
+        easier: "Hazlas contra la pared."}
+    const kneePushup = {id: "pushup-knee", name: "Flexiones de rodillas", icon: "figure.strengthtraining.traditional",
+        howTo: "Rodillas en el suelo y línea recta de rodillas a cabeza. Baja el pecho casi al suelo con los codos a 45° y empuja.",
+        easier: "Flexiones inclinadas en una mesa."}
+    const declinePushup = {id: "pushup-decline", name: "Flexiones declinadas", icon: "figure.strengthtraining.traditional",
+        howTo: "Pies sobre una silla o el sofá y manos en el suelo. Cuerpo recto, baja controlado y empuja. Trabaja más hombro y pecho alto.",
+        easier: "Flexiones normales."}
+    const diamondPushup = {id: "pushup-diamond", name: "Flexiones diamante", icon: "figure.strengthtraining.traditional",
+        howTo: "Manos juntas bajo el pecho formando un rombo con pulgares e índices. Codos pegados al cuerpo. Mucho tríceps.",
+        easier: "Manos al ancho de hombros con codos pegados."}
+    const archerPushup = {id: "pushup-archer", name: "Flexiones arquero", icon: "figure.strengthtraining.traditional",
+        howTo: "Manos muy abiertas. Baja hacia un lado doblando ese brazo mientras el otro se queda casi estirado. Alterna lados. Paso previo a la flexión a una mano.",
+        easier: "Flexiones diamante."}
+    const pike = {id: "pike", name: "Flexiones en pica", icon: "figure.strengthtraining.functional",
+        howTo: "Cadera alta formando una V invertida. Dobla los codos y lleva la cabeza hacia el suelo, por delante de las manos. Fortalece los hombros.",
+        easier: "Pies más lejos de las manos y recorrido corto."}
+    const pikeElevated = {id: "pike-elevated", name: "Pica con pies elevados", icon: "figure.strengthtraining.functional",
+        howTo: "Como la flexión en pica pero con los pies en una silla, para cargar más peso en los hombros. Baja la cabeza despacio.",
+        easier: "Flexiones en pica en el suelo."}
+    const towelRow = {id: "row-towel", name: "Remo con toalla en puerta", icon: "figure.strengthtraining.traditional",
+        howTo: "Pasa una toalla por el pomo de ambos lados de una puerta CERRADA y con pestillo. Agarra los extremos, inclínate hacia atrás con el cuerpo recto y tira de ti hacia la puerta juntando las escápulas.",
+        easier: "Inclínate menos."}
+    const rowFeetUp = {id: "row-feet", name: "Remo invertido con pies elevados", icon: "figure.strengthtraining.traditional",
+        howTo: "Como el remo invertido bajo una mesa MUY robusta, pero con los pies en una silla para que el cuerpo quede horizontal. Pecho a la mesa.",
+        easier: "Remo invertido con los pies en el suelo."}
+    const towelRowOneArm = {id: "row-towel-one", name: "Remo a una mano con toalla", icon: "figure.strengthtraining.traditional",
+        howTo: "Como el remo con toalla en la puerta pero agarrando con una sola mano. Sin girar el tronco. Repeticiones por brazo.",
+        easier: "Remo con toalla a dos manos."}
+    const deadHang = {id: "hang", name: "Colgarse de la barra", icon: "figure.climbing",
+        howTo: "Cuélgate de la barra con los brazos estirados y los hombros activos (aléjalos de las orejas). Fortalece el agarre y prepara las dominadas. Comprueba antes que la barra está bien sujeta.",
+        easier: "Con los pies apoyados en una silla para quitar peso."}
+    const negativePullup = {id: "pullup-negative", name: "Dominadas negativas", icon: "figure.climbing",
+        howTo: "Sube con ayuda de una silla hasta tener la barbilla sobre la barra y baja lo más despacio posible (3–5 s) hasta estirar los brazos.",
+        easier: "Colgarse de la barra."}
+    const assistedPullup = {id: "pullup-assisted", name: "Dominadas asistidas", icon: "figure.climbing",
+        howTo: "Un pie apoyado en una silla detrás de ti: tira con los brazos y usa la pierna solo lo justo para completar la subida.",
+        easier: "Dominadas negativas."}
+    const pullup = {id: "pullup", name: "Dominadas", icon: "figure.climbing",
+        howTo: "Agarre algo más ancho que los hombros. Tira hasta pasar la barbilla por encima de la barra, sin balancearte, y baja controlado hasta estirar los brazos.",
+        easier: "Dominadas asistidas con una silla."}
+    const sitToStand = {id: "sit-stand", name: "Sentarse y levantarse", icon: "figure.strengthtraining.functional",
+        howTo: "De pie delante de una silla, siéntate despacio y levántate sin ayudarte con las manos. Pies firmes y rodillas hacia fuera.",
+        easier: "Ayúdate con las manos en los muslos."}
+    const reverseLunge = {id: "lunge-back", name: "Zancada hacia atrás", icon: "figure.walk",
+        howTo: "Da un paso largo hacia atrás y baja hasta que las dos rodillas formen 90°. Vuelve empujando con el talón delantero. Es más suave para las rodillas que la zancada hacia delante.",
+        easier: "Apóyate en una pared y baja menos."}
+    const jumpSquat = {id: "squat-jump", name: "Sentadilla con salto", icon: "figure.jumprope",
+        howTo: "Sentadilla normal y salta hacia arriba con fuerza. Aterriza suave sobre la parte delantera del pie y baja directamente a la siguiente.",
+        easier: "Sentadilla rápida subiendo de puntillas, sin saltar."}
+    const pauseSquat = {id: "squat-pause", name: "Sentadilla con pausa", icon: "figure.strengthtraining.functional",
+        howTo: "Baja en 3 segundos, aguanta 2 segundos abajo sin rebotar y sube con fuerza. Sin impacto y muy exigente.",
+        easier: "Pausa de 1 segundo."}
+    const pistolBox = {id: "pistol-box", name: "Sentadilla a una pierna a banco", icon: "figure.strengthtraining.functional",
+        howTo: "De pie sobre una pierna delante de una silla, la otra estirada al frente. Siéntate despacio con una pierna y levántate con ella. Repeticiones por pierna.",
+        easier: "Sentadilla búlgara."}
+    const singleLegBridge = {id: "bridge-single", name: "Puente a una pierna", icon: "figure.cooldown",
+        howTo: "Como el puente de glúteo pero con una pierna estirada en el aire. Sube la cadera sin que se incline. Repeticiones por pierna.",
+        easier: "Puente con las dos piernas."}
+    const singleLegRDL = {id: "rdl-single", name: "Peso muerto a una pierna", icon: "figure.strengthtraining.functional",
+        howTo: "De pie sobre una pierna, inclina el tronco hacia delante con la espalda recta mientras la otra pierna sube atrás. Baja hasta notar estiramiento detrás del muslo y sube apretando glúteo.",
+        easier: "Con la punta del pie de atrás tocando el suelo."}
+    const deadBug = {id: "deadbug", name: "Dead bug", icon: "figure.core.training",
+        howTo: "Boca arriba, brazos al techo y rodillas a 90°. Estira a la vez un brazo y la pierna contraria sin despegar la zona lumbar del suelo. Alterna. Repeticiones por lado.",
+        easier: "Mueve solo las piernas."}
+    const birdDog = {id: "birddog", name: "Bird dog", icon: "figure.pilates",
+        howTo: "A cuatro patas, estira a la vez un brazo y la pierna contraria hasta formar una línea. Aguanta 2 s sin girar la cadera. Repeticiones por lado.",
+        easier: "Estira solo la pierna."}
+    const legRaises = {id: "legraise", name: "Elevaciones de piernas", icon: "figure.core.training",
+        howTo: "Boca arriba con las manos bajo los glúteos. Sube las piernas estiradas hasta la vertical y bájalas despacio sin tocar el suelo ni arquear la espalda.",
+        easier: "Con las rodillas dobladas."}
+    const plankTaps = {id: "plank-taps", name: "Plancha con toques de hombro", icon: "figure.core.training",
+        howTo: "En plancha alta (brazos estirados), toca el hombro contrario con una mano y alterna sin mover la cadera. Pies algo separados.",
+        easier: "Con las rodillas apoyadas."}
+    const march = {id: "march", name: "Marcha con rodillas altas", icon: "figure.walk",
+        howTo: "Sin saltar: marcha en el sitio subiendo las rodillas a la altura de la cadera y moviendo los brazos rápido. Cero impacto, mucho pulso.",
+        easier: "Ritmo más lento."}
+    const skaters = {id: "skaters", name: "Saltos de patinador", icon: "figure.skating",
+        howTo: "Salta lateralmente de un pie al otro, aterrizando suave y llevando la pierna libre por detrás. Como un patinador de velocidad.",
+        easier: "Paso lateral sin salto."}
+    const kneeStrikes = {id: "knees", name: "Rodillazos alternos", icon: "figure.kickboxing",
+        howTo: "Guardia alta. Sube la rodilla con fuerza hacia delante mientras bajas las manos como si agarraras una cabeza imaginaria. Alterna piernas, al aire o a un cojín sujeto contra la pared.",
+        easier: "Ritmo lento, sin bajar las manos."}
+    const slips = {id: "slips", name: "Esquivas y desplazamientos", icon: "figure.boxing",
+        howTo: "Guardia alta y rodillas flexionadas. Esquiva doblando un poco las rodillas y moviendo la cabeza a un lado y a otro, y desplázate en ángulo con pasos cortos. Nunca cruces los pies.",
+        easier: "Solo desplazamientos."}
+    const briskWalk = {id: "walk", name: "Caminata rápida", icon: "figure.walk",
+        howTo: "Camina rápido moviendo los brazos, a un ritmo en el que te cueste un poco hablar. Por zonas iluminadas si es tarde.",
+        easier: "Ritmo cómodo."}
+
+    const library = [
+        jumpingJacks,
+        squats,
+        pushups,
+        glutebridge,
+        plank,
+        sidePlank,
+        superman,
+        climbers,
+        lunges,
+        chairDips,
+        burpees,
+        invertedRow,
+        bulgarian,
+        hollow,
+        shadowBoxing,
+        sprawl,
+        breakfallBack,
+        breakfallSide,
+        roll,
+        mobility,
+        hipStretch,
+        hamstring,
+        boxBreathing,
+        warmJog,
+        easyRun,
+        strides,
+        balance,
+        precision,
+        stepUps,
+        quadruped,
+        inclinePushup,
+        kneePushup,
+        declinePushup,
+        diamondPushup,
+        archerPushup,
+        pike,
+        pikeElevated,
+        towelRow,
+        rowFeetUp,
+        towelRowOneArm,
+        deadHang,
+        negativePullup,
+        assistedPullup,
+        pullup,
+        sitToStand,
+        reverseLunge,
+        jumpSquat,
+        pauseSquat,
+        pistolBox,
+        singleLegBridge,
+        singleLegRDL,
+        deadBug,
+        birdDog,
+        legRaises,
+        plankTaps,
+        march,
+        skaters,
+        kneeStrikes,
+        slips,
+        briskWalk,
+    ]
+
+  return library;
+})();
+
+const MOTIONS = (() => {
+    const all = () => [
+        {id: "jacks", seconds: 1.2, exercises: ["jacks"], props: [], frames: [
+            [50, 21, 50, 29, 50, 56, 51.9, 42.9, 53.8, 55.7, 48.1, 42.9, 46.2, 55.7, 51.3, 74, 52.5, 91.9, 48.7, 74, 47.5, 91.9],
+            [50, 21, 50, 29, 50, 56, 54.8, 15.8, 57, 3, 45.2, 15.8, 43, 3, 56.7, 72.7, 63.5, 89.4, 43.3, 72.7, 36.5, 89.4],
+        ]},
+        {id: "squat", seconds: 2.4, exercises: ["squat", "squat-pause"], props: [], frames: [
+            [50, 21, 50, 29, 50, 56, 64, 29, 77, 29, 63.9, 30.5, 76.9, 31.8, 50.6, 74, 51.3, 92, 48.7, 74, 47.5, 91.9],
+            [60.5, 51.2, 55.4, 57.3, 38, 78, 69.4, 57.3, 82.4, 57.3, 69.3, 58.5, 82.3, 59.7, 55.6, 74.4, 52, 92, 55.8, 75.3, 49, 92],
+        ]},
+        {id: "sit-stand", seconds: 2.6, exercises: ["sit-stand"], props: [28, 72, 40, 72, 30, 72, 30, 92], frames: [
+            [48, 21, 48, 29, 48, 56, 62, 29, 75, 29, 61.9, 30.5, 74.9, 31.8, 48.6, 74, 49.3, 92, 46.7, 74, 45.5, 91.9],
+            [56.9, 43.9, 52.7, 50.7, 38.4, 73.6, 66.7, 50.7, 79.7, 50.7, 66.7, 51.9, 79.6, 53.1, 56.3, 75.2, 50, 92, 56.2, 76.5, 47, 92],
+        ]},
+        {id: "squat-jump", seconds: 1.6, exercises: ["squat-jump"], props: [], frames: [
+            [58.9, 43.9, 54.7, 50.7, 40.4, 73.6, 47.7, 62.8, 43.3, 75, 46.7, 62.2, 41.2, 74, 58.3, 75.2, 52, 92, 58.2, 76.5, 49, 92],
+            [50, 7, 50, 15, 50, 42, 52.4, 1.2, 53.6, -11.7, 53.6, 1.5, 55.9, -11.3, 50.6, 60, 49.4, 77.9, 49.4, 60, 47.5, 77.9],
+            [58.9, 43.9, 54.7, 50.7, 40.4, 73.6, 68.7, 50.7, 81.7, 50.7, 68.7, 51.9, 81.6, 53.1, 58.3, 75.2, 52, 92, 58.2, 76.5, 49, 92],
+        ]},
+        {id: "lunge", seconds: 2.4, exercises: ["lunge", "lunge-back"], props: [], frames: [
+            [50, 21, 50, 29, 50, 56, 50, 43, 50, 56, 48.5, 42.9, 47.2, 55.9, 50.6, 74, 51.3, 92, 48.7, 74, 47.5, 91.9],
+            [50, 35, 50, 43, 50, 70, 51, 57, 51.9, 69.9, 49, 57, 48.1, 69.9, 67.5, 74.1, 66, 92, 45.8, 87.5, 28, 90],
+        ]},
+        {id: "bulgarian", seconds: 2.4, exercises: ["bulgarian"], props: [14, 74, 30, 74, 16, 74, 16, 92, 28, 74, 28, 92], frames: [
+            [49.1, 23.1, 48.4, 31.1, 46, 58, 49.3, 45.1, 50.2, 58, 47.4, 45.1, 46.5, 58, 53.2, 74.5, 59.7, 91.3, 41.9, 75.5, 24, 74],
+            [49.1, 37.1, 48.4, 45.1, 46, 72, 49.3, 59.1, 50.2, 72, 47.4, 59.1, 46.5, 72, 63.8, 74.4, 60, 92, 36.3, 87.2, 24, 74],
+        ]},
+        {id: "pistol", seconds: 2.8, exercises: ["pistol-box"], props: [18, 72, 32, 72, 20, 72, 20, 92, 30, 72, 30, 92], frames: [
+            [40, 21, 40, 29, 40, 56, 54, 29, 67, 29, 53.9, 30.2, 66.9, 31.4, 42.4, 73.8, 44, 91.8, 55.6, 65, 72.5, 71.2],
+            [54.1, 45.3, 49.5, 51.9, 34, 74, 63.5, 51.9, 76.5, 51.9, 63.4, 53.1, 76.4, 54.2, 51.9, 75.8, 44, 92, 51.9, 75.6, 69.9, 75.6],
+        ]},
+        {id: "stepup", seconds: 2.4, exercises: ["stepup"], props: [54, 74, 80, 74, 54, 74, 54, 92, 80, 74, 80, 92], frames: [
+            [44, 21, 44, 29, 44, 56, 41.6, 42.8, 38.2, 55.3, 46.4, 42.8, 50.9, 55, 62, 56, 62, 74, 42.4, 73.9, 40, 91.8],
+            [60, 5, 60, 13, 60, 40, 62.4, 26.8, 66.9, 39, 57.6, 26.8, 54.2, 39.3, 67.5, 56.3, 64, 74, 63.1, 57.7, 57, 74.6],
+        ]},
+        {id: "march", seconds: 1.0, exercises: ["march"], props: [], frames: [
+            [51.6, 21, 51.6, 29, 51.6, 56, 42.6, 39.7, 53.9, 46.2, 60.6, 39.7, 71.9, 33.2, 69.6, 56, 69.6, 74, 51.6, 74, 51.6, 92],
+            [51.6, 21, 51.6, 29, 51.6, 56, 60.6, 39.7, 71.9, 33.2, 42.6, 39.7, 53.9, 46.2, 51.6, 74, 51.6, 92, 69.6, 56, 69.6, 74],
+        ]},
+        {id: "run", seconds: 0.8, exercises: ["jog", "strides", "jog-warm"], props: [], frames: [
+            [54.9, 24.7, 53.8, 32.6, 50, 59.3, 45.7, 44.1, 54.1, 54, 61.8, 44.1, 74, 39.6, 60.3, 74.1, 58.8, 92, 42.4, 75.6, 25.5, 81.8],
+            [54.9, 21.6, 53.8, 29.5, 50, 56.3, 53.8, 43.5, 66.6, 45.8, 53.8, 43.5, 66.6, 45.8, 50, 74.3, 46.9, 92, 53.1, 74, 35.1, 74],
+            [54.9, 24.7, 53.8, 32.6, 50, 59.3, 61.8, 44.1, 74, 39.6, 45.7, 44.1, 54.1, 54, 42.4, 75.6, 25.5, 81.8, 60.3, 74.1, 58.8, 92],
+            [54.9, 21.6, 53.8, 29.5, 50, 56.3, 53.8, 43.5, 66.6, 45.8, 53.8, 43.5, 66.6, 45.8, 53.1, 74, 35.1, 74, 50, 74.3, 46.9, 92],
+        ]},
+        {id: "walk", seconds: 1.2, exercises: ["walk", "balance"], props: [], frames: [
+            [50, 23.2, 50, 31.2, 50, 58.2, 45.2, 44.3, 43, 57.1, 54.8, 44.3, 61.3, 55.6, 56.7, 74.9, 62.3, 92, 44.4, 75.3, 37.7, 92],
+            [50, 21, 50, 29, 50, 56, 50, 43, 51.1, 56, 50, 43, 51.1, 56, 50, 74, 50, 92, 51.6, 73.9, 42.6, 89.5],
+            [50, 23.2, 50, 31.2, 50, 58.2, 54.8, 44.3, 61.3, 55.6, 45.2, 44.3, 43, 57.1, 44.4, 75.3, 37.7, 92, 56.7, 74.9, 62.3, 92],
+            [50, 21, 50, 29, 50, 56, 50, 43, 51.1, 56, 50, 43, 51.1, 56, 51.6, 73.9, 42.6, 89.5, 50, 74, 50, 92],
+        ]},
+        {id: "shadow", seconds: 1.4, exercises: ["shadow"], props: [], frames: [
+            [54.9, 23.3, 53.8, 31.3, 50, 58, 60.8, 43.4, 64.1, 30.8, 58.5, 44.4, 63, 32.2, 58, 74.1, 60, 92, 44.4, 75.1, 38, 91.9],
+            [54.9, 23.3, 53.8, 31.3, 50, 58, 67.7, 30, 80.7, 29.6, 58.5, 44.4, 63, 32.2, 58, 74.1, 60, 92, 44.4, 75.1, 38, 91.9],
+            [54.9, 23.3, 53.8, 31.3, 50, 58, 60.8, 43.4, 64.1, 30.8, 58.5, 44.4, 63, 32.2, 58, 74.1, 60, 92, 44.4, 75.1, 38, 91.9],
+            [54.9, 23.3, 53.8, 31.3, 50, 58, 60.8, 43.4, 64.1, 30.8, 67.7, 30.8, 80.7, 30.8, 58, 74.1, 60, 92, 44.4, 75.1, 38, 91.9],
+        ]},
+        {id: "slips", seconds: 1.6, exercises: ["slips"], props: [], frames: [
+            [54.9, 23.3, 53.8, 31.3, 50, 58, 60.8, 43.4, 64.1, 30.8, 58.5, 44.4, 63, 32.2, 58, 74.1, 60, 92, 44.4, 75.1, 38, 91.9],
+            [63.9, 31.9, 60.1, 39, 50, 64, 67.1, 51.1, 70.5, 38.5, 64.9, 52.1, 69.3, 39.9, 64.6, 74.6, 60, 92, 52.8, 81.8, 38, 92],
+            [54.9, 23.3, 53.8, 31.3, 50, 58, 60.8, 43.4, 64.1, 30.8, 58.5, 44.4, 63, 32.2, 58, 74.1, 60, 92, 44.4, 75.1, 38, 91.9],
+            [56.4, 28.2, 53.6, 35.7, 46, 61.6, 60.6, 47.8, 64, 35.3, 58.4, 48.9, 62.9, 36.6, 58.8, 74.2, 56, 92, 47, 79.6, 34, 92],
+        ]},
+        {id: "knees", seconds: 1.2, exercises: ["knees"], props: [], frames: [
+            [54.9, 23.3, 53.8, 31.3, 50, 58, 65.9, 24.3, 72.4, 13, 66.4, 25.3, 73.9, 14.7, 58.2, 74, 58, 92, 48, 75.9, 40, 92],
+            [54.9, 23.3, 53.8, 31.3, 50, 58, 65.9, 38.3, 68.1, 51.1, 65.2, 39.3, 66.4, 52.2, 53.5, 75.7, 46, 92, 66.9, 51.8, 66.9, 69.8],
+        ]},
+        {id: "skaters", seconds: 1.2, exercises: ["skaters"], props: [], frames: [
+            [68.1, 21.7, 66.7, 29.6, 62, 56.2, 78.8, 36.6, 91.6, 38.8, 59.7, 41.7, 55.2, 53.9, 64.5, 74, 64.5, 92, 54.4, 72.5, 40.6, 84.1],
+            [31.9, 21.7, 33.3, 29.6, 38, 56.2, 21.2, 36.6, 8.4, 38.8, 40.3, 41.7, 44.8, 53.9, 35.5, 74, 35.5, 92, 45.6, 72.5, 59.4, 84.1],
+        ]},
+        {id: "precision", seconds: 1.8, exercises: ["precision"], props: [], frames: [
+            [42, 40.5, 38.3, 47.6, 25.6, 71.4, 29.3, 58.3, 22.8, 69.5, 28.4, 57.5, 20.9, 68.1, 43.1, 75.5, 36, 92, 42.7, 76.9, 33, 92],
+            [61.1, 12.2, 59, 19.9, 52, 46, 66, 7.8, 70.4, -4.4, 67, 8.5, 72.5, -3.3, 63.6, 59.8, 60.4, 77.5, 61, 61.6, 54.8, 78.5],
+            [78, 40.5, 74.3, 47.6, 61.6, 71.4, 88.3, 47.6, 101.3, 47.6, 88.2, 48.8, 101.2, 49.9, 79.1, 75.5, 72, 92, 78.7, 76.9, 69, 92],
+            [70, 21, 70, 29, 70, 56, 70, 43, 70, 56, 68.5, 42.9, 67.2, 55.9, 70.6, 74, 71.3, 92, 68.7, 74, 67.5, 91.9],
+        ]},
+        {id: "breath", seconds: 8.0, exercises: ["breath"], props: [], frames: [
+            [50, 21, 50, 29, 50, 56, 52.4, 42.8, 54.7, 55.6, 51, 43, 51.9, 56, 50.6, 74, 51.3, 92, 48.7, 74, 47.5, 91.9],
+            [50, 21, 50, 29, 50, 56, 59, 39.7, 70.3, 46.2, 57.8, 40.6, 68.3, 48.3, 50.6, 74, 51.3, 92, 48.7, 74, 47.5, 91.9],
+        ]},
+        {id: "mobility", seconds: 2.4, exercises: ["mobility"], props: [], frames: [
+            [50, 21, 50, 29, 50, 56, 50, 43, 50, 56, 50, 15, 50, 2, 50.6, 74, 51.3, 92, 48.7, 74, 47.5, 91.9],
+            [50, 21, 50, 29, 50, 56, 64, 29, 77, 29, 36, 29, 23, 29, 50.6, 74, 51.3, 92, 48.7, 74, 47.5, 91.9],
+            [50, 21, 50, 29, 50, 56, 50, 15, 50, 2, 50, 43, 50, 56, 50.6, 74, 51.3, 92, 48.7, 74, 47.5, 91.9],
+            [50, 21, 50, 29, 50, 56, 36, 29, 23, 29, 64, 29, 77, 29, 50.6, 74, 51.3, 92, 48.7, 74, 47.5, 91.9],
+        ]},
+        {id: "rdl", seconds: 2.6, exercises: ["rdl-single"], props: [], frames: [
+            [50, 21.1, 50, 29.1, 50, 56.1, 50, 43.1, 50, 56.1, 50, 43.1, 50, 56.1, 51.4, 74, 52, 92, 50, 74.1, 48.4, 92],
+            [84.9, 53, 76.9, 53.7, 50, 56.1, 76.9, 67.7, 76.9, 80.7, 76.9, 67.7, 76.9, 80.7, 51.4, 74, 52, 92, 32.3, 59.2, 14.6, 62.3],
+        ]},
+        {id: "hip", seconds: 3.0, exercises: ["hip"], props: [], frames: [
+            [46, 35, 46, 43, 46, 70, 46, 57, 46, 70, 46, 57, 46, 70, 63.5, 74.2, 66, 92, 29.2, 76.5, 20, 92],
+            [50, 35, 50, 43, 50, 70, 50, 57, 50, 70, 50, 57, 50, 70, 67.5, 74.1, 66, 92, 35.2, 80.3, 21, 91.3],
+        ]},
+        {id: "hamstring", seconds: 4.0, exercises: ["hamstring"], props: [], frames: [
+            [42.5, 54, 40.5, 61.8, 34, 88, 54.5, 61.8, 67.5, 61.8, 54.5, 62.3, 67.5, 62.7, 52, 88, 70, 88, 52, 87.4, 70, 86.7],
+            [66.9, 76, 59.4, 78.8, 34, 88, 73.4, 78.8, 86.4, 78.8, 73.4, 79.3, 86.4, 79.7, 52, 88, 70, 88, 52, 87.4, 70, 86.7],
+        ]},
+        {id: "pushup", seconds: 2.0, exercises: ["pushup", "pushup-diamond", "pushup-archer"], props: [], frames: [
+            [76.1, 61.6, 68.9, 65, 44.5, 76.6, 69.6, 79, 70.9, 91.9, 69.1, 79, 69.9, 92, 28.4, 84.7, 12, 92, 29.7, 86.8, 12.5, 92],
+            [82.3, 81.9, 74.4, 83, 47.6, 86.9, 60.4, 84.3, 70.9, 92, 60.4, 83.2, 69.9, 92, 29.9, 89.8, 12, 92, 30.5, 92.4, 12.5, 92],
+        ]},
+        {id: "pushup-knee", seconds: 2.0, exercises: ["pushup-knee"], props: [], frames: [
+            [78.1, 60.6, 71.4, 65, 49, 80, 72.1, 79, 73.4, 91.9, 71.6, 79, 72.4, 92, 34, 90, 18.4, 81, 34, 90, 19.1, 79.9],
+            [86.4, 81.8, 78.5, 83, 51.8, 87.2, 64.5, 82.6, 73.4, 92, 64.5, 81.7, 72.4, 92, 34, 90, 18.4, 81, 34, 90, 19.1, 79.9],
+        ]},
+        {id: "pushup-incline", seconds: 2.0, exercises: ["pushup-incline"], props: [66, 62, 92, 62, 88, 62, 88, 92], frames: [
+            [52.6, 31.1, 48.4, 38, 34.5, 61.1, 58.4, 47.8, 68.1, 56.5, 58.2, 48, 67.7, 56.9, 25.6, 76.8, 16, 92, 27.4, 77.7, 16.5, 92],
+            [70.9, 46.9, 64.7, 52, 43.8, 69.1, 61.5, 65.6, 74, 62, 60.4, 65.3, 73, 62, 30.2, 80.9, 16, 92, 31.8, 82.6, 16.5, 92],
+        ]},
+        {id: "pushup-decline", seconds: 2.0, exercises: ["pushup-decline"], props: [4, 72, 22, 72, 6, 72, 6, 92, 20, 72, 20, 92], frames: [
+            [86.6, 64.1, 78.6, 65, 51.8, 68, 79.3, 79, 80.6, 91.9, 78.8, 79, 79.6, 92, 33.9, 70.4, 16, 72, 34.5, 73, 16.5, 72],
+            [86.1, 83.3, 78.2, 82, 51.5, 77.7, 67.6, 91.2, 80.6, 92, 66.8, 90.1, 79.6, 92, 33.7, 75.3, 16, 72, 33.5, 77.8, 16.5, 72],
+        ]},
+        {id: "pike", seconds: 2.2, exercises: ["pike"], props: [], frames: [
+            [70.6, 72.6, 65.3, 66.6, 44, 50, 62.3, 80.3, 68, 92, 61.7, 80.1, 67, 92, 36, 66.1, 27.3, 81.9, 36.3, 66.3, 27.9, 82.2],
+            [62.4, 79.7, 59.1, 72.4, 44, 50, 56.4, 86.1, 68, 92, 55.5, 85.9, 67, 92, 36, 66.1, 27.3, 81.9, 36.3, 66.3, 27.9, 82.2],
+        ]},
+        {id: "pike-elevated", seconds: 2.2, exercises: ["pike-elevated"], props: [10, 72, 30, 72, 12, 72, 12, 92, 28, 72, 28, 92], frames: [
+            [70.6, 66.6, 65.3, 60.6, 44, 44, 66.1, 74.6, 67.6, 87.5, 65.7, 74.6, 66.8, 87.6, 32.6, 57.9, 20.6, 71.3, 32.9, 58.2, 21.2, 71.8],
+            [62.4, 73.7, 59.1, 66.4, 44, 44, 63.3, 79.7, 68, 91.9, 61.7, 80.1, 67, 92, 32.6, 57.9, 20.6, 71.3, 32.9, 58.2, 21.2, 71.8],
+        ]},
+        {id: "dips", seconds: 2.0, exercises: ["dips"], props: [14, 72, 32, 72, 16, 72, 16, 92, 30, 72, 30, 92], frames: [
+            [38, 39, 38, 47, 38, 74, 30.8, 59, 31, 72, 30.8, 59, 30, 72, 53.7, 82.8, 69.8, 90.8, 53.6, 83, 69.6, 91.2],
+            [38, 49, 38, 57, 38, 84, 24.5, 60.7, 31, 72, 24.4, 60.3, 30, 72, 54, 92.2, 72, 92, 53.1, 93.8, 71, 92],
+        ]},
+        {id: "plank", seconds: 4.0, exercises: ["plank", "hollow"], props: [], frames: [
+            [81, 75.1, 73.2, 77, 47, 83.4, 73.2, 91, 86.2, 91, 72.7, 91, 85.7, 91.4, 29.6, 88.1, 12, 92, 30.4, 90.6, 12.5, 92],
+            [80.5, 73.4, 72.8, 75.5, 46.7, 82.6, 72.8, 89.5, 85.8, 89.5, 72.3, 89.5, 85.3, 89.9, 29.5, 87.7, 12, 92, 30.4, 90.1, 12.5, 92],
+        ]},
+        {id: "plank-taps", seconds: 1.6, exercises: ["plank-taps"], props: [], frames: [
+            [76.1, 61.6, 68.9, 65, 44.5, 76.6, 69.6, 79, 70.9, 91.9, 69.1, 79, 69.9, 92, 28.4, 84.7, 12, 92, 29.7, 86.8, 12.5, 92],
+            [76.1, 61.6, 68.9, 65, 44.5, 76.6, 71.4, 78.8, 65.9, 67, 69.1, 79, 69.9, 92, 28.4, 84.7, 12, 92, 29.7, 86.8, 12.5, 92],
+            [76.1, 61.6, 68.9, 65, 44.5, 76.6, 69.6, 79, 70.9, 91.9, 69.1, 79, 69.9, 92, 28.4, 84.7, 12, 92, 29.7, 86.8, 12.5, 92],
+            [76.1, 61.6, 68.9, 65, 44.5, 76.6, 69.6, 79, 70.9, 91.9, 71.4, 78.8, 65.9, 67, 28.4, 84.7, 12, 92, 29.7, 86.8, 12.5, 92],
+        ]},
+        {id: "sideplank", seconds: 3.0, exercises: ["sideplank"], props: [], frames: [
+            [81, 75.1, 73.2, 77, 47, 85.4, 73.2, 91, 86.2, 91, 73.2, 63, 73.2, 50, 29.6, 88.1, 12, 92, 30.4, 90.6, 12.5, 92],
+            [81, 75.1, 73.2, 77, 47, 82.4, 73.2, 91, 86.2, 91, 73.2, 63, 73.2, 50, 29.6, 88.1, 12, 92, 30.4, 90.6, 12.5, 92],
+        ]},
+        {id: "climbers", seconds: 0.8, exercises: ["climbers"], props: [], frames: [
+            [76.1, 61.6, 68.9, 65, 44.5, 76.6, 69.6, 79, 70.9, 91.9, 69.1, 79, 69.9, 92, 62.3, 73.6, 54.9, 90, 29.7, 86.8, 12.5, 92],
+            [76.1, 61.6, 68.9, 65, 44.5, 76.6, 69.6, 79, 70.9, 91.9, 69.1, 79, 69.9, 92, 28.4, 84.7, 12, 92, 62.3, 73.6, 54.9, 90],
+        ]},
+        {id: "bridge", seconds: 2.4, exercises: ["bridge"], props: [], frames: [
+            [80.9, 88.9, 72.9, 88.2, 46, 86, 59.8, 93, 46.8, 93, 59.6, 92.6, 46.6, 92.1, 32.2, 74.5, 28, 92, 32.2, 74.5, 28, 92],
+            [74, 91, 67.6, 86.2, 46, 70, 54.4, 91, 41.4, 91, 54.3, 90.5, 41.3, 90.1, 28.5, 74, 28, 92, 28.5, 74, 28, 92],
+        ]},
+        {id: "bridge-single", seconds: 2.4, exercises: ["bridge-single"], props: [], frames: [
+            [80.9, 88.9, 72.9, 88.2, 46, 86, 59.8, 93, 46.8, 93, 59.6, 92.6, 46.6, 92.1, 32.2, 74.5, 28, 92, 29.1, 92.2, 12.2, 98.3],
+            [74, 91, 67.6, 86.2, 46, 70, 54.4, 91, 41.4, 91, 54.3, 90.5, 41.3, 90.1, 28.5, 74, 28, 92, 28.3, 73.1, 10.5, 76.3],
+        ]},
+        {id: "legraise", seconds: 2.6, exercises: ["legraise"], props: [], frames: [
+            [81, 89, 73, 89, 46, 89, 59.1, 90.2, 46.1, 90.2, 59.1, 90.2, 46.1, 90.2, 28, 87.7, 10.1, 86.3, 28, 88.3, 10, 87.6],
+            [81, 89, 73, 89, 46, 89, 59.1, 90.2, 46.1, 90.2, 59.1, 90.2, 46.1, 90.2, 44.4, 71.1, 42.9, 53.1, 43.8, 71.1, 41.6, 53.3],
+        ]},
+        {id: "deadbug", seconds: 2.4, exercises: ["deadbug"], props: [], frames: [
+            [81, 89, 73, 89, 46, 89, 73, 75, 73, 62, 73, 75, 73, 62, 42.9, 71.3, 24.9, 71.3, 42.9, 71.3, 24.9, 71.3],
+            [81, 89, 73, 89, 46, 89, 73, 75, 73, 62, 86.8, 86.6, 99.7, 85.4, 28.3, 85.9, 10.3, 84.3, 42.9, 71.3, 24.9, 71.3],
+            [81, 89, 73, 89, 46, 89, 73, 75, 73, 62, 73, 75, 73, 62, 42.9, 71.3, 24.9, 71.3, 42.9, 71.3, 24.9, 71.3],
+            [81, 89, 73, 89, 46, 89, 86.8, 86.6, 99.7, 85.4, 73, 75, 73, 62, 42.9, 71.3, 24.9, 71.3, 28.3, 85.9, 10.3, 84.3],
+        ]},
+        {id: "birddog", seconds: 3.0, exercises: ["birddog"], props: [], frames: [
+            [69, 65, 61, 65, 34, 65, 61, 79, 61, 92, 61, 79, 61, 92, 34, 83, 16, 83, 34, 83, 16, 83],
+            [69, 65, 61, 65, 34, 65, 74.8, 62.6, 87.6, 60.3, 61, 79, 61, 92, 34, 83, 16, 83, 16, 65, -2, 65],
+            [69, 65, 61, 65, 34, 65, 61, 79, 61, 92, 61, 79, 61, 92, 34, 83, 16, 83, 34, 83, 16, 83],
+            [69, 65, 61, 65, 34, 65, 61, 79, 61, 92, 74.8, 62.6, 87.6, 60.3, 16, 65, -2, 65, 34, 83, 16, 83],
+        ]},
+        {id: "quad", seconds: 1.6, exercises: ["quad"], props: [], frames: [
+            [69, 64.1, 61, 64.3, 34, 65.3, 59.5, 78.3, 59.5, 91.3, 62.4, 78.3, 62.4, 91.3, 37.1, 83, 21.5, 92, 43, 80.9, 27.4, 89.9],
+            [73, 64.1, 65, 64.3, 38, 65.3, 66.4, 78.3, 66.4, 91.3, 63.5, 78.3, 63.5, 91.3, 47, 80.9, 31.4, 89.9, 41.1, 83, 25.5, 92],
+        ]},
+        {id: "superman", seconds: 2.4, exercises: ["superman"], props: [], frames: [
+            [69, 88, 61, 88, 34, 88, 75, 88, 88, 88, 75, 88.5, 88, 88.9, 16, 88, -2, 88, 16, 87.4, -2, 86.7],
+            [68.7, 81.5, 60.9, 82.9, 34, 85.8, 74.5, 80, 87.2, 76.9, 74.6, 80.5, 87.4, 77.8, 16.2, 88.3, -1.4, 92, 16.1, 87.6, -1.6, 90.8],
+        ]},
+        {id: "towel-row", seconds: 2.2, exercises: ["row-towel", "row-towel-one"], props: [90, 20, 90, 92, 76, 44, 90, 44], frames: [
+            [43.1, 27.1, 46.4, 34.4, 57.4, 59.1, 59.6, 39.1, 72.1, 42.7, 59.4, 39.5, 71.8, 43.5, 65.1, 75.4, 72, 92, 65.3, 75.3, 72.4, 91.8],
+            [62.1, 21.7, 63.2, 29.6, 67, 56.4, 63, 43.6, 76, 44, 63.1, 43.6, 76, 45, 69.9, 74.1, 72, 92, 70.2, 74.1, 72.5, 91.9],
+        ]},
+        {id: "row", seconds: 2.2, exercises: ["row"], props: [50, 52, 96, 52, 92, 52, 92, 92], frames: [
+            [81.5, 77.3, 73.6, 79, 47.2, 84.6, 75.6, 65.1, 76.6, 52.2, 75, 65.1, 75.6, 52.1, 29.7, 88.7, 12, 92, 30.5, 91.2, 12.5, 92],
+            [74.4, 58.2, 67.4, 62, 43.7, 74.9, 81.1, 59.3, 70.4, 52, 80.9, 58.1, 69.4, 52, 28, 83.8, 12, 92, 29.4, 85.9, 12.5, 92],
+        ]},
+        {id: "row-feet", seconds: 2.2, exercises: ["row-feet"], props: [50, 52, 96, 52, 92, 52, 92, 92, 2, 74, 20, 74, 4, 74, 4, 92, 18, 74, 18, 92], frames: [
+            [83, 74, 75, 74, 48, 74, 84.2, 63.4, 78, 52, 83.8, 63.1, 77, 52, 30, 74.4, 12, 74, 30.2, 77, 12.5, 74],
+            [80.7, 56, 72.9, 58, 46.8, 64.9, 86.9, 59, 75.9, 52, 86.9, 57.1, 74.9, 52, 29.5, 69.8, 12, 74, 30.4, 72.3, 12.5, 74],
+        ]},
+        {id: "pullup", seconds: 2.6, exercises: ["pullup", "pullup-negative", "pullup-assisted"], props: [20, 14, 80, 14], frames: [
+            [50.6, 33.1, 50, 41.1, 48, 68, 51.2, 27.1, 53, 14.2, 48.8, 27.1, 47, 14.2, 51.1, 85.7, 45, 102.6, 49.6, 85.9, 40.6, 101.5],
+            [50.6, 11.1, 50, 19.1, 48, 46, 41.5, 8, 53, 14, 58.5, 8, 47, 14, 51.1, 63.7, 45, 80.6, 49.6, 63.9, 40.6, 79.5],
+        ]},
+        {id: "hang", seconds: 4.0, exercises: ["hang"], props: [20, 14, 80, 14], frames: [
+            [50.6, 33.1, 50, 41.1, 48, 68, 51.2, 27.1, 53, 14.2, 48.8, 27.1, 47, 14.2, 51.1, 85.7, 45, 102.6, 49.6, 85.9, 40.6, 101.5],
+            [50.6, 31.3, 50, 39.3, 48, 66.2, 47.1, 25.6, 53, 14, 52.9, 25.6, 47, 14, 51.1, 84, 45, 100.9, 49.6, 84.2, 40.6, 99.8],
+        ]},
+        {id: "burpee", seconds: 3.0, exercises: ["burpee"], props: [], frames: [
+            [56, 21, 56, 29, 56, 56, 56, 43, 56, 56, 54.5, 42.9, 53.2, 55.9, 56.6, 74, 57.3, 92, 54.7, 74, 53.5, 91.9],
+            [76.3, 58.5, 69.4, 62.5, 46, 76, 68.4, 76.5, 68.1, 89.5, 67.9, 76.4, 67.2, 89.4, 64, 75.9, 56, 92, 64, 76.4, 55, 92],
+            [76.1, 61.6, 68.9, 65, 44.5, 76.6, 69.6, 79, 70.9, 91.9, 69.1, 79, 69.9, 92, 28.4, 84.7, 12, 92, 29.7, 86.8, 12.5, 92],
+            [76.3, 58.5, 69.4, 62.5, 46, 76, 68.4, 76.5, 68.1, 89.5, 67.9, 76.4, 67.2, 89.4, 64, 75.9, 56, 92, 64, 76.4, 55, 92],
+            [56, 13, 56, 21, 56, 48, 58.4, 7.2, 59.6, -5.7, 59.6, 7.5, 61.9, -5.3, 56.6, 66, 55.4, 83.9, 55.4, 66, 53.5, 83.9],
+        ]},
+        {id: "sprawl", seconds: 1.6, exercises: ["sprawl"], props: [], frames: [
+            [60.9, 23.3, 59.8, 31.3, 56, 58, 66.8, 43.4, 70.1, 30.8, 64.5, 44.4, 69, 32.2, 64, 74.1, 66, 92, 50.4, 75.1, 44, 91.9],
+            [76.3, 58.5, 69.4, 62.5, 46, 76, 68.4, 76.5, 68.1, 89.5, 67.9, 76.4, 67.2, 89.4, 64, 75.9, 56, 92, 64, 76.4, 55, 92],
+            [78.5, 67.2, 71, 70, 45.7, 85.4, 63.2, 81.6, 70.9, 92, 62.7, 81.2, 69.9, 92, 29, 86.1, 12, 92, 30.1, 88.4, 12.5, 92],
+            [76.3, 58.5, 69.4, 62.5, 46, 76, 68.4, 76.5, 68.1, 89.5, 67.9, 76.4, 67.2, 89.4, 64, 75.9, 56, 92, 64, 76.4, 55, 92],
+        ]},
+        {id: "ukemi-back", seconds: 2.4, exercises: ["ukemi-back"], props: [], frames: [
+            [60.5, 51.2, 55.4, 57.3, 38, 78, 69.4, 57.3, 82.4, 57.3, 69.3, 58.5, 82.3, 59.7, 55.6, 74.4, 52, 92, 55.8, 75.3, 49, 92],
+            [28.6, 55.5, 34.8, 60.6, 44, 86, 46.9, 67.6, 59.1, 72.1, 46.2, 68.7, 58, 74.2, 59.6, 77, 71.2, 90.8, 60.3, 78.4, 70.6, 93.1],
+            [18.2, 88.6, 25.1, 84.6, 52, 87, 16.1, 95.4, 7.7, 105.3, 15.2, 94.5, 6, 103.7, 61, 71.4, 76.6, 62.4, 62.3, 72.3, 78.6, 64.6],
+            [28.6, 55.5, 34.8, 60.6, 44, 86, 46.9, 67.6, 59.1, 72.1, 46.2, 68.7, 58, 74.2, 59.6, 77, 71.2, 90.8, 60.3, 78.4, 70.6, 93.1],
+        ]},
+        {id: "ukemi-side", seconds: 2.4, exercises: ["ukemi-side"], props: [], frames: [
+            [60.5, 51.2, 55.4, 57.3, 38, 78, 69.4, 57.3, 82.4, 57.3, 69.3, 58.5, 82.3, 59.7, 55.6, 74.4, 52, 92, 55.8, 75.3, 49, 92],
+            [25.6, 56.6, 32.5, 60.6, 46, 84, 39.5, 72.7, 50.8, 79.2, 20.4, 67.6, 9.1, 74.1, 62.9, 77.8, 71.9, 93.4, 61.6, 93, 61.6, 111],
+            [17.6, 87.4, 25.1, 84.6, 52, 87, 22.7, 98.4, 29.2, 109.7, 13, 91.6, 1.7, 98.1, 61, 71.4, 76.6, 62.4, 65.8, 75.4, 83.5, 72.3],
+            [25.6, 56.6, 32.5, 60.6, 46, 84, 39.5, 72.7, 50.8, 79.2, 20.4, 67.6, 9.1, 74.1, 62.9, 77.8, 71.9, 93.4, 61.6, 93, 61.6, 111],
+        ]},
+        {id: "roll", seconds: 2.6, exercises: ["roll"], props: [], frames: [
+            [60.3, 58.5, 53.4, 62.5, 30, 76, 52.4, 76.5, 52.1, 89.5, 51.9, 76.4, 51.2, 89.4, 48, 75.9, 40, 92, 48, 76.4, 39, 92],
+            [71.6, 89.8, 68.9, 82.3, 46, 68, 63.4, 95.2, 76, 92, 62.3, 94.6, 75, 92, 58.3, 81.1, 44, 92, 57.7, 81.7, 43, 92],
+            [24.5, 88, 31.4, 84, 58, 88.7, 43.5, 77, 54.8, 83.5, 44.1, 78.1, 54.7, 85.5, 64.2, 71.8, 79.7, 80.8, 65.6, 72.4, 80.4, 82.7],
+            [81.8, 47.5, 77.1, 54, 61.2, 75.8, 91.1, 54, 104.1, 54, 91, 55.2, 104, 56.3, 79.2, 74.8, 74, 92, 79.2, 76, 71, 92],
+            [72, 21, 72, 29, 72, 56, 72, 43, 72, 56, 70.5, 42.9, 69.2, 55.9, 72.6, 74, 73.3, 92, 70.7, 74, 69.5, 91.9],
+        ]},
+    ]
+
+  return all();
 })();

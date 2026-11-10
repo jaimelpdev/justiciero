@@ -91,6 +91,163 @@ enum Exercises {
     static let quadruped = Exercise(id: "quad", name: "Cuadrupedia", icon: "figure.play",
         howTo: "A cuatro patas con rodillas a 2 cm del suelo, avanza moviendo mano y pie contrarios a la vez.",
         easier: "Rodillas apoyadas.")
+
+    // MARK: Progresiones del plan personalizado
+
+    static let inclinePushup = Exercise(id: "pushup-incline", name: "Flexiones inclinadas", icon: "figure.strengthtraining.traditional",
+        howTo: "Manos en el borde de una mesa estable o en la encimera, cuerpo recto. Baja el pecho hasta el borde y empuja. Cuanto más baja la superficie, más difícil.",
+        easier: "Hazlas contra la pared.")
+    static let kneePushup = Exercise(id: "pushup-knee", name: "Flexiones de rodillas", icon: "figure.strengthtraining.traditional",
+        howTo: "Rodillas en el suelo y línea recta de rodillas a cabeza. Baja el pecho casi al suelo con los codos a 45° y empuja.",
+        easier: "Flexiones inclinadas en una mesa.")
+    static let declinePushup = Exercise(id: "pushup-decline", name: "Flexiones declinadas", icon: "figure.strengthtraining.traditional",
+        howTo: "Pies sobre una silla o el sofá y manos en el suelo. Cuerpo recto, baja controlado y empuja. Trabaja más hombro y pecho alto.",
+        easier: "Flexiones normales.")
+    static let diamondPushup = Exercise(id: "pushup-diamond", name: "Flexiones diamante", icon: "figure.strengthtraining.traditional",
+        howTo: "Manos juntas bajo el pecho formando un rombo con pulgares e índices. Codos pegados al cuerpo. Mucho tríceps.",
+        easier: "Manos al ancho de hombros con codos pegados.")
+    static let archerPushup = Exercise(id: "pushup-archer", name: "Flexiones arquero", icon: "figure.strengthtraining.traditional",
+        howTo: "Manos muy abiertas. Baja hacia un lado doblando ese brazo mientras el otro se queda casi estirado. Alterna lados. Paso previo a la flexión a una mano.",
+        easier: "Flexiones diamante.")
+    static let pike = Exercise(id: "pike", name: "Flexiones en pica", icon: "figure.strengthtraining.functional",
+        howTo: "Cadera alta formando una V invertida. Dobla los codos y lleva la cabeza hacia el suelo, por delante de las manos. Fortalece los hombros.",
+        easier: "Pies más lejos de las manos y recorrido corto.")
+    static let pikeElevated = Exercise(id: "pike-elevated", name: "Pica con pies elevados", icon: "figure.strengthtraining.functional",
+        howTo: "Como la flexión en pica pero con los pies en una silla, para cargar más peso en los hombros. Baja la cabeza despacio.",
+        easier: "Flexiones en pica en el suelo.")
+    static let towelRow = Exercise(id: "row-towel", name: "Remo con toalla en puerta", icon: "figure.strengthtraining.traditional",
+        howTo: "Pasa una toalla por el pomo de ambos lados de una puerta CERRADA y con pestillo. Agarra los extremos, inclínate hacia atrás con el cuerpo recto y tira de ti hacia la puerta juntando las escápulas.",
+        easier: "Inclínate menos.")
+    static let rowFeetUp = Exercise(id: "row-feet", name: "Remo invertido con pies elevados", icon: "figure.strengthtraining.traditional",
+        howTo: "Como el remo invertido bajo una mesa MUY robusta, pero con los pies en una silla para que el cuerpo quede horizontal. Pecho a la mesa.",
+        easier: "Remo invertido con los pies en el suelo.")
+    static let towelRowOneArm = Exercise(id: "row-towel-one", name: "Remo a una mano con toalla", icon: "figure.strengthtraining.traditional",
+        howTo: "Como el remo con toalla en la puerta pero agarrando con una sola mano. Sin girar el tronco. Repeticiones por brazo.",
+        easier: "Remo con toalla a dos manos.")
+    static let deadHang = Exercise(id: "hang", name: "Colgarse de la barra", icon: "figure.climbing",
+        howTo: "Cuélgate de la barra con los brazos estirados y los hombros activos (aléjalos de las orejas). Fortalece el agarre y prepara las dominadas. Comprueba antes que la barra está bien sujeta.",
+        easier: "Con los pies apoyados en una silla para quitar peso.")
+    static let negativePullup = Exercise(id: "pullup-negative", name: "Dominadas negativas", icon: "figure.climbing",
+        howTo: "Sube con ayuda de una silla hasta tener la barbilla sobre la barra y baja lo más despacio posible (3–5 s) hasta estirar los brazos.",
+        easier: "Colgarse de la barra.")
+    static let assistedPullup = Exercise(id: "pullup-assisted", name: "Dominadas asistidas", icon: "figure.climbing",
+        howTo: "Un pie apoyado en una silla detrás de ti: tira con los brazos y usa la pierna solo lo justo para completar la subida.",
+        easier: "Dominadas negativas.")
+    static let pullup = Exercise(id: "pullup", name: "Dominadas", icon: "figure.climbing",
+        howTo: "Agarre algo más ancho que los hombros. Tira hasta pasar la barbilla por encima de la barra, sin balancearte, y baja controlado hasta estirar los brazos.",
+        easier: "Dominadas asistidas con una silla.")
+    static let sitToStand = Exercise(id: "sit-stand", name: "Sentarse y levantarse", icon: "figure.strengthtraining.functional",
+        howTo: "De pie delante de una silla, siéntate despacio y levántate sin ayudarte con las manos. Pies firmes y rodillas hacia fuera.",
+        easier: "Ayúdate con las manos en los muslos.")
+    static let reverseLunge = Exercise(id: "lunge-back", name: "Zancada hacia atrás", icon: "figure.walk",
+        howTo: "Da un paso largo hacia atrás y baja hasta que las dos rodillas formen 90°. Vuelve empujando con el talón delantero. Es más suave para las rodillas que la zancada hacia delante.",
+        easier: "Apóyate en una pared y baja menos.")
+    static let jumpSquat = Exercise(id: "squat-jump", name: "Sentadilla con salto", icon: "figure.jumprope",
+        howTo: "Sentadilla normal y salta hacia arriba con fuerza. Aterriza suave sobre la parte delantera del pie y baja directamente a la siguiente.",
+        easier: "Sentadilla rápida subiendo de puntillas, sin saltar.")
+    static let pauseSquat = Exercise(id: "squat-pause", name: "Sentadilla con pausa", icon: "figure.strengthtraining.functional",
+        howTo: "Baja en 3 segundos, aguanta 2 segundos abajo sin rebotar y sube con fuerza. Sin impacto y muy exigente.",
+        easier: "Pausa de 1 segundo.")
+    static let pistolBox = Exercise(id: "pistol-box", name: "Sentadilla a una pierna a banco", icon: "figure.strengthtraining.functional",
+        howTo: "De pie sobre una pierna delante de una silla, la otra estirada al frente. Siéntate despacio con una pierna y levántate con ella. Repeticiones por pierna.",
+        easier: "Sentadilla búlgara.")
+    static let singleLegBridge = Exercise(id: "bridge-single", name: "Puente a una pierna", icon: "figure.cooldown",
+        howTo: "Como el puente de glúteo pero con una pierna estirada en el aire. Sube la cadera sin que se incline. Repeticiones por pierna.",
+        easier: "Puente con las dos piernas.")
+    static let singleLegRDL = Exercise(id: "rdl-single", name: "Peso muerto a una pierna", icon: "figure.strengthtraining.functional",
+        howTo: "De pie sobre una pierna, inclina el tronco hacia delante con la espalda recta mientras la otra pierna sube atrás. Baja hasta notar estiramiento detrás del muslo y sube apretando glúteo.",
+        easier: "Con la punta del pie de atrás tocando el suelo.")
+    static let deadBug = Exercise(id: "deadbug", name: "Dead bug", icon: "figure.core.training",
+        howTo: "Boca arriba, brazos al techo y rodillas a 90°. Estira a la vez un brazo y la pierna contraria sin despegar la zona lumbar del suelo. Alterna. Repeticiones por lado.",
+        easier: "Mueve solo las piernas.")
+    static let birdDog = Exercise(id: "birddog", name: "Bird dog", icon: "figure.pilates",
+        howTo: "A cuatro patas, estira a la vez un brazo y la pierna contraria hasta formar una línea. Aguanta 2 s sin girar la cadera. Repeticiones por lado.",
+        easier: "Estira solo la pierna.")
+    static let legRaises = Exercise(id: "legraise", name: "Elevaciones de piernas", icon: "figure.core.training",
+        howTo: "Boca arriba con las manos bajo los glúteos. Sube las piernas estiradas hasta la vertical y bájalas despacio sin tocar el suelo ni arquear la espalda.",
+        easier: "Con las rodillas dobladas.")
+    static let plankTaps = Exercise(id: "plank-taps", name: "Plancha con toques de hombro", icon: "figure.core.training",
+        howTo: "En plancha alta (brazos estirados), toca el hombro contrario con una mano y alterna sin mover la cadera. Pies algo separados.",
+        easier: "Con las rodillas apoyadas.")
+    static let march = Exercise(id: "march", name: "Marcha con rodillas altas", icon: "figure.walk",
+        howTo: "Sin saltar: marcha en el sitio subiendo las rodillas a la altura de la cadera y moviendo los brazos rápido. Cero impacto, mucho pulso.",
+        easier: "Ritmo más lento.")
+    static let skaters = Exercise(id: "skaters", name: "Saltos de patinador", icon: "figure.skating",
+        howTo: "Salta lateralmente de un pie al otro, aterrizando suave y llevando la pierna libre por detrás. Como un patinador de velocidad.",
+        easier: "Paso lateral sin salto.")
+    static let kneeStrikes = Exercise(id: "knees", name: "Rodillazos alternos", icon: "figure.kickboxing",
+        howTo: "Guardia alta. Sube la rodilla con fuerza hacia delante mientras bajas las manos como si agarraras una cabeza imaginaria. Alterna piernas, al aire o a un cojín sujeto contra la pared.",
+        easier: "Ritmo lento, sin bajar las manos.")
+    static let slips = Exercise(id: "slips", name: "Esquivas y desplazamientos", icon: "figure.boxing",
+        howTo: "Guardia alta y rodillas flexionadas. Esquiva doblando un poco las rodillas y moviendo la cabeza a un lado y a otro, y desplázate en ángulo con pasos cortos. Nunca cruces los pies.",
+        easier: "Solo desplazamientos.")
+    static let briskWalk = Exercise(id: "walk", name: "Caminata rápida", icon: "figure.walk",
+        howTo: "Camina rápido moviendo los brazos, a un ritmo en el que te cueste un poco hablar. Por zonas iluminadas si es tarde.",
+        easier: "Ritmo cómodo.")
+
+    /// Todos los ejercicios de la biblioteca (el entrenador con IA solo puede elegir entre estos).
+    static let library: [Exercise] = [
+        jumpingJacks,
+        squats,
+        pushups,
+        glutebridge,
+        plank,
+        sidePlank,
+        superman,
+        climbers,
+        lunges,
+        chairDips,
+        burpees,
+        invertedRow,
+        bulgarian,
+        hollow,
+        shadowBoxing,
+        sprawl,
+        breakfallBack,
+        breakfallSide,
+        roll,
+        mobility,
+        hipStretch,
+        hamstring,
+        boxBreathing,
+        warmJog,
+        easyRun,
+        strides,
+        balance,
+        precision,
+        stepUps,
+        quadruped,
+        inclinePushup,
+        kneePushup,
+        declinePushup,
+        diamondPushup,
+        archerPushup,
+        pike,
+        pikeElevated,
+        towelRow,
+        rowFeetUp,
+        towelRowOneArm,
+        deadHang,
+        negativePullup,
+        assistedPullup,
+        pullup,
+        sitToStand,
+        reverseLunge,
+        jumpSquat,
+        pauseSquat,
+        pistolBox,
+        singleLegBridge,
+        singleLegRDL,
+        deadBug,
+        birdDog,
+        legRaises,
+        plankTaps,
+        march,
+        skaters,
+        kneeStrikes,
+        slips,
+        briskWalk,
+    ]
 }
 
 extension Workout {

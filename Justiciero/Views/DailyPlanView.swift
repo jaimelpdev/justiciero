@@ -80,7 +80,7 @@ struct HabitRow: View {
 
     private var nextLesson: (SkillModule, Lesson)? { store.nextLesson }
 
-    private var workout: Workout? { Workout.all.first { $0.id == item.workout } }
+    private var workout: Workout? { store.workout(id: item.workout) }
     private var mission: ProgramTask? { store.nextTasks(limit: 1).first }
 
     /// La lección y la misión ya hechas hoy muestran su nombre genérico (la siguiente sería otra).

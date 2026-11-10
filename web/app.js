@@ -61,6 +61,12 @@ const EXERCISE_EMOJI = {
   shadow: "🥊", sprawl: "🤼", "ukemi-back": "🥋", "ukemi-side": "🥋", roll: "🔄", mobility: "🔃",
   hip: "🧘", hamstring: "🧘", breath: "🌬️", "jog-warm": "🚶", jog: "🏃", strides: "⚡", balance: "🧍",
   precision: "🎯", stepup: "🪜", quad: "🐾",
+  "pushup-incline": "💪", "pushup-knee": "💪", "pushup-decline": "💪", "pushup-diamond": "💎", "pushup-archer": "🏹",
+  pike: "🔺", "pike-elevated": "🔺", "row-towel": "🚪", "row-feet": "🚣", "row-towel-one": "🚪", hang: "🧗",
+  "pullup-negative": "🧗", "pullup-assisted": "🧗", pullup: "🧗", "sit-stand": "🪑", "lunge-back": "🚶",
+  "squat-jump": "🦘", "squat-pause": "🦵", "pistol-box": "🦵", "bridge-single": "🍑", "rdl-single": "🦩",
+  deadbug: "🪲", birddog: "🐕", legraise: "🦵", "plank-taps": "🧱", march: "🥁", skaters: "⛸️", knees: "🦵",
+  slips: "🥊", walk: "🚶",
 };
 
 /* ---------- Estado ---------- */
@@ -86,6 +92,9 @@ function defaultState() {
     rebootLog: {},
     rebootUntil: null,
     rebootBarriers: [],
+    trainingPlan: null,
+    weights: [],
+    aiSessions: {},
   };
 }
 
@@ -200,9 +209,17 @@ function plan(date = new Date()) {
   const phase = currentPhase().id;
   const template = [...HABITS.weeks].reverse().find((w) => w.minPhase <= phase) || HABITS.weeks[0];
   const idx = weekdayIndex(date);
-  const items = isRebootActive(date)
-    ? [...HABITS.daily, ...REBOOT.daily, ...REBOOT.week.days[idx]]
-    : [...HABITS.daily, ...template.days[idx]];
+  let items;
+  if (isRebootActive(date)) items = [...HABITS.daily, ...REBOOT.daily, ...REBOOT.week.days[idx]];
+  else {
+    items = [...HABITS.daily, ...template.days[idx]];
+    // Con plan personalizado, el entreno físico del día sale del plan.
+    if (state.trainingPlan) {
+      items = items.filter((i) => i.kind !== "entreno" && i.id !== "trote");
+      const s = planSessionFor(date);
+      if (s) items.push({ id: "plan", block: "tarde", kind: "entreno", title: s.name, detail: s.focus, minutes: s.minutes, workout: s.id });
+    }
+  }
   const last = state.tests[state.tests.length - 1];
   if (idx === 6 && (!last || date.getTime() - last.date >= 25 * 86400000)) items.push(HABITS.test);
   const order = BLOCKS.map((b) => b[0]);
@@ -481,6 +498,534 @@ function viewUrge() {
   };
 }
 
+/* ---------- Plan personalizado (copia de Store/PlanEngine.swift: si cambias una, cambia la otra) ---------- */
+
+const PLAN_WEEKS = 12;
+const PLAN_LEVELS = ["0–3", "4–10", "11–20", "Más de 20"];
+const PLAN_LEVEL_NAMES = ["Principiante", "Básico", "Intermedio", "Avanzado"];
+const PLAN_GOALS = {
+  forma: ["⚡", "Ponerme en forma", "Fuerza, resistencia y agilidad equilibradas."],
+  grasa: ["🔥", "Perder grasa", "Más ritmo, menos descanso y algo de déficit calórico."],
+  musculo: ["🏋️", "Ganar músculo", "Más series, descansos más largos y algo de superávit."],
+};
+const PLAN_FOCUS = { pecho: ["💪", "Pecho y brazos"], espalda: ["🧗", "Espalda"], abdomen: ["🧱", "Abdomen y core"], piernas: ["🦵", "Piernas y glúteos"], resistencia: ["🏃", "Resistencia"] };
+const PLAN_KIND = { A: ["💪", "Fuerza · Empuje y piernas"], B: ["🧗", "Fuerza · Tirón y cadera"], C: ["🥊", "Combate y condición"], D: ["🏃", "Resistencia"], E: ["🔥", "Cuerpo completo"] };
+const DAY_SHORT = ["L", "M", "X", "J", "V", "S", "D"];
+const DAY_LONG = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+const defaultPlanAnswers = () => ({ goal: "forma", focus: [], level: 0, days: 3, minutes: 25, pullupBar: false, lowImpact: false, sex: "hombre", age: 25, heightCm: 175, weightKg: 75, targetKg: 72, start: Date.now() });
+
+const planSchedule = (days) => (days === 4 ? [[0, "A"], [1, "B"], [3, "C"], [5, "D"]]
+  : days === 5 ? [[0, "A"], [1, "B"], [2, "C"], [4, "E"], [5, "D"]] : [[0, "A"], [2, "B"], [4, "C"]]);
+function mondayOf(date) { const d = new Date(date); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - weekdayIndex(d)); return d; }
+function planWeekOf(a, date = new Date()) {
+  const days = Math.round((mondayOf(date) - mondayOf(new Date(a.start))) / 86400000);
+  return days < 0 ? 0 : Math.floor(days / 7) + 1;
+}
+const dayNumber = (d) => d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+const dateFromDayNumber = (n) => new Date(Math.floor(n / 10000), Math.floor(n / 100) % 100 - 1, n % 100, 12);
+function planSession(a, date = new Date()) {
+  const slot = planSchedule(a.days).find(([d]) => d === weekdayIndex(date));
+  return planWeekOf(a, date) > 0 && slot ? planBuild(a, date, slot[1]) : null;
+}
+function planSessions(a, week) {
+  const first = mondayOf(new Date(a.start));
+  first.setDate(first.getDate() + (week - 1) * 7);
+  return planSchedule(a.days).map(([day, kind]) => {
+    const date = new Date(first);
+    date.setDate(first.getDate() + day);
+    return { day, date, workout: planBuild(a, date, kind) };
+  });
+}
+const planCycleWeek = (w) => (w <= PLAN_WEEKS ? w : 9 + ((w - 9) % 4));
+/** Sesión del plan para ese día (la adaptada por la IA si la hay). */
+function planSessionFor(date = new Date()) {
+  const a = state.trainingPlan, s = a && planSession(a, date);
+  if (!s) return null;
+  const ai = (state.aiSessions || {})[dayNumber(date)];
+  return ai ? aiWorkout(ai, dayNumber(date), s.focus) : s;
+}
+function findWorkout(id) {
+  const w = WORKOUTS.find((x) => x.id === id);
+  if (w || !state.trainingPlan || !id) return w;
+  let m = /^plan-ai-(\d{8})$/.exec(id);
+  if (m) { const ai = (state.aiSessions || {})[m[1]]; return ai ? aiWorkout(ai, Number(m[1]), "Adaptada por tu entrenador IA") : null; }
+  m = /^plan-d(\d{8})-([A-E])$/.exec(id);
+  return m ? planBuild(state.trainingPlan, dateFromDayNumber(Number(m[1])), m[2]) : null;
+}
+const planDayOf = (id) => { const m = /^plan-(?:ai-|d)(\d{8})/.exec(id); return m ? m[1] : null; };
+const planDone = (date) => state.workouts.some((w) => planDayOf(w.workoutID) === String(dayNumber(date)));
+function planEstimate(blocks) {
+  const s = blocks.reduce((t, b) => t + b.sets * ((b.seconds != null ? b.seconds : (parseInt(b.reps, 10) || 0) * 3 * (b.reps.includes("lado") ? 2 : 1)) + b.rest), 0);
+  return Math.max(10, Math.round(s / 60));
+}
+const planBlock = (exercise, sets, reps, seconds, rest) => ({ exercise, sets, reps, seconds, rest });
+
+/** Generador con semilla (mulberry32), igual que PlanEngine.Seeded en Swift. */
+function seeded(seed) {
+  let a = seed | 0;
+  const next = () => {
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  return { next, index: (n) => Math.min(n - 1, Math.floor(next() * n)) };
+}
+const PLAN_FORMATS = ["series", "circuito", "superseries"];
+const FORMAT_NAME = { circuito: "Circuito", superseries: "Superseries" };
+const FORMAT_NOTE = {
+  circuito: "Hoy en circuito: haz un ejercicio detrás de otro descansando solo 15 s y descansa al terminar cada vuelta.",
+  superseries: "Hoy en superseries: ejercicios por parejas, uno detrás de otro, y descansas después de la pareja.",
+};
+
+function planBuild(a, date, kind) {
+  const weekNumber = Math.max(1, planWeekOf(a, date));
+  const w = planCycleWeek(weekNumber);
+  const block = Math.floor((w - 1) / 4), deload = (w - 1) % 4 === 3, step = deload ? 0 : (w - 1) % 4;
+  const focus = weekNumber > PLAN_WEEKS
+    ? `Semana ${weekNumber} · Mantenimiento (repites el bloque Rendimiento)`
+    : `Semana ${weekNumber} de ${PLAN_WEEKS} · Bloque ${PLAN.blocks[block]}${deload ? " · descarga" : ""}`;
+  const note = deload ? PLAN.deloadNote : PLAN.blockNotes[block];
+  const id = `plan-d${dayNumber(date)}-${kind}`;
+  const rng = seeded(dayNumber(date));
+  const blocks = [planBlock(PLAN.ex.mobility, 1, null, 90, 10)];
+  if (kind === "D") {
+    const available = Math.max(10, a.minutes - 5) * 60;
+    let runNote = "Por zonas iluminadas o de día. ";
+    if (a.lowImpact) {
+      blocks.push(planBlock(PLAN.ex.briskWalk, 1, null, deload ? Math.floor(available * 3 / 4) : available, 0));
+      runNote += "Caminata rápida: sin impacto para tus articulaciones.";
+    } else if (a.level <= 1 || (w <= 4 && a.level === 2)) {
+      const runS = Math.min(300, 60 + 30 * (w - 1)), walkS = w <= 4 ? 90 : 60;
+      const rounds = Math.max(2, Math.floor(available / (runS + walkS)) - (deload ? 1 : 0));
+      blocks.push(planBlock(PLAN.ex.easyRun, rounds, null, runS, walkS));
+      runNote += "Intervalos de carrera: en cada descanso, camina en vez de pararte.";
+    } else {
+      blocks.push(planBlock(PLAN.ex.warmJog, 1, null, 300, 0));
+      const main = Math.max(300, available - 300 - 240 - (deload ? 300 : 0));
+      blocks.push(planBlock(PLAN.ex.easyRun, 1, null, Math.floor(main / 60) * 60, 60));
+      const strides = 4 + 2 * rng.index(2);
+      blocks.push(planBlock(PLAN.ex.strides, strides, null, 20, 40));
+      runNote += `Carrera continua a ritmo de conversación y ${strides} progresivos al final.`;
+    }
+    return { id, name: PLAN_KIND.D[1], focus, place: "Exterior", minPhase: 0, minutes: planEstimate(blocks), notes: `${runNote} ${note}`, blocks, format: null };
+  }
+  const format = PLAN_FORMATS[rng.index(PLAN_FORMATS.length)];
+  const baseSets = a.minutes >= 45 ? 4 : a.minutes >= 25 ? 3 : 2;
+  const count = a.minutes >= 45 ? 7 : a.minutes >= 35 ? 6 : a.minutes >= 25 ? 5 : 4;
+  const strengthRest = a.goal === "grasa" ? 40 : a.goal === "musculo" ? 75 : 60;
+  const fastRest = a.goal === "grasa" ? 20 : 30;
+  let slots = kind === "A" ? ["push", "leg", "push2", "core", "cardio", "hinge", "core2"]
+    : kind === "B" ? (a.pullupBar ? ["pullBar", "hinge", "pull", "core", "cardio", "leg", "back"] : ["pull", "hinge", "back", "core", "cardio", "leg", "core2"])
+    : kind === "C" ? ["combat0", "cardio", "combat2", "combat1", "core", "combat3", "core2"]
+    : ["leg", "push", a.pullupBar ? "pullBar" : "pull", "hinge", "core", "cardio", "push2"];
+  if (a.goal === "grasa" && kind !== "C") slots = [slots[0], "cardio", ...slots.slice(1).filter((s) => s !== "cardio")];
+  const chosen = slots.slice(0, count);
+  if (chosen.length > 2) {
+    for (let i = chosen.length - 1; i > 1; i--) {
+      const j = 1 + rng.index(i);
+      [chosen[i], chosen[j]] = [chosen[j], chosen[i]];
+    }
+  }
+  const emphasis = { push: "pecho", push2: "pecho", pull: "espalda", pullBar: "espalda", back: "espalda", leg: "piernas", hinge: "piernas", core: "abdomen", core2: "abdomen" };
+  for (const slot of chosen) {
+    let move, easier = false;
+    if (slot.startsWith("combat")) {
+      move = PLAN.combat[Number(slot.slice(6))];
+      if (a.lowImpact && move.impact) move = PLAN.cardio[0];
+    } else {
+      const moves = PLAN[slot in PLAN ? slot : "cardio"].filter((m) => !(a.lowImpact && m.impact));
+      const top = Math.min(a.level + block, moves.length - 1);
+      if (slot === "cardio" || slot === "core") move = moves[rng.index(top + 1)];
+      else {
+        easier = top > 0 && rng.next() < 0.35;
+        move = moves[easier ? top - 1 : top];
+      }
+    }
+    const fast = slot === "cardio" || slot.startsWith("combat"), core = slot === "core" || slot === "core2" || slot === "back";
+    const sets = Math.max(1, baseSets + (a.focus.includes(emphasis[slot] || "resistencia") ? 1 : 0) - (deload ? 1 : 0));
+    const rest = fast ? fastRest : core ? Math.max(30, strengthRest - 15) : strengthRest;
+    if (move.seconds != null) blocks.push(planBlock(move.exercise, sets, null, move.seconds + 5 * step + (easier ? 10 : 0), rest));
+    else {
+      const base = move.reps ?? 8, reps = base + step * (base <= 6 ? 1 : 2) + (easier ? 2 : 0);
+      blocks.push(planBlock(move.exercise, sets, move.perSide ? `${reps}/lado` : `${reps}`, null, rest));
+    }
+  }
+  const name = [PLAN_KIND[kind][1], FORMAT_NAME[format]].filter(Boolean).join(" · ");
+  const notes = [FORMAT_NOTE[format], note].filter(Boolean).join(" ");
+  const workout = { id, name, focus, place: "Casa", minPhase: 0, minutes: 0, notes, blocks, format: format === "series" ? null : format };
+  workout.minutes = planEstimate(expandWorkout(workout).blocks);
+  return workout;
+}
+
+/** Bloques en el orden en que se hacen (copia de PlanEngine.expanded). */
+function expandWorkout(w) {
+  if (!w.format || w.blocks.length < 2) return w;
+  const [warm, ...main] = w.blocks;
+  const out = [warm];
+  const one = (b, rest) => ({ ...b, sets: 1, rest });
+  if (w.format === "circuito") {
+    const rounds = Math.max(...main.map((b) => b.sets));
+    for (let r = 0; r < rounds; r++) {
+      const inRound = main.filter((b) => b.sets > r);
+      inRound.forEach((b, i) => out.push(one(b, i === inRound.length - 1 ? (r === rounds - 1 ? 0 : 75) : 15)));
+    }
+  } else {
+    for (let start = 0; start < main.length; start += 2) {
+      const pair = main.slice(start, start + 2), sets = Math.max(...pair.map((b) => b.sets));
+      for (let s = 0; s < sets; s++) {
+        const active = pair.filter((b) => b.sets > s);
+        active.forEach((b, i) => out.push(one(b, i === active.length - 1 ? b.rest : 10)));
+      }
+    }
+  }
+  return { ...w, blocks: out, format: null };
+}
+
+function planNutrition(a, weight) {
+  const bmi = weight / Math.pow(a.heightCm / 100, 2);
+  const bmr = 10 * weight + 6.25 * a.heightCm - 5 * a.age + (a.sex === "hombre" ? 5 : -161);
+  const tdee = bmr * (a.days >= 4 ? 1.55 : 1.375);
+  const factor = a.age < 18 ? 1 : a.goal === "grasa" ? 0.85 : a.goal === "musculo" ? 1.1 : 1;
+  const kcal = Math.round(Math.max(tdee * factor, a.sex === "hombre" ? 1500 : 1200) / 50) * 50;
+  const ref = bmi > 30 ? a.targetKg : weight;
+  const protein = Math.round(1.8 * ref), fat = Math.round(0.8 * ref);
+  const carbs = Math.max(0, Math.trunc((kcal - protein * 4 - fat * 9) / 4));
+  const diff = a.targetKg - weight;
+  const weeksToTarget = Math.abs(diff) < 0.5 ? 0 : Math.ceil(Math.abs(diff) / (diff < 0 ? 0.5 : 0.25));
+  return { bmi, kcal, protein, fat, carbs, waterLiters: Math.round(weight * 0.035 * 10) / 10, weeksToTarget };
+}
+const bmiLabel = (b) => (b < 18.5 ? "Bajo peso" : b < 25 ? "Normal" : b < 30 ? "Sobrepeso" : "Obesidad");
+const currentWeight = () => (state.weights && state.weights.length ? state.weights[state.weights.length - 1].kg : state.trainingPlan?.weightKg);
+const planSessionsDone = () => new Set(state.workouts.map((w) => planDayOf(w.workoutID)).filter(Boolean)).size;
+const fmt1 = (n) => Number(n).toFixed(1).replace(".", ",");
+
+function planCTA() {
+  return link("#/plan-test", `<div class="tile-ico" style="background:var(--accent);color:#000">✨</div>
+    <div class="grow"><p class="title">Crea tu plan de entreno</p><p class="small muted">9 preguntas y tendrás 12 semanas a tu medida, con nutrición incluida.</p></div>`, "card hi chev row");
+}
+
+function planCard() {
+  const a = state.trainingPlan, week = planWeekOf(a), today = planSessionFor(), done = planDone(new Date());
+  return link("#/plan", `<div class="grow stack" style="gap:8px">
+    <div class="row"><strong class="grow" style="color:var(--accent)">✨ Tu plan</strong><span class="tiny muted">${week > PLAN_WEEKS ? "Completado" : `Semana ${week} de ${PLAN_WEEKS}`}</span></div>
+    ${bar(Math.min(1, (week - 1) / PLAN_WEEKS))}
+    ${today ? `<p class="h2" style="font-size:1.2rem">Hoy: ${esc(today.name)}</p>
+      <p class="small" style="color:${done ? "var(--success)" : "var(--muted)"}">${today.minutes} min · ${today.blocks.length - 1} ejercicios${done ? " · hecho ✓" : ""}</p>`
+      : `<p class="h2" style="font-size:1.2rem">Hoy descansas</p><p class="small muted">Camina, estira o haz una clase suave del Dojo. El músculo crece descansando.</p>`}
+  </div>`, "card hi chev row");
+}
+
+let quiz = null;
+const QUIZ_STEPS = 9;
+function quizOption(act, value, emoji, title, detail, selected) {
+  return `<button class="card row quiz-opt ${selected ? "on" : ""}" data-act="${act}" data-v="${value}">
+    <span class="tile-ico" style="${selected ? "background:var(--accent);color:#000" : ""}">${emoji}</span>
+    <span class="grow stack" style="gap:2px;text-align:left"><span class="title">${esc(title)}</span>${detail ? `<span class="tiny muted">${esc(detail)}</span>` : ""}</span>
+    <span class="check ${selected ? "on" : ""}">${selected ? "✓" : ""}</span></button>`;
+}
+function viewPlanQuiz() {
+  if (!quiz) quiz = { step: 0, a: { ...defaultPlanAnswers(), ...(state.trainingPlan || {}), focus: [...(state.trainingPlan?.focus || [])] } };
+  const a = quiz.a, step = quiz.step;
+  const head = (t, sub) => `<p class="h2">${esc(t)}</p>${sub ? `<p class="muted">${esc(sub)}</p>` : ""}`;
+  const num = (k, label, min, max, st) => `<div class="stepper"><span>${label}</span><div class="ctrl"><input type="number" inputmode="decimal" data-quiz="${k}" value="${a[k]}" min="${min}" max="${max}" step="${st}"></div></div>`;
+  let body;
+  switch (step) {
+    case 0: body = head("¿Cuál es tu objetivo?", PLAN.intro) + Object.entries(PLAN_GOALS).map(([k, [e, t, d]]) => quizOption("quiz-set", `goal:${k}`, e, t, d, a.goal === k)).join(""); break;
+    case 1: body = head("¿Qué zonas quieres reforzar?", "Elige las que quieras: tendrán una serie extra.") + Object.entries(PLAN_FOCUS).map(([k, [e, t]]) => quizOption("quiz-focus", k, e, t, "", a.focus.includes(k))).join(""); break;
+    case 2: body = head("¿Cuántas flexiones puedes hacer seguidas?", "Con buena técnica, sin apoyar las rodillas. Sé sincero: el plan sube de nivel solo.") + PLAN_LEVELS.map((l, i) => quizOption("quiz-set", `level:${i}`, "💪", l, PLAN_LEVEL_NAMES[i], a.level === i)).join(""); break;
+    case 3: body = head("¿Cuántos días a la semana?", "Contando solo el entreno físico. Las clases del Dojo y los hábitos siguen en tu plan diario.")
+      + [[3, "Lunes, miércoles y viernes"], [4, "Lunes, martes, jueves y sábado"], [5, "De lunes a sábado menos el jueves"]].map(([d, t]) => quizOption("quiz-set", `days:${d}`, "📅", `${d} días`, t, a.days === d)).join(""); break;
+    case 4: body = head("¿Cuánto tiempo por sesión?") + [[15, "Rápida, para días con poco tiempo"], [25, ""], [35, ""], [45, "Completa, para progresar más rápido"]].map(([m, t]) => quizOption("quiz-set", `minutes:${m}`, "⏱", `${m} minutos`, t, a.minutes === m)).join(""); break;
+    case 5: body = head("¿Tienes barra de dominadas?", "Una barra de puerta cuesta unos 20 €. Sin ella, la espalda se trabaja con remos con toalla y bajo una mesa robusta.")
+      + quizOption("quiz-set", "pullupBar:1", "🧗", "Sí, tengo barra", "", a.pullupBar) + quizOption("quiz-set", "pullupBar:0", "🧍", "No, solo mi cuerpo", "", !a.pullupBar); break;
+    case 6: body = head("¿Puedes saltar?", "Si te molestan las rodillas, vives en un piso con vecinos abajo o tienes mucho peso que perder, mejor sin impacto.")
+      + quizOption("quiz-set", "lowImpact:0", "🦘", "Sí, con saltos", "", !a.lowImpact) + quizOption("quiz-set", "lowImpact:1", "🚶", "Sin impacto", "Cambia saltos y carrera por alternativas suaves", a.lowImpact); break;
+    case 7: body = head("Tus datos", "Para calcular tus calorías y tu progreso. Solo se guardan en tu móvil.")
+      + `<div class="segmented">${[["hombre", "Hombre"], ["mujer", "Mujer"]].map(([k, l]) => `<button class="${a.sex === k ? "on" : ""}" data-act="quiz-set" data-v="sex:${k}">${l}</button>`).join("")}</div>
+      <div class="card">${num("age", "Edad (años)", 14, 80, 1)}${num("heightCm", "Altura (cm)", 140, 215, 1)}${num("weightKg", "Peso (kg)", 40, 200, 0.5)}${num("targetKg", "Peso objetivo (kg)", 40, 200, 0.5)}</div>`; break;
+    default: {
+      const n = planNutrition(a, a.weightKg);
+      body = head("Tu plan está listo", "12 semanas en 3 bloques: Base, Construcción y Rendimiento. Cada 4 semanas subes un escalón en cada ejercicio.")
+        + `<div class="grid3">${stat(a.days, "días/semana", "📅")}${stat(n.kcal, "kcal al día", "🔥")}${stat(fmt1(n.bmi), `IMC · ${bmiLabel(n.bmi)}`, "⚖️")}</div>
+        ${n.weeksToTarget ? callout("tip", `A un ritmo sano, podrías llegar a **${fmt1(a.targetKg)} kg** en unas **${n.weeksToTarget} semanas**. Es una estimación: lo importante es la constancia.`) : ""}
+        ${section("Tu primera semana", "📋")}
+        ${planSessions(a, 1).map(({ day, workout }) => `<div class="card row"><strong style="color:var(--accent);width:24px">${DAY_SHORT[day]}</strong><span class="grow">${esc(workout.name)}</span><span class="small muted">${workout.minutes} min</span></div>`).join("")}
+        <p class="tiny muted">Si tienes alguna lesión, problema de corazón o tensión alta, consulta antes con tu médico.</p>`;
+    }
+  }
+  return {
+    title: `Tu plan · ${step + 1}/${QUIZ_STEPS}`, back: state.trainingPlan ? "#/plan" : "#/entreno", hideTabs: true,
+    html: `<div class="stack">${bar((step + 1) / QUIZ_STEPS)}${body}
+      <div class="grid2" style="${step ? "" : "grid-template-columns:1fr"}">${step ? `<button class="btn ghost" data-act="quiz-back">Atrás</button>` : ""}
+      <button class="btn" data-act="quiz-next">${step === QUIZ_STEPS - 1 ? "Crear mi plan" : "Siguiente"}</button></div></div>`,
+  };
+}
+
+let planWeekSel = 0;
+function viewPlan() {
+  const a = state.trainingPlan;
+  if (!a) return viewPlanQuiz();
+  const current = Math.max(1, planWeekOf(a)), week = planWeekSel || current, today = weekdayIndex(new Date());
+  const session = planSessionFor(), n = planNutrition(a, currentWeight());
+  const weights = state.weights || [];
+  return {
+    title: "Tu plan", back: "#/entreno",
+    html: `<div class="stack">
+      ${planCard()}
+      ${session ? `<a class="btn" href="#/entreno/${session.id}">▶ ${planDone(new Date()) ? "Repetir la sesión de hoy" : "Empezar la sesión de hoy"}</a>` : ""}
+      <div class="grid3">${stat(planSessionsDone(), "sesiones hechas", "✅")}${stat(PLAN_LEVEL_NAMES[a.level], "nivel inicial", "📊")}${stat(`${a.minutes}'`, "por sesión", "⏱")}</div>
+      <div class="row"><div class="section grow">📅 Semana ${week}</div>
+        <button class="linkbtn" data-act="plan-week" data-d="-1" ${week <= 1 ? "disabled" : ""}>‹</button>
+        <button class="linkbtn" data-act="plan-week" data-d="1" ${week >= PLAN_WEEKS ? "disabled" : ""}>›</button></div>
+      ${planSessions(a, week).map(({ day, date, workout: original }) => {
+        const isToday = week === current && day === today, done = planDone(date);
+        const workout = isToday ? planSessionFor() || original : original;
+        return link(`#/entreno/${workout.id}`, `<div class="tile-ico" style="${done ? "background:var(--success);color:#000" : ""}">${done ? "✓" : PLAN_KIND[original.id.slice(-1)][0]}</div>
+          <div class="grow"><p class="tiny" style="font-weight:700;color:${isToday ? "var(--accent)" : "var(--muted)"}">${DAY_LONG[day]}${isToday ? " · hoy" : ""}</p>
+          <p class="title">${esc(workout.name)}</p><p class="tiny muted">${workout.minutes} min · ${workout.blocks.length - 1} ejercicios</p></div>`);
+      }).join("")}
+      ${section("Nutrición y peso", "🍽️")}
+      ${link("#/nutricion", `<span style="font-size:1.6rem">🍽️</span><div class="grow"><p class="title">Tu nutrición</p><p class="small muted">${n.kcal} kcal · ${n.protein} g de proteína · ${fmt1(n.waterLiters)} L de agua</p></div>`)}
+      <div class="card stack" style="gap:10px">
+        <div class="row"><div class="grow"><p class="title">Peso</p><p class="tiny muted">Objetivo: ${fmt1(a.targetKg)} kg</p></div><strong style="font-size:1.4rem">${fmt1(currentWeight())} kg</strong></div>
+        ${weights.length >= 2 ? chartSVG(weights.map((w) => ({ date: w.date, value: w.kg })), false) : ""}
+        <div class="row"><input type="number" inputmode="decimal" step="0.1" min="40" max="200" id="weight-input" value="${currentWeight()}" style="flex:1">
+          <button class="btn" style="width:auto;padding:12px 16px" data-act="weight-add">＋ Registrar</button></div>
+        <p class="tiny muted">Pésate como mucho una vez por semana, el mismo día y en ayunas.</p>
+      </div>
+      ${section("Ajustes", "⚙️")}
+      <button class="btn ghost" data-act="plan-redo">🔄 Rehacer el cuestionario</button>
+      <button class="linkbtn small" style="color:var(--danger)" data-act="plan-delete">Borrar el plan</button>
+      <p class="tiny muted">Al rehacer el cuestionario el plan vuelve a empezar en la semana 1. Si al terminar las 12 semanas haces más flexiones, elige un nivel más alto.</p>
+    </div>`,
+  };
+}
+
+function viewNutrition() {
+  const a = state.trainingPlan;
+  if (!a) return null;
+  const n = planNutrition(a, currentWeight());
+  const list = (items) => `<ul style="--c:var(--orange)">${items.map((x) => `<li><span>${md(x)}</span></li>`).join("")}</ul>`;
+  return {
+    title: "Nutrición", back: "#/plan",
+    html: `<div class="stack lesson">
+      <p class="muted">${esc(PLAN.nutritionIntro)}</p>
+      <div class="card hi center"><div class="big-timer" style="font-size:3rem">${n.kcal}</div><p class="small muted">kcal al día · ${PLAN_GOALS[a.goal][1].toLowerCase()}</p></div>
+      <div class="grid3">${stat(`${n.protein} g`, "proteína", "🍗")}${stat(`${n.carbs} g`, "hidratos", "🍚")}${stat(`${n.fat} g`, "grasa", "🫒")}</div>
+      <div class="grid2">${stat(`${fmt1(n.waterLiters)} L`, "agua", "💧")}${stat(fmt1(n.bmi), `IMC · ${bmiLabel(n.bmi)}`, "⚖️")}</div>
+      ${a.age < 18 ? callout("info", "Como eres menor de edad, las calorías son las de mantenimiento: estás creciendo y no conviene hacer dieta sin supervisión.") : ""}
+      ${callout("warning", PLAN.nutritionWarning)}
+      ${section("El método del plato", "🍽️")}${list(PLAN.plate)}
+      ${section("Un día de ejemplo", "☀️")}${list(PLAN.sampleDay)}
+      ${section("Claves", "💡")}${list(PLAN.nutritionTips)}
+      <p class="tiny muted">El IMC no distingue músculo de grasa: si entrenas fuerza, fíjate también en el espejo y en cómo te queda la ropa.</p>
+    </div>`,
+  };
+}
+
+function viewMallorca() {
+  return {
+    title: "En Mallorca", back: "#/autoridad",
+    html: `<div class="stack lesson">${AUTHORITY.mallorca.map((b) => lessonBlock(b, "var(--info)")).join("")}</div>`,
+  };
+}
+
+/* ---------- Animaciones de los ejercicios ---------- */
+
+const MOTION_BY_EXERCISE = {};
+MOTIONS.forEach((m) => m.exercises.forEach((e) => { MOTION_BY_EXERCISE[e] = m; }));
+const videoURL = (ex) => `https://www.youtube.com/results?search_query=${encodeURIComponent(`${ex.name} ejercicio técnica correcta`)}`;
+const MOTION_LINES = [[1, 5, "far"], [5, 6, "far"], [2, 9, "far"], [9, 10, "far"], [1, 2, "torso"], [2, 7, ""], [7, 8, ""], [1, 3, ""], [3, 4, ""]];
+
+function motionSVG(exercise, size = 96) {
+  const m = MOTION_BY_EXERCISE[exercise.id];
+  if (!m) return `<div class="motion motion-empty" style="width:${size}px;height:${size}px">${EXERCISE_EMOJI[exercise.id] || "💪"}</div>`;
+  const props = [];
+  for (let i = 0; i + 3 < m.props.length; i += 4) props.push(`<line class="prop" x1="${m.props[i]}" y1="${m.props[i + 1]}" x2="${m.props[i + 2]}" y2="${m.props[i + 3]}"/>`);
+  return `<svg class="motion" data-motion="${m.id}" viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="Animación: ${esc(exercise.name)}">
+    <line class="floor" x1="2" y1="93" x2="98" y2="93"/>${props.join("")}
+    ${MOTION_LINES.map(([, , c]) => `<line class="${c}"/>`).join("")}<circle r="5"/></svg>`;
+}
+
+function motionPose(m, t) {
+  const n = m.frames.length;
+  if (n < 2) return m.frames[0];
+  const pos = ((t / 1000) % m.seconds) / (m.seconds / n);
+  const i = Math.floor(pos) % n, raw = pos - Math.floor(pos), k = raw * raw * (3 - 2 * raw);
+  const a = m.frames[i], b = m.frames[(i + 1) % n];
+  return a.map((v, j) => v + (b[j] - v) * k);
+}
+
+function animateMotions(t) {
+  document.querySelectorAll("svg.motion[data-motion]").forEach((svg) => {
+    const m = MOTIONS.find((x) => x.id === svg.dataset.motion);
+    const p = motionPose(m, t);
+    const lines = svg.querySelectorAll("line:not(.floor):not(.prop)");
+    MOTION_LINES.forEach(([a, b], i) => {
+      lines[i].setAttribute("x1", p[a * 2].toFixed(1)); lines[i].setAttribute("y1", p[a * 2 + 1].toFixed(1));
+      lines[i].setAttribute("x2", p[b * 2].toFixed(1)); lines[i].setAttribute("y2", p[b * 2 + 1].toFixed(1));
+    });
+    const head = svg.querySelector("circle");
+    head.setAttribute("cx", p[0].toFixed(1)); head.setAttribute("cy", p[1].toFixed(1));
+  });
+  requestAnimationFrame(animateMotions);
+}
+requestAnimationFrame(animateMotions);
+
+/* ---------- Entrenador IA (copia de GroqCoach.swift) ---------- */
+
+const GROQ_BASE = "https://api.groq.com/openai/v1";
+const GROQ_DEFAULT_MODEL = "llama-3.3-70b-versatile";
+const GROQ_KEY = "justiciero.groq.key", GROQ_MODEL = "justiciero.groq.model";
+const IMPACT_IDS = ["jacks", "burpee", "skaters", "squat-jump", "sprawl", "precision"];
+const BAR_IDS = ["hang", "pullup-negative", "pullup-assisted", "pullup"];
+const COACH_REQUESTS = [
+  ["Estoy cansado", "Hoy estoy cansado o he dormido mal: baja el volumen y la intensidad, pero que siga siendo útil."],
+  ["Poco tiempo", "Hoy solo tengo unos 15 minutos: haz una versión corta e intensa."],
+  ["Más caña", "Hoy me siento fuerte: sube un poco el reto sin cambiar el tipo de sesión."],
+  ["Sorpréndeme", "Cámbiame los ejercicios por otros que trabajen lo mismo, para no aburrirme."],
+];
+// La clave se guarda aparte del progreso: no sale en la copia de seguridad.
+const groqKey = () => { try { return localStorage.getItem(GROQ_KEY) || ""; } catch (e) { return ""; } };
+const groqModel = () => { try { return localStorage.getItem(GROQ_MODEL) || GROQ_DEFAULT_MODEL; } catch (e) { return GROQ_DEFAULT_MODEL; } };
+let coach = { loading: false, error: null };
+
+function coachMessages(w, a, request) {
+  const library = EXERCISES.filter((e) => !(a.lowImpact && IMPACT_IDS.includes(e.id)) && (a.pullupBar || !BAR_IDS.includes(e.id)))
+    .map((e) => `${e.id}: ${e.name}`).join("\n");
+  const sessionText = w.blocks.map((b) => `- ${b.exercise.id} (${b.exercise.name}): ${b.sets} series de ${b.reps != null ? `${b.reps} repeticiones` : `${b.seconds || 0} s`}, descanso ${b.rest} s`).join("\n");
+  const system = 'Eres un entrenador personal prudente que adapta sesiones de entrenamiento en casa con el peso corporal. '
+    + 'Respondes SOLO con JSON válido con esta forma: '
+    + '{"title": "nombre corto de la sesión", "notes": "1 a 3 frases en español explicando el cambio", '
+    + '"blocks": [{"id": "id del ejercicio", "sets": 3, "reps": "10" o null, "seconds": 30 o null, "rest": 60}]}. '
+    + 'Reglas: usa únicamente ids de la lista de ejercicios disponibles; cada bloque lleva reps (texto, puede ser "8/lado") o seconds, nunca los dos; '
+    + 'empieza con "mobility" de 60 a 120 segundos; entre 4 y 9 bloques; sets entre 1 y 6; rest entre 10 y 120. '
+    + 'Si la persona menciona dolor o una molestia, evita cargar esa zona y en notes recomiéndale parar si duele y consultar a un profesional si persiste. '
+    + 'No inventes ejercicios, no des consejos médicos y escribe en español de España.';
+  const user = `Perfil: nivel ${PLAN_LEVEL_NAMES[a.level].toLowerCase()}, objetivo ${PLAN_GOALS[a.goal][1].toLowerCase()}, `
+    + `${a.lowImpact ? "sin saltos ni impacto" : "puede saltar"}, ${a.pullupBar ? "tiene barra de dominadas" : "sin barra de dominadas"}.\n`
+    + `Sesión de hoy (${w.name}, unos ${w.minutes} minutos):\n${sessionText}\nPetición: ${request}\nEjercicios disponibles (id: nombre):\n${library}`;
+  return [{ role: "system", content: system }, { role: "user", content: user }];
+}
+
+async function groqFetch(path, key, body) {
+  const res = await fetch(GROQ_BASE + path, {
+    method: body ? "POST" : "GET",
+    headers: { Authorization: `Bearer ${key}`, ...(body ? { "Content-Type": "application/json" } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    const err = new Error(res.status === 401 ? "La clave de Groq no es válida. Revísala en Más › Entrenador IA."
+      : res.status === 429 ? "Has llegado al límite de uso de Groq. Prueba en un rato." : `Groq ha respondido con un error (${res.status}). ${text.slice(0, 160)}`);
+    err.status = res.status; err.body = text;
+    throw err;
+  }
+  return JSON.parse(text);
+}
+
+async function groqPickModel(key) {
+  const ids = ((await groqFetch("/models", key)).data || []).map((m) => m.id)
+    .filter((id) => !["whisper", "tts", "guard", "prompt", "playai", "orpheus"].some((x) => id.toLowerCase().includes(x)));
+  for (const p of ["llama-3.3-70b", "gpt-oss-120b", "llama-4", "qwen", "llama"]) { const id = ids.find((x) => x.toLowerCase().includes(p)); if (id) return id; }
+  if (!ids.length) throw new Error("No hay modelos de texto disponibles en tu cuenta de Groq.");
+  return ids[0];
+}
+
+function validateAI(json, a) {
+  if (!Array.isArray(json.blocks)) throw new Error("La respuesta de la IA no era válida: faltan los bloques. Prueba otra vez.");
+  const known = new Set(EXERCISES.map((e) => e.id));
+  const clamp = (v, lo, hi, d) => Math.min(hi, Math.max(lo, Number.isFinite(Number(v)) ? Math.trunc(Number(v)) : d));
+  const blocks = [];
+  for (const item of json.blocks.slice(0, 12)) {
+    const id = item && item.id;
+    if (!known.has(id) || (a.lowImpact && IMPACT_IDS.includes(id)) || (!a.pullupBar && BAR_IDS.includes(id))) continue;
+    let reps = typeof item.reps === "number" ? String(item.reps) : typeof item.reps === "string" && item.reps.trim() ? item.reps.slice(0, 15) : null;
+    const seconds = item.seconds != null && Number.isFinite(Number(item.seconds)) ? clamp(item.seconds, 5, 3600, 30) : null;
+    if (reps == null && seconds == null) continue;
+    if (seconds != null) reps = null;
+    blocks.push({ id, sets: clamp(item.sets, 1, 6, 1), reps, seconds, rest: clamp(item.rest, 0, 180, 30) });
+  }
+  if (!blocks.length || blocks[0].id !== "mobility") blocks.unshift({ id: "mobility", sets: 1, reps: null, seconds: 90, rest: 10 });
+  if (blocks.length < 3) throw new Error("La respuesta de la IA no era válida: muy pocos ejercicios válidos. Prueba otra vez.");
+  return { title: String(json.title || "Sesión adaptada").slice(0, 60), notes: String(json.notes || "").slice(0, 500), blocks };
+}
+
+async function coachAdapt(request) {
+  const key = groqKey(), a = state.trainingPlan, original = a && planSession(a);
+  if (!key || !original || coach.loading) return;
+  coach = { loading: true, error: null };
+  render();
+  const call = async (model) => {
+    const data = await groqFetch("/chat/completions", key, { model, temperature: 0.6, response_format: { type: "json_object" }, messages: coachMessages(original, a, request) });
+    return validateAI(JSON.parse(data.choices[0].message.content), a);
+  };
+  try {
+    let ai;
+    try { ai = await call(groqModel()); } catch (e) {
+      if (!((e.status === 400 || e.status === 404) && /model/.test(e.body || ""))) throw e;
+      const model = await groqPickModel(key);
+      try { localStorage.setItem(GROQ_MODEL, model); } catch (_) { /* sin almacenamiento */ }
+      ai = await call(model);
+    }
+    commit((s) => { s.aiSessions = s.aiSessions || {}; s.aiSessions[dayNumber(new Date())] = ai; }, false);
+    coach = { loading: false, error: null };
+    location.hash = `#/entreno/plan-ai-${dayNumber(new Date())}`;
+    render();
+  } catch (e) {
+    coach = { loading: false, error: e instanceof SyntaxError ? "La respuesta de la IA no era válida. Prueba otra vez." : e.message };
+    render();
+  }
+}
+
+function aiWorkout(ai, day, focus) {
+  const byId = Object.fromEntries(EXERCISES.map((e) => [e.id, e]));
+  const blocks = ai.blocks.filter((b) => byId[b.id]).map((b) => planBlock(byId[b.id], b.sets, b.reps, b.seconds, b.rest));
+  return { id: `plan-ai-${day}`, name: `${ai.title} · IA`, focus, place: "Casa", minPhase: 0, minutes: planEstimate(blocks), notes: ai.notes || null, blocks, format: null };
+}
+
+function coachSection(w) {
+  if (!groqKey()) {
+    return `<div class="card stack" style="gap:8px"><p class="title" style="color:var(--accent)">✨ Entrenador IA</p>
+      <p class="small muted">Añade tu clave de Groq y podrás adaptar la sesión de hoy a cómo te encuentras.</p>
+      <a class="btn ghost" href="#/ia">🔑 Configurar el entrenador IA</a></div>`;
+  }
+  return `<div class="card stack" style="gap:10px"><p class="title" style="color:var(--accent)">✨ Entrenador IA</p>
+    <p class="small muted">¿Cómo estás hoy? La IA ajusta la sesión usando solo ejercicios de la app.</p>
+    <div class="grid2">${COACH_REQUESTS.map(([label], i) => `<button class="btn ghost small" data-act="coach" data-i="${i}" ${coach.loading ? "disabled" : ""}>${label}</button>`).join("")}</div>
+    <div class="row"><input id="coach-text" placeholder="O cuéntale qué te pasa…" style="flex:1">
+      <button class="btn" style="width:auto;padding:12px 16px" data-act="coach-custom" ${coach.loading ? "disabled" : ""}>Adaptar</button></div>
+    ${coach.loading ? `<p class="small center muted">Pensando tu sesión…</p>` : ""}
+    ${coach.error ? `<p class="small" style="color:var(--danger)">${esc(coach.error)}</p>` : ""}
+    ${w.id.startsWith("plan-ai-") ? `<button class="linkbtn small muted" data-act="coach-reset">Volver a la sesión original</button>` : ""}
+  </div>`;
+}
+
+function viewCoachSettings() {
+  const has = !!groqKey();
+  return {
+    title: "Entrenador IA", back: "#/mas",
+    html: `<div class="stack">
+      <p class="muted">El entrenador IA adapta la sesión de hoy a cómo estás (cansado, poco tiempo, una molestia…) usando la API de Groq.</p>
+      <div class="card stack" style="gap:10px">
+        <p class="title">Clave de Groq</p>
+        ${has ? `<p class="small" style="color:var(--success)">✓ Clave guardada en este dispositivo</p>` : ""}
+        <input id="groq-key" type="password" autocomplete="off" placeholder="gsk_…">
+        <button class="btn" data-act="groq-save">Guardar clave</button>
+        ${has ? `<div class="grid2"><button class="btn ghost" data-act="groq-test">Probar conexión</button><button class="btn ghost" style="color:var(--danger)" data-act="groq-delete">Borrar clave</button></div>` : ""}
+        <p class="small muted" id="groq-status"></p>
+      </div>
+      <div class="card stack" style="gap:8px"><p class="title">Modelo</p>
+        <input id="groq-model" value="${esc(groqModel())}" autocomplete="off">
+        <button class="btn ghost" data-act="groq-model">Guardar modelo</button>
+        <p class="tiny muted">Si el modelo deja de existir, la app elige otro disponible automáticamente.</p></div>
+      ${callout("info", "Pega tu clave de API de Groq (la puedes reutilizar de otro proyecto o crear una gratis en console.groq.com/keys). Se guarda solo en este navegador, aparte de tu progreso: no se sube a GitHub ni sale en la copia de seguridad. Al adaptar una sesión se envía a Groq tu sesión de hoy, tu nivel y lo que escribas; nada más.")}
+      <a class="btn ghost" href="https://console.groq.com/keys" target="_blank" rel="noopener">Abrir la consola de Groq</a>
+    </div>`,
+  };
+}
+
 /* ---------- Ruta a la autoridad ---------- */
 
 const currentRoute = () => AUTHORITY.routes.find((r) => r.id === state.profile.route) || AUTHORITY.routes[0];
@@ -502,6 +1047,7 @@ function viewAuthority() {
     html: `<div class="stack">
       <p class="muted">${esc(AUTHORITY.intro)}</p>
       ${callout("danger", AUTHORITY.warning)}
+      ${link("#/mallorca", `<span style="font-size:1.6rem">📍</span><div class="grow"><p class="title">Si vives en Mallorca</p><p class="small muted">Contactos, Protección Civil y cómo conocer a la policía de tu zona</p></div>`)}
       ${section("Elige tu ruta", "🧭")}
       ${AUTHORITY.routes.map((r) => link(`#/ruta/${r.id}`, `
         <span style="font-size:1.8rem;width:40px;text-align:center">${ROUTE_EMOJI[r.id] || "🛡️"}</span>
@@ -651,6 +1197,7 @@ function viewBase() {
       <div class="grid3">
         ${stat(streak(), "Racha (días)", "🔥")}${stat(workoutsThisWeek(), "Entrenos semana", "🏃")}${stat(programWeek(), "Semana", "📅")}
       </div>
+      ${state.trainingPlan ? "" : planCTA()}
       ${isRebootActive() ? rebootCard() : ""}
       ${dailyPlanSection()}
       ${link(`#/fase/${phase.id}`, `
@@ -702,6 +1249,7 @@ function viewTraining() {
   return {
     title: "Entreno", large: true,
     html: `<div class="stack">
+      ${state.trainingPlan ? planCard() : planCTA()}
       ${callout("tip", "Objetivo semanal: **3 sesiones** físicas + **2–3 clases** del Dojo a partir de la Fase 1. Puedes hacer una clase del Dojo y una sesión física el mismo día, pero deja al menos un día de descanso total a la semana.")}
       ${dojoCard()}
       <div class="grid3">${stat(`${workoutsThisWeek()}/3`, "Esta semana", "📅")}${stat(state.workouts.length, "Totales", "🔥")}${stat(state.tests.length, "Tests físicos", "📈")}</div>
@@ -746,6 +1294,8 @@ function viewMore() {
     html: `<div class="stack">
       ${section("Tu mente")}
       <div class="card list" style="padding:4px 16px">${item("#/mente", "🧠", "Entrenamiento mental")}${item("#/sos-mental", "💜", "Momento difícil")}${item("#/reinicio", "🔄", "Reinicio")}</div>
+      ${section("Tu entreno")}
+      <div class="card list" style="padding:4px 16px">${item("#/plan", "✨", "Tu plan de entreno")}${item("#/ia", "🤖", "Entrenador IA")}</div>
       ${section("Tu camino")}
       <div class="card list" style="padding:4px 16px">${item("#/autoridad", "🛡️", "Ruta a la autoridad")}</div>
       ${section("En la calle")}
@@ -801,22 +1351,25 @@ function prescription(b) {
 }
 
 function viewWorkout(id) {
-  const w = WORKOUTS.find((x) => x.id === id);
+  const w = findWorkout(id);
   if (!w) return null;
   return {
-    title: w.name, back: "#/entreno",
+    title: w.name, back: id.startsWith("plan-") ? "#/plan" : "#/entreno",
     html: `<div class="stack">
       <p class="muted">${esc(w.focus)}</p>
       <div class="pills">${pill(`⏱ ${w.minutes} min`, "var(--info)")}${pill(`📍 ${w.place}`, "var(--success)")}</div>
       ${w.notes ? callout("warning", w.notes) : ""}
+      ${new RegExp(`^plan-(d${dayNumber(new Date())}-|ai-${dayNumber(new Date())}$)`).test(w.id) ? coachSection(w) : ""}
       ${section("Ejercicios", "📋")}
       ${w.blocks.map((b, i) => `
         <div class="card stack" style="gap:8px">
-          <div class="row"><strong style="color:var(--accent)">${i + 1}</strong><span>${EXERCISE_EMOJI[b.exercise.id] || "💪"}</span>
+          <div class="row"><strong style="color:var(--accent)">${i + 1}</strong>
             <p class="title grow">${esc(b.exercise.name)}</p><strong class="small" style="color:var(--accent)">${prescription(b)}</strong></div>
-          <p class="small muted">${esc(b.exercise.howTo)}</p>
-          <p class="tiny muted"><strong>Más fácil:</strong> ${esc(b.exercise.easier)}</p>
-          ${b.rest ? `<p class="tiny muted">⏸ Descanso ${b.rest} s</p>` : ""}
+          <div class="row top">${motionSVG(b.exercise)}
+            <div class="grow stack" style="gap:6px"><p class="small muted">${esc(b.exercise.howTo)}</p>
+            <p class="tiny muted"><strong>Más fácil:</strong> ${esc(b.exercise.easier)}</p></div></div>
+          <div class="row"><span class="tiny muted grow">${b.rest ? `⏸ Descanso ${b.rest} s` : ""}</span>
+            <a class="tiny" style="color:var(--danger);font-weight:700" href="${videoURL(b.exercise)}" target="_blank" rel="noopener">▶ Ver vídeos</a></div>
         </div>`).join("")}
       <a class="btn" href="#/sesion/${w.id}">▶ Empezar sesión guiada</a>
       <button class="btn ghost" data-act="workout-quick" data-id="${w.id}">✓ Ya lo he hecho: marcar como completado (+${XP.workout} XP)</button>
@@ -865,8 +1418,9 @@ function sessionTick() {
 }
 
 function viewSession(id) {
-  const w = WORKOUTS.find((x) => x.id === id);
-  if (!w) return null;
+  const found = findWorkout(id);
+  if (!found) return null;
+  const w = session && session.w.id === id ? session.w : expandWorkout(found);
   if (!session || session.w.id !== id) startSession(w);
   const s = session, b = w.blocks[s.block];
   const total = w.blocks.reduce((a, x) => a + x.sets, 0);
@@ -875,7 +1429,7 @@ function viewSession(id) {
   if (s.stage === "work") {
     body = `
       <p class="eyebrow center" style="color:var(--accent)">Serie ${s.set + 1} de ${b.sets}</p>
-      <div class="huge-ico">${EXERCISE_EMOJI[b.exercise.id] || "💪"}</div>
+      <div class="center">${motionSVG(b.exercise, 180)}</div>
       <p class="h2 center">${esc(b.exercise.name)}</p>
       ${b.seconds
         ? `<div class="big-timer">${mmss(s.remaining)}</div>
@@ -1238,10 +1792,11 @@ function viewJournalNew(kind = "reflexion", title = "") {
   };
 }
 
-function chartSVG(points) {
+function chartSVG(points, fromZero = true) {
   const W = 320, H = 180, P = 24;
   const xs = points.map((p) => p.date), ys = points.map((p) => p.value);
-  const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(0, ...ys), maxY = Math.max(...ys) || 1;
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = fromZero ? Math.min(0, ...ys) : Math.floor(Math.min(...ys) - 1), maxY = (fromZero ? Math.max(...ys) : Math.ceil(Math.max(...ys) + 1)) || 1;
   const x = (v) => P + (maxX === minX ? (W - 2 * P) / 2 : ((v - minX) / (maxX - minX)) * (W - 2 * P));
   const y = (v) => H - P - ((v - minY) / (maxY - minY)) * (H - 2 * P);
   const path = points.map((p, i) => `${i ? "L" : "M"}${x(p.date).toFixed(1)},${y(p.value).toFixed(1)}`).join(" ");
@@ -1879,6 +2434,11 @@ const ROUTES = [
   [/^#\/practica\/([\w-]+)$/, viewPractice],
   [/^#\/sos-mental$/, viewSOSMind],
   [/^#\/reinicio$/, viewReboot],
+  [/^#\/plan$/, viewPlan],
+  [/^#\/plan-test$/, viewPlanQuiz],
+  [/^#\/nutricion$/, viewNutrition],
+  [/^#\/mallorca$/, viewMallorca],
+  [/^#\/ia$/, viewCoachSettings],
   [/^#\/impulso$/, viewUrge],
   [/^#\/ruta\/([\w-]+)$/, viewRoute],
   [/^#\/perfil$/, viewProfile],
@@ -1892,7 +2452,7 @@ const ROUTES = [
 function tabFor(hash) {
   const map = { fase: "#/programa", entreno: "#/entreno", sesion: "#/entreno", test: "#/entreno", modulo: "#/academia", leccion: "#/academia",
     codigo: "#/academia", escenarios: "#/academia", escenario: "#/academia", kim: "#/academia",
-    sucesos: "#/mas", semana: "#/base", autoridad: "#/mas", ruta: "#/mas", mente: "#/mas", practica: "#/mas", reinicio: "#/mas", impulso: "#/mas", "sos-mental": "#/base", dojo: "#/entreno", cinturon: "#/entreno", tecnicas: "#/entreno", tecnica: "#/entreno", clase: "#/entreno" };
+    sucesos: "#/mas", semana: "#/base", autoridad: "#/mas", ruta: "#/mas", mente: "#/mas", practica: "#/mas", reinicio: "#/mas", impulso: "#/mas", plan: "#/entreno", "plan-test": "#/entreno", nutricion: "#/entreno", mallorca: "#/mas", ia: "#/mas", "sos-mental": "#/base", dojo: "#/entreno", cinturon: "#/entreno", tecnicas: "#/entreno", tecnica: "#/entreno", clase: "#/entreno" };
   const key = hash.split("/")[1];
   return TABS.find(([h]) => h === hash)?.[0] || map[key] || "#/mas";
 }
@@ -1913,6 +2473,9 @@ function render() {
   if (hash !== lastHash && !hash.startsWith("#/sesion")) session = null;
   if (hash !== lastHash && hash !== "#/sucesos") sucesosAll = false;
   if (hash !== lastHash && hash !== "#/impulso") urgeStart = null;
+  if (hash !== lastHash && hash !== "#/plan-test") quiz = null;
+  if (hash !== lastHash && hash !== "#/plan") planWeekSel = 0;
+  if (hash !== lastHash) coach.error = null;
   if (hash !== lastHash && !hash.startsWith("#/clase")) { if (dojoClass) stopSpeech(); dojoClass = null; }
   if (hash !== lastHash && !hash.startsWith("#/escenario/")) scenarioPlay = null;
   if (hash !== lastHash && hash !== "#/kim") kim = { stage: "menu", hard: kim.hard };
@@ -1993,6 +2556,68 @@ const ACTIONS = {
     if (at >= 0) list.splice(at, 1); else list.push(i);
   }),
   "urge-start": () => { urgeStart = Date.now(); render(); },
+  coach: (d) => coachAdapt(COACH_REQUESTS[Number(d.i)][1]),
+  "coach-custom": () => { const t = document.getElementById("coach-text").value.trim(); if (t) coachAdapt(t.slice(0, 300)); },
+  "coach-reset": () => {
+    commit((s) => { if (s.aiSessions) delete s.aiSessions[dayNumber(new Date())]; }, false);
+    const original = planSession(state.trainingPlan);
+    location.hash = original ? `#/entreno/${original.id}` : "#/plan";
+    render();
+  },
+  "groq-save": () => {
+    const key = document.getElementById("groq-key").value.trim();
+    if (!key) return;
+    try { localStorage.setItem(GROQ_KEY, key); } catch (e) { toast("No se pudo guardar"); return; }
+    toast("Clave guardada");
+    render();
+  },
+  "groq-delete": () => { try { localStorage.removeItem(GROQ_KEY); } catch (e) { /* sin almacenamiento */ } render(); },
+  "groq-model": () => {
+    const model = document.getElementById("groq-model").value.trim();
+    try { if (model) localStorage.setItem(GROQ_MODEL, model); else localStorage.removeItem(GROQ_MODEL); } catch (e) { /* sin almacenamiento */ }
+    toast("Modelo guardado");
+  },
+  "groq-test": async () => {
+    const el = document.getElementById("groq-status");
+    el.textContent = "Probando…";
+    try { el.textContent = `Conexión correcta. Modelo disponible: ${await groqPickModel(groqKey())}`; } catch (e) { el.textContent = e.message; }
+  },
+  "quiz-set": (d) => {
+    const [k, v] = d.v.split(":");
+    quiz.a[k] = k === "goal" || k === "sex" ? v : k === "pullupBar" || k === "lowImpact" ? v === "1" : Number(v);
+    render();
+  },
+  "quiz-focus": (d) => {
+    const f = quiz.a.focus, i = f.indexOf(d.v);
+    if (i >= 0) f.splice(i, 1); else f.push(d.v);
+    render();
+  },
+  "quiz-back": () => { quiz.step = Math.max(0, quiz.step - 1); render(); window.scrollTo(0, 0); },
+  "quiz-next": () => {
+    if (quiz.step < QUIZ_STEPS - 1) { quiz.step++; render(); window.scrollTo(0, 0); return; }
+    const a = { ...quiz.a, start: Date.now() };
+    commit((s) => {
+      s.trainingPlan = a;
+      s.weights = s.weights || [];
+      const last = s.weights[s.weights.length - 1];
+      if (!last || Math.abs(last.kg - a.weightKg) > 0.05) s.weights.push({ id: String(Date.now()), date: Date.now(), kg: a.weightKg });
+    }, false);
+    quiz = null;
+    location.hash = "#/plan";
+  },
+  "plan-week": (d) => {
+    const cur = Math.max(1, planWeekOf(state.trainingPlan));
+    planWeekSel = Math.min(PLAN_WEEKS, Math.max(1, (planWeekSel || cur) + Number(d.d)));
+    render();
+  },
+  "plan-redo": () => { quiz = null; location.hash = "#/plan-test"; },
+  "plan-delete": () => { if (confirm("¿Borrar el plan? Tu historial de entrenos y de peso se mantiene.")) commit((s) => { s.trainingPlan = null; }); },
+  "weight-add": () => {
+    const kg = parseFloat(String(document.getElementById("weight-input").value).replace(",", "."));
+    if (!(kg >= 30 && kg <= 250)) { toast("Peso no válido"); return; }
+    commit((s) => { s.weights = s.weights || []; s.weights.push({ id: String(Date.now()), date: Date.now(), kg }); markActive(); });
+    toast("Peso registrado");
+  },
   "route-choose": (d) => { commit((s) => { s.profile.route = d.id; }); toast("Ruta principal elegida"); },
   "toggle-habit": (d) => {
     const item = plan().find((i) => i.id === d.id);
@@ -2007,7 +2632,7 @@ const ACTIONS = {
     });
   },
   "workout-quick": (d) => {
-    const w = WORKOUTS.find((x) => x.id === d.id);
+    const w = findWorkout(d.id);
     logWorkout(w, w.minutes);
     render();
   },
@@ -2038,7 +2663,7 @@ const ACTIONS = {
     if (session.saved) return;
     session.saved = true;
     logWorkout(session.w, Math.max(1, Math.round((Date.now() - session.start) / 60000)));
-    location.hash = "#/entreno";
+    location.hash = session.w.id.startsWith("plan-") ? "#/plan" : "#/entreno";
   },
   step: (d, el) => {
     const input = el.closest("form").querySelector(`[name="${d.target}"]`);
@@ -2163,6 +2788,12 @@ document.addEventListener("click", (e) => {
 });
 
 document.addEventListener("input", (e) => {
+  const q = e.target.dataset.quiz;
+  if (q && quiz) {
+    const v = parseFloat(String(e.target.value).replace(",", "."));
+    if (!Number.isNaN(v)) quiz.a[q] = v;
+    return;
+  }
   const key = e.target.dataset.onb;
   if (!key) return;
   onb[key] = e.target.type === "checkbox" ? e.target.checked : e.target.value;
