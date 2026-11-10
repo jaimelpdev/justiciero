@@ -434,3 +434,95 @@ struct MentalPractice: Identifiable, Hashable {
     let why: String
     let steps: [String]
 }
+
+// MARK: - Plan de entreno personalizado
+
+/// Un escalón de una progresión: el ejercicio y su carga inicial.
+struct PlanMove: Hashable {
+    let exercise: Exercise
+    let reps: Int?
+    let seconds: Int?
+    let perSide: Bool
+    /// Tiene saltos o impacto (se evita si eliges «sin impacto»).
+    let impact: Bool
+}
+
+enum PlanGoal: String, Codable, CaseIterable, Identifiable {
+    case forma, grasa, musculo
+    var id: String { rawValue }
+    var label: String {
+        switch self {
+        case .forma: "Ponerme en forma"
+        case .grasa: "Perder grasa"
+        case .musculo: "Ganar músculo"
+        }
+    }
+    var detail: String {
+        switch self {
+        case .forma: "Fuerza, resistencia y agilidad equilibradas."
+        case .grasa: "Más ritmo, menos descanso y algo de déficit calórico."
+        case .musculo: "Más series, descansos más largos y algo de superávit."
+        }
+    }
+    var icon: String {
+        switch self {
+        case .forma: "bolt.heart.fill"
+        case .grasa: "flame.fill"
+        case .musculo: "dumbbell.fill"
+        }
+    }
+}
+
+enum PlanFocus: String, Codable, CaseIterable, Identifiable {
+    case pecho, espalda, abdomen, piernas, resistencia
+    var id: String { rawValue }
+    var label: String {
+        switch self {
+        case .pecho: "Pecho y brazos"
+        case .espalda: "Espalda"
+        case .abdomen: "Abdomen y core"
+        case .piernas: "Piernas y glúteos"
+        case .resistencia: "Resistencia"
+        }
+    }
+    var icon: String {
+        switch self {
+        case .pecho: "figure.strengthtraining.traditional"
+        case .espalda: "figure.climbing"
+        case .abdomen: "figure.core.training"
+        case .piernas: "figure.strengthtraining.functional"
+        case .resistencia: "figure.run"
+        }
+    }
+}
+
+enum PlanSex: String, Codable, CaseIterable {
+    case hombre, mujer
+}
+
+/// Respuestas del cuestionario. A partir de ellas se genera el plan de 12 semanas.
+struct PlanAnswers: Codable, Equatable {
+    var goal: PlanGoal = .forma
+    var focus: Set<PlanFocus> = []
+    /// 0 a 3 según las flexiones que puedes hacer seguidas.
+    var level = 0
+    var days = 3
+    var minutes = 25
+    var pullupBar = false
+    var lowImpact = false
+    var sex: PlanSex = .hombre
+    var age = 25
+    var heightCm = 175
+    var weightKg = 75.0
+    var targetKg = 72.0
+    var start = Date.now
+
+    static let levels = ["0–3", "4–10", "11–20", "Más de 20"]
+    static let levelNames = ["Principiante", "Básico", "Intermedio", "Avanzado"]
+}
+
+struct WeightEntry: Codable, Identifiable {
+    var id = UUID()
+    var date = Date.now
+    var kg: Double
+}

@@ -90,6 +90,9 @@ struct AppState: Codable {
     var rebootLog: [String: Bool] = [:]
     /// Fin de la semana de reinicio activa (nil si no está activa).
     var rebootUntil: Date?
+    /// Respuestas del cuestionario del plan personalizado (nil si aún no lo has creado).
+    var trainingPlan: PlanAnswers?
+    var weights: [WeightEntry] = []
 
     init() {}
 
@@ -114,6 +117,8 @@ struct AppState: Codable {
         habitLog = try c.decodeIfPresent([String: Set<String>].self, forKey: .habitLog) ?? [:]
         rebootLog = try c.decodeIfPresent([String: Bool].self, forKey: .rebootLog) ?? [:]
         rebootUntil = try c.decodeIfPresent(Date.self, forKey: .rebootUntil)
+        trainingPlan = try? c.decodeIfPresent(PlanAnswers.self, forKey: .trainingPlan)
+        weights = try c.decodeIfPresent([WeightEntry].self, forKey: .weights) ?? []
     }
 }
 
@@ -382,6 +387,52 @@ final class ProgressStore: ObservableObject {
         markHabit(.mental)
     }
 
+    // MARK: Plan personalizado
+
+    func setPlan(_ answers: PlanAnswers) {
+        var answers = answers
+        answers.start = .now
+        state.trainingPlan = answers
+        if state.weights.last.map({ abs($0.kg - answers.weightKg) > 0.05 }) ?? true {
+            state.weights.append(WeightEntry(kg: answers.weightKg))
+        }
+    }
+
+    func deletePlan() {
+        state.trainingPlan = nil
+    }
+
+    /// Busca un entreno por id, incluidas las sesiones generadas del plan.
+    func workout(id: String?) -> Workout? {
+        guard let id else { return nil }
+        if let workout = Workout.all.first(where: { $0.id == id }) { return workout }
+        guard let answers = state.trainingPlan else { return nil }
+        return PlanEngine.workout(id: id, answers: answers)
+    }
+
+    var planWeek: Int {
+        state.trainingPlan.map { PlanEngine.week($0, on: .now) } ?? 0
+    }
+
+    func isLogged(_ workout: Workout) -> Bool {
+        state.workouts.contains { $0.workoutID == workout.id }
+    }
+
+    /// Sesiones del plan completadas (cada sesión cuenta una vez).
+    var planSessionsDone: Int {
+        Set(state.workouts.map(\.workoutID).filter { $0.hasPrefix("plan-") }).count
+    }
+
+    var currentWeight: Double? {
+        state.weights.last?.kg ?? state.trainingPlan?.weightKg
+    }
+
+    func addWeight(_ kg: Double) {
+        state.weights.append(WeightEntry(kg: kg))
+        state.weights.sort { $0.date < $1.date }
+        markActive()
+    }
+
     // MARK: Reinicio
 
     /// Lección que toca: durante la semana de reinicio, primero las del módulo de reinicio.
@@ -478,6 +529,14 @@ final class ProgressStore: ObservableObject {
         } else {
             let template = Habits.weeks.last(where: { $0.minPhase <= phase }) ?? Habits.weeks[0]
             items = Habits.daily + template.days[index]
+            // Con plan personalizado, el entreno físico del día sale del plan.
+            if let answers = state.trainingPlan {
+                items.removeAll { $0.kind == .entreno || $0.id == "trote" }
+                if let session = PlanEngine.session(answers, on: date) {
+                    items.append(HabitItem(id: "plan", block: .tarde, kind: .entreno, title: session.name,
+                                           detail: session.focus, minutes: session.minutes, workout: session.id))
+                }
+            }
         }
         if index == 6 && testDue(at: date) { items.append(Habits.test) }
         let order = DayBlock.allCases

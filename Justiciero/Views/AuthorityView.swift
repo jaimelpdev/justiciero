@@ -35,6 +35,23 @@ struct AuthorityView: View {
                 Text(Authority.intro).foregroundStyle(Theme.muted)
                 Callout(kind: .danger, text: Authority.warning)
 
+                NavigationLink {
+                    MallorcaGuideView()
+                } label: {
+                    HStack(spacing: 14) {
+                        Image(systemName: "mappin.and.ellipse").font(.title2).foregroundStyle(Theme.info).frame(width: 36)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Si vives en Mallorca").font(.headline)
+                            Text("Contactos, Protección Civil y cómo conocer a la policía de tu zona").font(.caption).foregroundStyle(Theme.muted)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right").foregroundStyle(Theme.muted)
+                    }
+                    .foregroundStyle(.white)
+                    .card()
+                }
+                .buttonStyle(.plain)
+
                 SectionHeader(title: "Elige tu ruta", icon: "signpost.right.and.left.fill")
                 ForEach(Authority.routes) { route in
                     NavigationLink {
@@ -159,5 +176,20 @@ struct RouteView: View {
                 Text(text).font(.subheadline)
             }
         }
+    }
+}
+
+struct MallorcaGuideView: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                ForEach(Array(Authority.mallorca.enumerated()), id: \.offset) { _, block in
+                    LessonBlockView(block: block, color: Theme.info)
+                }
+            }
+            .padding()
+        }
+        .screenBackground()
+        .navigationTitle("En Mallorca")
     }
 }

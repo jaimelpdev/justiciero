@@ -61,6 +61,12 @@ const EXERCISE_EMOJI = {
   shadow: "🥊", sprawl: "🤼", "ukemi-back": "🥋", "ukemi-side": "🥋", roll: "🔄", mobility: "🔃",
   hip: "🧘", hamstring: "🧘", breath: "🌬️", "jog-warm": "🚶", jog: "🏃", strides: "⚡", balance: "🧍",
   precision: "🎯", stepup: "🪜", quad: "🐾",
+  "pushup-incline": "💪", "pushup-knee": "💪", "pushup-decline": "💪", "pushup-diamond": "💎", "pushup-archer": "🏹",
+  pike: "🔺", "pike-elevated": "🔺", "row-towel": "🚪", "row-feet": "🚣", "row-towel-one": "🚪", hang: "🧗",
+  "pullup-negative": "🧗", "pullup-assisted": "🧗", pullup: "🧗", "sit-stand": "🪑", "lunge-back": "🚶",
+  "squat-jump": "🦘", "squat-pause": "🦵", "pistol-box": "🦵", "bridge-single": "🍑", "rdl-single": "🦩",
+  deadbug: "🪲", birddog: "🐕", legraise: "🦵", "plank-taps": "🧱", march: "🥁", skaters: "⛸️", knees: "🦵",
+  slips: "🥊", walk: "🚶",
 };
 
 /* ---------- Estado ---------- */
@@ -86,6 +92,8 @@ function defaultState() {
     rebootLog: {},
     rebootUntil: null,
     rebootBarriers: [],
+    trainingPlan: null,
+    weights: [],
   };
 }
 
@@ -200,9 +208,17 @@ function plan(date = new Date()) {
   const phase = currentPhase().id;
   const template = [...HABITS.weeks].reverse().find((w) => w.minPhase <= phase) || HABITS.weeks[0];
   const idx = weekdayIndex(date);
-  const items = isRebootActive(date)
-    ? [...HABITS.daily, ...REBOOT.daily, ...REBOOT.week.days[idx]]
-    : [...HABITS.daily, ...template.days[idx]];
+  let items;
+  if (isRebootActive(date)) items = [...HABITS.daily, ...REBOOT.daily, ...REBOOT.week.days[idx]];
+  else {
+    items = [...HABITS.daily, ...template.days[idx]];
+    // Con plan personalizado, el entreno físico del día sale del plan.
+    if (state.trainingPlan) {
+      items = items.filter((i) => i.kind !== "entreno" && i.id !== "trote");
+      const s = planSession(state.trainingPlan, date);
+      if (s) items.push({ id: "plan", block: "tarde", kind: "entreno", title: s.name, detail: s.focus, minutes: s.minutes, workout: s.id });
+    }
+  }
   const last = state.tests[state.tests.length - 1];
   if (idx === 6 && (!last || date.getTime() - last.date >= 25 * 86400000)) items.push(HABITS.test);
   const order = BLOCKS.map((b) => b[0]);
@@ -481,6 +497,256 @@ function viewUrge() {
   };
 }
 
+/* ---------- Plan personalizado (copia de Store/PlanEngine.swift: si cambias una, cambia la otra) ---------- */
+
+const PLAN_WEEKS = 12;
+const PLAN_LEVELS = ["0–3", "4–10", "11–20", "Más de 20"];
+const PLAN_LEVEL_NAMES = ["Principiante", "Básico", "Intermedio", "Avanzado"];
+const PLAN_GOALS = {
+  forma: ["⚡", "Ponerme en forma", "Fuerza, resistencia y agilidad equilibradas."],
+  grasa: ["🔥", "Perder grasa", "Más ritmo, menos descanso y algo de déficit calórico."],
+  musculo: ["🏋️", "Ganar músculo", "Más series, descansos más largos y algo de superávit."],
+};
+const PLAN_FOCUS = { pecho: ["💪", "Pecho y brazos"], espalda: ["🧗", "Espalda"], abdomen: ["🧱", "Abdomen y core"], piernas: ["🦵", "Piernas y glúteos"], resistencia: ["🏃", "Resistencia"] };
+const PLAN_KIND = { A: ["💪", "Fuerza · Empuje y piernas"], B: ["🧗", "Fuerza · Tirón y cadera"], C: ["🥊", "Combate y condición"], D: ["🏃", "Resistencia"], E: ["🔥", "Cuerpo completo"] };
+const DAY_SHORT = ["L", "M", "X", "J", "V", "S", "D"];
+const DAY_LONG = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+const defaultPlanAnswers = () => ({ goal: "forma", focus: [], level: 0, days: 3, minutes: 25, pullupBar: false, lowImpact: false, sex: "hombre", age: 25, heightCm: 175, weightKg: 75, targetKg: 72, start: Date.now() });
+
+const planSchedule = (days) => (days === 4 ? [[0, "A"], [1, "B"], [3, "C"], [5, "D"]]
+  : days === 5 ? [[0, "A"], [1, "B"], [2, "C"], [4, "E"], [5, "D"]] : [[0, "A"], [2, "B"], [4, "C"]]);
+function mondayOf(date) { const d = new Date(date); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - weekdayIndex(d)); return d; }
+function planWeekOf(a, date = new Date()) {
+  const days = Math.round((mondayOf(date) - mondayOf(new Date(a.start))) / 86400000);
+  return days < 0 ? 0 : Math.floor(days / 7) + 1;
+}
+function planSession(a, date = new Date()) {
+  const week = planWeekOf(a, date), slot = planSchedule(a.days).find(([d]) => d === weekdayIndex(date));
+  return week > 0 && slot ? planBuild(a, week, slot[1]) : null;
+}
+const planSessions = (a, week) => planSchedule(a.days).map(([day, kind]) => ({ day, workout: planBuild(a, week, kind) }));
+const planCycleWeek = (w) => (w <= PLAN_WEEKS ? w : 9 + ((w - 9) % 4));
+function findWorkout(id) {
+  const w = WORKOUTS.find((x) => x.id === id);
+  if (w || !state.trainingPlan) return w;
+  const m = /^plan-w(\d+)-([A-E])$/.exec(id || "");
+  return m ? planBuild(state.trainingPlan, Number(m[1]), m[2]) : null;
+}
+function planEstimate(blocks) {
+  const s = blocks.reduce((t, b) => t + b.sets * ((b.seconds != null ? b.seconds : (parseInt(b.reps, 10) || 0) * 3 * (b.reps.includes("lado") ? 2 : 1)) + b.rest), 0);
+  return Math.max(10, Math.round(s / 60));
+}
+const planBlock = (exercise, sets, reps, seconds, rest) => ({ exercise, sets, reps, seconds, rest });
+
+function planBuild(a, week, kind) {
+  const w = planCycleWeek(Math.max(week, 1));
+  const block = Math.floor((w - 1) / 4), deload = (w - 1) % 4 === 3, step = deload ? 0 : (w - 1) % 4;
+  const focus = week > PLAN_WEEKS
+    ? `Semana ${week} · Mantenimiento (repites el bloque Rendimiento)`
+    : `Semana ${week} de ${PLAN_WEEKS} · Bloque ${PLAN.blocks[block]}${deload ? " · descarga" : ""}`;
+  const note = deload ? PLAN.deloadNote : PLAN.blockNotes[block];
+  const id = `plan-w${week}-${kind}`;
+  const blocks = [planBlock(PLAN.ex.mobility, 1, null, 90, 10)];
+  if (kind === "D") {
+    const available = Math.max(10, a.minutes - 5) * 60;
+    let runNote = "Por zonas iluminadas o de día. ";
+    if (a.lowImpact) {
+      blocks.push(planBlock(PLAN.ex.briskWalk, 1, null, deload ? Math.floor(available * 3 / 4) : available, 0));
+      runNote += "Caminata rápida: sin impacto para tus articulaciones.";
+    } else if (a.level <= 1 || (w <= 4 && a.level === 2)) {
+      const runS = Math.min(300, 60 + 30 * (w - 1)), walkS = w <= 4 ? 90 : 60;
+      const rounds = Math.max(2, Math.floor(available / (runS + walkS)) - (deload ? 1 : 0));
+      blocks.push(planBlock(PLAN.ex.easyRun, rounds, null, runS, walkS));
+      runNote += "Intervalos de carrera: en cada descanso, camina en vez de pararte.";
+    } else {
+      blocks.push(planBlock(PLAN.ex.warmJog, 1, null, 300, 0));
+      const main = Math.max(300, available - 300 - 240 - (deload ? 300 : 0));
+      blocks.push(planBlock(PLAN.ex.easyRun, 1, null, Math.floor(main / 60) * 60, 60));
+      blocks.push(planBlock(PLAN.ex.strides, 4, null, 20, 40));
+      runNote += "Carrera continua a ritmo de conversación y 4 progresivos al final.";
+    }
+    return { id, name: PLAN_KIND.D[1], focus, place: "Exterior", minPhase: 0, minutes: planEstimate(blocks), notes: `${runNote} ${note}`, blocks };
+  }
+  const baseSets = a.minutes >= 45 ? 4 : a.minutes >= 25 ? 3 : 2;
+  const count = a.minutes >= 45 ? 7 : a.minutes >= 35 ? 6 : a.minutes >= 25 ? 5 : 4;
+  const strengthRest = a.goal === "grasa" ? 40 : a.goal === "musculo" ? 75 : 60;
+  const fastRest = a.goal === "grasa" ? 20 : 30;
+  let slots = kind === "A" ? ["push", "leg", "push2", "core", "cardio", "hinge", "core2"]
+    : kind === "B" ? (a.pullupBar ? ["pullBar", "hinge", "pull", "core", "cardio", "leg", "back"] : ["pull", "hinge", "back", "core", "cardio", "leg", "core2"])
+    : kind === "C" ? ["combat0", "cardio", "combat2", "combat1", "core", "combat3", "core2"]
+    : ["leg", "push", a.pullupBar ? "pullBar" : "pull", "hinge", "core", "cardio", "push2"];
+  if (a.goal === "grasa" && kind !== "C") slots = [slots[0], "cardio", ...slots.slice(1).filter((s) => s !== "cardio")];
+  const emphasis = { push: "pecho", push2: "pecho", pull: "espalda", pullBar: "espalda", back: "espalda", leg: "piernas", hinge: "piernas", core: "abdomen", core2: "abdomen" };
+  for (const slot of slots.slice(0, count)) {
+    let move;
+    if (slot.startsWith("combat")) {
+      move = PLAN.combat[Number(slot.slice(6))];
+      if (a.lowImpact && move.impact) move = PLAN.cardio[0];
+    } else {
+      const moves = PLAN[slot in PLAN ? slot : "cardio"].filter((m) => !(a.lowImpact && m.impact));
+      move = moves[Math.min(a.level + block, moves.length - 1)];
+    }
+    const fast = slot === "cardio" || slot.startsWith("combat"), core = slot === "core" || slot === "core2" || slot === "back";
+    const sets = Math.max(1, baseSets + (a.focus.includes(emphasis[slot] || "resistencia") ? 1 : 0) - (deload ? 1 : 0));
+    const rest = fast ? fastRest : core ? Math.max(30, strengthRest - 15) : strengthRest;
+    if (move.seconds != null) blocks.push(planBlock(move.exercise, sets, null, move.seconds + 5 * step, rest));
+    else {
+      const base = move.reps ?? 8, reps = base + step * (base <= 6 ? 1 : 2);
+      blocks.push(planBlock(move.exercise, sets, move.perSide ? `${reps}/lado` : `${reps}`, null, rest));
+    }
+  }
+  return { id, name: PLAN_KIND[kind][1], focus, place: "Casa", minPhase: 0, minutes: planEstimate(blocks), notes: note, blocks };
+}
+
+function planNutrition(a, weight) {
+  const bmi = weight / Math.pow(a.heightCm / 100, 2);
+  const bmr = 10 * weight + 6.25 * a.heightCm - 5 * a.age + (a.sex === "hombre" ? 5 : -161);
+  const tdee = bmr * (a.days >= 4 ? 1.55 : 1.375);
+  const factor = a.age < 18 ? 1 : a.goal === "grasa" ? 0.85 : a.goal === "musculo" ? 1.1 : 1;
+  const kcal = Math.round(Math.max(tdee * factor, a.sex === "hombre" ? 1500 : 1200) / 50) * 50;
+  const ref = bmi > 30 ? a.targetKg : weight;
+  const protein = Math.round(1.8 * ref), fat = Math.round(0.8 * ref);
+  const carbs = Math.max(0, Math.trunc((kcal - protein * 4 - fat * 9) / 4));
+  const diff = a.targetKg - weight;
+  const weeksToTarget = Math.abs(diff) < 0.5 ? 0 : Math.ceil(Math.abs(diff) / (diff < 0 ? 0.5 : 0.25));
+  return { bmi, kcal, protein, fat, carbs, waterLiters: Math.round(weight * 0.035 * 10) / 10, weeksToTarget };
+}
+const bmiLabel = (b) => (b < 18.5 ? "Bajo peso" : b < 25 ? "Normal" : b < 30 ? "Sobrepeso" : "Obesidad");
+const currentWeight = () => (state.weights && state.weights.length ? state.weights[state.weights.length - 1].kg : state.trainingPlan?.weightKg);
+const isLogged = (id) => state.workouts.some((w) => w.workoutID === id);
+const planSessionsDone = () => new Set(state.workouts.map((w) => w.workoutID).filter((id) => id.startsWith("plan-"))).size;
+const fmt1 = (n) => Number(n).toFixed(1).replace(".", ",");
+
+function planCTA() {
+  return link("#/plan-test", `<div class="tile-ico" style="background:var(--accent);color:#000">✨</div>
+    <div class="grow"><p class="title">Crea tu plan de entreno</p><p class="small muted">9 preguntas y tendrás 12 semanas a tu medida, con nutrición incluida.</p></div>`, "card hi chev row");
+}
+
+function planCard() {
+  const a = state.trainingPlan, week = planWeekOf(a), today = planSession(a);
+  return link("#/plan", `<div class="grow stack" style="gap:8px">
+    <div class="row"><strong class="grow" style="color:var(--accent)">✨ Tu plan</strong><span class="tiny muted">${week > PLAN_WEEKS ? "Completado" : `Semana ${week} de ${PLAN_WEEKS}`}</span></div>
+    ${bar(Math.min(1, (week - 1) / PLAN_WEEKS))}
+    ${today ? `<p class="h2" style="font-size:1.2rem">Hoy: ${esc(today.name)}</p>
+      <p class="small" style="color:${isLogged(today.id) ? "var(--success)" : "var(--muted)"}">${today.minutes} min · ${today.blocks.length - 1} ejercicios${isLogged(today.id) ? " · hecho ✓" : ""}</p>`
+      : `<p class="h2" style="font-size:1.2rem">Hoy descansas</p><p class="small muted">Camina, estira o haz una clase suave del Dojo. El músculo crece descansando.</p>`}
+  </div>`, "card hi chev row");
+}
+
+let quiz = null;
+const QUIZ_STEPS = 9;
+function quizOption(act, value, emoji, title, detail, selected) {
+  return `<button class="card row quiz-opt ${selected ? "on" : ""}" data-act="${act}" data-v="${value}">
+    <span class="tile-ico" style="${selected ? "background:var(--accent);color:#000" : ""}">${emoji}</span>
+    <span class="grow stack" style="gap:2px;text-align:left"><span class="title">${esc(title)}</span>${detail ? `<span class="tiny muted">${esc(detail)}</span>` : ""}</span>
+    <span class="check ${selected ? "on" : ""}">${selected ? "✓" : ""}</span></button>`;
+}
+function viewPlanQuiz() {
+  if (!quiz) quiz = { step: 0, a: { ...defaultPlanAnswers(), ...(state.trainingPlan || {}), focus: [...(state.trainingPlan?.focus || [])] } };
+  const a = quiz.a, step = quiz.step;
+  const head = (t, sub) => `<p class="h2">${esc(t)}</p>${sub ? `<p class="muted">${esc(sub)}</p>` : ""}`;
+  const num = (k, label, min, max, st) => `<div class="stepper"><span>${label}</span><div class="ctrl"><input type="number" inputmode="decimal" data-quiz="${k}" value="${a[k]}" min="${min}" max="${max}" step="${st}"></div></div>`;
+  let body;
+  switch (step) {
+    case 0: body = head("¿Cuál es tu objetivo?", PLAN.intro) + Object.entries(PLAN_GOALS).map(([k, [e, t, d]]) => quizOption("quiz-set", `goal:${k}`, e, t, d, a.goal === k)).join(""); break;
+    case 1: body = head("¿Qué zonas quieres reforzar?", "Elige las que quieras: tendrán una serie extra.") + Object.entries(PLAN_FOCUS).map(([k, [e, t]]) => quizOption("quiz-focus", k, e, t, "", a.focus.includes(k))).join(""); break;
+    case 2: body = head("¿Cuántas flexiones puedes hacer seguidas?", "Con buena técnica, sin apoyar las rodillas. Sé sincero: el plan sube de nivel solo.") + PLAN_LEVELS.map((l, i) => quizOption("quiz-set", `level:${i}`, "💪", l, PLAN_LEVEL_NAMES[i], a.level === i)).join(""); break;
+    case 3: body = head("¿Cuántos días a la semana?", "Contando solo el entreno físico. Las clases del Dojo y los hábitos siguen en tu plan diario.")
+      + [[3, "Lunes, miércoles y viernes"], [4, "Lunes, martes, jueves y sábado"], [5, "De lunes a sábado menos el jueves"]].map(([d, t]) => quizOption("quiz-set", `days:${d}`, "📅", `${d} días`, t, a.days === d)).join(""); break;
+    case 4: body = head("¿Cuánto tiempo por sesión?") + [[15, "Rápida, para días con poco tiempo"], [25, ""], [35, ""], [45, "Completa, para progresar más rápido"]].map(([m, t]) => quizOption("quiz-set", `minutes:${m}`, "⏱", `${m} minutos`, t, a.minutes === m)).join(""); break;
+    case 5: body = head("¿Tienes barra de dominadas?", "Una barra de puerta cuesta unos 20 €. Sin ella, la espalda se trabaja con remos con toalla y bajo una mesa robusta.")
+      + quizOption("quiz-set", "pullupBar:1", "🧗", "Sí, tengo barra", "", a.pullupBar) + quizOption("quiz-set", "pullupBar:0", "🧍", "No, solo mi cuerpo", "", !a.pullupBar); break;
+    case 6: body = head("¿Puedes saltar?", "Si te molestan las rodillas, vives en un piso con vecinos abajo o tienes mucho peso que perder, mejor sin impacto.")
+      + quizOption("quiz-set", "lowImpact:0", "🦘", "Sí, con saltos", "", !a.lowImpact) + quizOption("quiz-set", "lowImpact:1", "🚶", "Sin impacto", "Cambia saltos y carrera por alternativas suaves", a.lowImpact); break;
+    case 7: body = head("Tus datos", "Para calcular tus calorías y tu progreso. Solo se guardan en tu móvil.")
+      + `<div class="segmented">${[["hombre", "Hombre"], ["mujer", "Mujer"]].map(([k, l]) => `<button class="${a.sex === k ? "on" : ""}" data-act="quiz-set" data-v="sex:${k}">${l}</button>`).join("")}</div>
+      <div class="card">${num("age", "Edad (años)", 14, 80, 1)}${num("heightCm", "Altura (cm)", 140, 215, 1)}${num("weightKg", "Peso (kg)", 40, 200, 0.5)}${num("targetKg", "Peso objetivo (kg)", 40, 200, 0.5)}</div>`; break;
+    default: {
+      const n = planNutrition(a, a.weightKg);
+      body = head("Tu plan está listo", "12 semanas en 3 bloques: Base, Construcción y Rendimiento. Cada 4 semanas subes un escalón en cada ejercicio.")
+        + `<div class="grid3">${stat(a.days, "días/semana", "📅")}${stat(n.kcal, "kcal al día", "🔥")}${stat(fmt1(n.bmi), `IMC · ${bmiLabel(n.bmi)}`, "⚖️")}</div>
+        ${n.weeksToTarget ? callout("tip", `A un ritmo sano, podrías llegar a **${fmt1(a.targetKg)} kg** en unas **${n.weeksToTarget} semanas**. Es una estimación: lo importante es la constancia.`) : ""}
+        ${section("Tu primera semana", "📋")}
+        ${planSessions(a, 1).map(({ day, workout }) => `<div class="card row"><strong style="color:var(--accent);width:24px">${DAY_SHORT[day]}</strong><span class="grow">${esc(workout.name)}</span><span class="small muted">${workout.minutes} min</span></div>`).join("")}
+        <p class="tiny muted">Si tienes alguna lesión, problema de corazón o tensión alta, consulta antes con tu médico.</p>`;
+    }
+  }
+  return {
+    title: `Tu plan · ${step + 1}/${QUIZ_STEPS}`, back: state.trainingPlan ? "#/plan" : "#/entreno", hideTabs: true,
+    html: `<div class="stack">${bar((step + 1) / QUIZ_STEPS)}${body}
+      <div class="grid2" style="${step ? "" : "grid-template-columns:1fr"}">${step ? `<button class="btn ghost" data-act="quiz-back">Atrás</button>` : ""}
+      <button class="btn" data-act="quiz-next">${step === QUIZ_STEPS - 1 ? "Crear mi plan" : "Siguiente"}</button></div></div>`,
+  };
+}
+
+let planWeekSel = 0;
+function viewPlan() {
+  const a = state.trainingPlan;
+  if (!a) return viewPlanQuiz();
+  const current = Math.max(1, planWeekOf(a)), week = planWeekSel || current, today = weekdayIndex(new Date());
+  const session = planSession(a), n = planNutrition(a, currentWeight());
+  const weights = state.weights || [];
+  return {
+    title: "Tu plan", back: "#/entreno",
+    html: `<div class="stack">
+      ${planCard()}
+      ${session ? `<a class="btn" href="#/entreno/${session.id}">▶ ${isLogged(session.id) ? "Repetir la sesión de hoy" : "Empezar la sesión de hoy"}</a>` : ""}
+      <div class="grid3">${stat(planSessionsDone(), "sesiones hechas", "✅")}${stat(PLAN_LEVEL_NAMES[a.level], "nivel inicial", "📊")}${stat(`${a.minutes}'`, "por sesión", "⏱")}</div>
+      <div class="row"><div class="section grow">📅 Semana ${week}</div>
+        <button class="linkbtn" data-act="plan-week" data-d="-1" ${week <= 1 ? "disabled" : ""}>‹</button>
+        <button class="linkbtn" data-act="plan-week" data-d="1" ${week >= PLAN_WEEKS ? "disabled" : ""}>›</button></div>
+      ${planSessions(a, week).map(({ day, workout }) => {
+        const isToday = week === current && day === today, done = isLogged(workout.id);
+        return link(`#/entreno/${workout.id}`, `<div class="tile-ico" style="${done ? "background:var(--success);color:#000" : ""}">${done ? "✓" : PLAN_KIND[workout.id.slice(-1)][0]}</div>
+          <div class="grow"><p class="tiny" style="font-weight:700;color:${isToday ? "var(--accent)" : "var(--muted)"}">${DAY_LONG[day]}${isToday ? " · hoy" : ""}</p>
+          <p class="title">${esc(workout.name)}</p><p class="tiny muted">${workout.minutes} min · ${workout.blocks.length - 1} ejercicios</p></div>`);
+      }).join("")}
+      ${section("Nutrición y peso", "🍽️")}
+      ${link("#/nutricion", `<span style="font-size:1.6rem">🍽️</span><div class="grow"><p class="title">Tu nutrición</p><p class="small muted">${n.kcal} kcal · ${n.protein} g de proteína · ${fmt1(n.waterLiters)} L de agua</p></div>`)}
+      <div class="card stack" style="gap:10px">
+        <div class="row"><div class="grow"><p class="title">Peso</p><p class="tiny muted">Objetivo: ${fmt1(a.targetKg)} kg</p></div><strong style="font-size:1.4rem">${fmt1(currentWeight())} kg</strong></div>
+        ${weights.length >= 2 ? chartSVG(weights.map((w) => ({ date: w.date, value: w.kg })), false) : ""}
+        <div class="row"><input type="number" inputmode="decimal" step="0.1" min="40" max="200" id="weight-input" value="${currentWeight()}" style="flex:1">
+          <button class="btn" style="width:auto;padding:12px 16px" data-act="weight-add">＋ Registrar</button></div>
+        <p class="tiny muted">Pésate como mucho una vez por semana, el mismo día y en ayunas.</p>
+      </div>
+      ${section("Ajustes", "⚙️")}
+      <button class="btn ghost" data-act="plan-redo">🔄 Rehacer el cuestionario</button>
+      <button class="linkbtn small" style="color:var(--danger)" data-act="plan-delete">Borrar el plan</button>
+      <p class="tiny muted">Al rehacer el cuestionario el plan vuelve a empezar en la semana 1. Si al terminar las 12 semanas haces más flexiones, elige un nivel más alto.</p>
+    </div>`,
+  };
+}
+
+function viewNutrition() {
+  const a = state.trainingPlan;
+  if (!a) return null;
+  const n = planNutrition(a, currentWeight());
+  const list = (items) => `<ul style="--c:var(--orange)">${items.map((x) => `<li><span>${md(x)}</span></li>`).join("")}</ul>`;
+  return {
+    title: "Nutrición", back: "#/plan",
+    html: `<div class="stack lesson">
+      <p class="muted">${esc(PLAN.nutritionIntro)}</p>
+      <div class="card hi center"><div class="big-timer" style="font-size:3rem">${n.kcal}</div><p class="small muted">kcal al día · ${PLAN_GOALS[a.goal][1].toLowerCase()}</p></div>
+      <div class="grid3">${stat(`${n.protein} g`, "proteína", "🍗")}${stat(`${n.carbs} g`, "hidratos", "🍚")}${stat(`${n.fat} g`, "grasa", "🫒")}</div>
+      <div class="grid2">${stat(`${fmt1(n.waterLiters)} L`, "agua", "💧")}${stat(fmt1(n.bmi), `IMC · ${bmiLabel(n.bmi)}`, "⚖️")}</div>
+      ${a.age < 18 ? callout("info", "Como eres menor de edad, las calorías son las de mantenimiento: estás creciendo y no conviene hacer dieta sin supervisión.") : ""}
+      ${callout("warning", PLAN.nutritionWarning)}
+      ${section("El método del plato", "🍽️")}${list(PLAN.plate)}
+      ${section("Un día de ejemplo", "☀️")}${list(PLAN.sampleDay)}
+      ${section("Claves", "💡")}${list(PLAN.nutritionTips)}
+      <p class="tiny muted">El IMC no distingue músculo de grasa: si entrenas fuerza, fíjate también en el espejo y en cómo te queda la ropa.</p>
+    </div>`,
+  };
+}
+
+function viewMallorca() {
+  return {
+    title: "En Mallorca", back: "#/autoridad",
+    html: `<div class="stack lesson">${AUTHORITY.mallorca.map((b) => lessonBlock(b, "var(--info)")).join("")}</div>`,
+  };
+}
+
 /* ---------- Ruta a la autoridad ---------- */
 
 const currentRoute = () => AUTHORITY.routes.find((r) => r.id === state.profile.route) || AUTHORITY.routes[0];
@@ -502,6 +768,7 @@ function viewAuthority() {
     html: `<div class="stack">
       <p class="muted">${esc(AUTHORITY.intro)}</p>
       ${callout("danger", AUTHORITY.warning)}
+      ${link("#/mallorca", `<span style="font-size:1.6rem">📍</span><div class="grow"><p class="title">Si vives en Mallorca</p><p class="small muted">Contactos, Protección Civil y cómo conocer a la policía de tu zona</p></div>`)}
       ${section("Elige tu ruta", "🧭")}
       ${AUTHORITY.routes.map((r) => link(`#/ruta/${r.id}`, `
         <span style="font-size:1.8rem;width:40px;text-align:center">${ROUTE_EMOJI[r.id] || "🛡️"}</span>
@@ -651,6 +918,7 @@ function viewBase() {
       <div class="grid3">
         ${stat(streak(), "Racha (días)", "🔥")}${stat(workoutsThisWeek(), "Entrenos semana", "🏃")}${stat(programWeek(), "Semana", "📅")}
       </div>
+      ${state.trainingPlan ? "" : planCTA()}
       ${isRebootActive() ? rebootCard() : ""}
       ${dailyPlanSection()}
       ${link(`#/fase/${phase.id}`, `
@@ -702,6 +970,7 @@ function viewTraining() {
   return {
     title: "Entreno", large: true,
     html: `<div class="stack">
+      ${state.trainingPlan ? planCard() : planCTA()}
       ${callout("tip", "Objetivo semanal: **3 sesiones** físicas + **2–3 clases** del Dojo a partir de la Fase 1. Puedes hacer una clase del Dojo y una sesión física el mismo día, pero deja al menos un día de descanso total a la semana.")}
       ${dojoCard()}
       <div class="grid3">${stat(`${workoutsThisWeek()}/3`, "Esta semana", "📅")}${stat(state.workouts.length, "Totales", "🔥")}${stat(state.tests.length, "Tests físicos", "📈")}</div>
@@ -801,10 +1070,10 @@ function prescription(b) {
 }
 
 function viewWorkout(id) {
-  const w = WORKOUTS.find((x) => x.id === id);
+  const w = findWorkout(id);
   if (!w) return null;
   return {
-    title: w.name, back: "#/entreno",
+    title: w.name, back: id.startsWith("plan-") ? "#/plan" : "#/entreno",
     html: `<div class="stack">
       <p class="muted">${esc(w.focus)}</p>
       <div class="pills">${pill(`⏱ ${w.minutes} min`, "var(--info)")}${pill(`📍 ${w.place}`, "var(--success)")}</div>
@@ -865,7 +1134,7 @@ function sessionTick() {
 }
 
 function viewSession(id) {
-  const w = WORKOUTS.find((x) => x.id === id);
+  const w = findWorkout(id);
   if (!w) return null;
   if (!session || session.w.id !== id) startSession(w);
   const s = session, b = w.blocks[s.block];
@@ -1238,10 +1507,11 @@ function viewJournalNew(kind = "reflexion", title = "") {
   };
 }
 
-function chartSVG(points) {
+function chartSVG(points, fromZero = true) {
   const W = 320, H = 180, P = 24;
   const xs = points.map((p) => p.date), ys = points.map((p) => p.value);
-  const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(0, ...ys), maxY = Math.max(...ys) || 1;
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = fromZero ? Math.min(0, ...ys) : Math.floor(Math.min(...ys) - 1), maxY = (fromZero ? Math.max(...ys) : Math.ceil(Math.max(...ys) + 1)) || 1;
   const x = (v) => P + (maxX === minX ? (W - 2 * P) / 2 : ((v - minX) / (maxX - minX)) * (W - 2 * P));
   const y = (v) => H - P - ((v - minY) / (maxY - minY)) * (H - 2 * P);
   const path = points.map((p, i) => `${i ? "L" : "M"}${x(p.date).toFixed(1)},${y(p.value).toFixed(1)}`).join(" ");
@@ -1879,6 +2149,10 @@ const ROUTES = [
   [/^#\/practica\/([\w-]+)$/, viewPractice],
   [/^#\/sos-mental$/, viewSOSMind],
   [/^#\/reinicio$/, viewReboot],
+  [/^#\/plan$/, viewPlan],
+  [/^#\/plan-test$/, viewPlanQuiz],
+  [/^#\/nutricion$/, viewNutrition],
+  [/^#\/mallorca$/, viewMallorca],
   [/^#\/impulso$/, viewUrge],
   [/^#\/ruta\/([\w-]+)$/, viewRoute],
   [/^#\/perfil$/, viewProfile],
@@ -1892,7 +2166,7 @@ const ROUTES = [
 function tabFor(hash) {
   const map = { fase: "#/programa", entreno: "#/entreno", sesion: "#/entreno", test: "#/entreno", modulo: "#/academia", leccion: "#/academia",
     codigo: "#/academia", escenarios: "#/academia", escenario: "#/academia", kim: "#/academia",
-    sucesos: "#/mas", semana: "#/base", autoridad: "#/mas", ruta: "#/mas", mente: "#/mas", practica: "#/mas", reinicio: "#/mas", impulso: "#/mas", "sos-mental": "#/base", dojo: "#/entreno", cinturon: "#/entreno", tecnicas: "#/entreno", tecnica: "#/entreno", clase: "#/entreno" };
+    sucesos: "#/mas", semana: "#/base", autoridad: "#/mas", ruta: "#/mas", mente: "#/mas", practica: "#/mas", reinicio: "#/mas", impulso: "#/mas", plan: "#/entreno", "plan-test": "#/entreno", nutricion: "#/entreno", mallorca: "#/mas", "sos-mental": "#/base", dojo: "#/entreno", cinturon: "#/entreno", tecnicas: "#/entreno", tecnica: "#/entreno", clase: "#/entreno" };
   const key = hash.split("/")[1];
   return TABS.find(([h]) => h === hash)?.[0] || map[key] || "#/mas";
 }
@@ -1913,6 +2187,8 @@ function render() {
   if (hash !== lastHash && !hash.startsWith("#/sesion")) session = null;
   if (hash !== lastHash && hash !== "#/sucesos") sucesosAll = false;
   if (hash !== lastHash && hash !== "#/impulso") urgeStart = null;
+  if (hash !== lastHash && hash !== "#/plan-test") quiz = null;
+  if (hash !== lastHash && hash !== "#/plan") planWeekSel = 0;
   if (hash !== lastHash && !hash.startsWith("#/clase")) { if (dojoClass) stopSpeech(); dojoClass = null; }
   if (hash !== lastHash && !hash.startsWith("#/escenario/")) scenarioPlay = null;
   if (hash !== lastHash && hash !== "#/kim") kim = { stage: "menu", hard: kim.hard };
@@ -1993,6 +2269,42 @@ const ACTIONS = {
     if (at >= 0) list.splice(at, 1); else list.push(i);
   }),
   "urge-start": () => { urgeStart = Date.now(); render(); },
+  "quiz-set": (d) => {
+    const [k, v] = d.v.split(":");
+    quiz.a[k] = k === "goal" || k === "sex" ? v : k === "pullupBar" || k === "lowImpact" ? v === "1" : Number(v);
+    render();
+  },
+  "quiz-focus": (d) => {
+    const f = quiz.a.focus, i = f.indexOf(d.v);
+    if (i >= 0) f.splice(i, 1); else f.push(d.v);
+    render();
+  },
+  "quiz-back": () => { quiz.step = Math.max(0, quiz.step - 1); render(); window.scrollTo(0, 0); },
+  "quiz-next": () => {
+    if (quiz.step < QUIZ_STEPS - 1) { quiz.step++; render(); window.scrollTo(0, 0); return; }
+    const a = { ...quiz.a, start: Date.now() };
+    commit((s) => {
+      s.trainingPlan = a;
+      s.weights = s.weights || [];
+      const last = s.weights[s.weights.length - 1];
+      if (!last || Math.abs(last.kg - a.weightKg) > 0.05) s.weights.push({ id: String(Date.now()), date: Date.now(), kg: a.weightKg });
+    }, false);
+    quiz = null;
+    location.hash = "#/plan";
+  },
+  "plan-week": (d) => {
+    const cur = Math.max(1, planWeekOf(state.trainingPlan));
+    planWeekSel = Math.min(PLAN_WEEKS, Math.max(1, (planWeekSel || cur) + Number(d.d)));
+    render();
+  },
+  "plan-redo": () => { quiz = null; location.hash = "#/plan-test"; },
+  "plan-delete": () => { if (confirm("¿Borrar el plan? Tu historial de entrenos y de peso se mantiene.")) commit((s) => { s.trainingPlan = null; }); },
+  "weight-add": () => {
+    const kg = parseFloat(String(document.getElementById("weight-input").value).replace(",", "."));
+    if (!(kg >= 30 && kg <= 250)) { toast("Peso no válido"); return; }
+    commit((s) => { s.weights = s.weights || []; s.weights.push({ id: String(Date.now()), date: Date.now(), kg }); markActive(); });
+    toast("Peso registrado");
+  },
   "route-choose": (d) => { commit((s) => { s.profile.route = d.id; }); toast("Ruta principal elegida"); },
   "toggle-habit": (d) => {
     const item = plan().find((i) => i.id === d.id);
@@ -2007,7 +2319,7 @@ const ACTIONS = {
     });
   },
   "workout-quick": (d) => {
-    const w = WORKOUTS.find((x) => x.id === d.id);
+    const w = findWorkout(d.id);
     logWorkout(w, w.minutes);
     render();
   },
@@ -2038,7 +2350,7 @@ const ACTIONS = {
     if (session.saved) return;
     session.saved = true;
     logWorkout(session.w, Math.max(1, Math.round((Date.now() - session.start) / 60000)));
-    location.hash = "#/entreno";
+    location.hash = session.w.id.startsWith("plan-") ? "#/plan" : "#/entreno";
   },
   step: (d, el) => {
     const input = el.closest("form").querySelector(`[name="${d.target}"]`);
@@ -2163,6 +2475,12 @@ document.addEventListener("click", (e) => {
 });
 
 document.addEventListener("input", (e) => {
+  const q = e.target.dataset.quiz;
+  if (q && quiz) {
+    const v = parseFloat(String(e.target.value).replace(",", "."));
+    if (!Number.isNaN(v)) quiz.a[q] = v;
+    return;
+  }
   const key = e.target.dataset.onb;
   if (!key) return;
   onb[key] = e.target.type === "checkbox" ? e.target.checked : e.target.value;

@@ -9,6 +9,14 @@ struct TrainingView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
+                    if store.state.trainingPlan != nil {
+                        NavigationLink { PlanView() } label: { PlanCard() }
+                            .buttonStyle(.plain)
+                    } else {
+                        NavigationLink { PlanQuizView() } label: { PlanCTA() }
+                            .buttonStyle(.plain)
+                    }
+
                     Callout(kind: .tip, text: "Objetivo semanal: **3 sesiones** físicas + **2–3 clases** del Dojo a partir de la Fase 1. Puedes hacer una clase del Dojo y una sesión física el mismo día, pero deja al menos un día de descanso total a la semana.")
 
                     NavigationLink {

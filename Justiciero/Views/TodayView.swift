@@ -18,6 +18,10 @@ struct TodayView: View {
                 VStack(spacing: 16) {
                     header
                     statsRow
+                    if store.state.trainingPlan == nil {
+                        NavigationLink { PlanQuizView() } label: { PlanCTA() }
+                            .buttonStyle(.plain)
+                    }
                     if store.isRebootActive() {
                         NavigationLink {
                             RebootView()

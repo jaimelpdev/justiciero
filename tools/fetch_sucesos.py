@@ -28,6 +28,8 @@ CITIES = [
     "Lleida", "Tarragona", "León", "Cádiz", "Jaén", "Ourense", "Girona", "Lugo", "Cáceres",
     "Toledo", "Pontevedra", "Palencia", "Ceuta", "Melilla", "Zamora", "Ávila", "Cuenca",
     "Segovia", "Huesca", "Soria", "Teruel", "Guadalajara", "Ciudad Real",
+    # Mallorca
+    "Calvià", "Manacor", "Marratxí", "Llucmajor", "Inca", "Alcúdia",
 ]
 
 TERMS = "(sucesos OR detenido OR detenida OR robo OR atraco OR agresión OR apuñalado OR reyerta OR policía)"

@@ -8,6 +8,34 @@ enum Authority {
 
     static let routes: [AuthorityRoute] = [proteccion, vigilante, ciber]
 
+    /// Guía local: contactos y equipos reales si vives en Mallorca.
+    static let mallorca: [LessonBlock] = [
+        .paragraph("Si vives en Mallorca, estos son los equipos y contactos con los que vas a trabajar. La confianza de la autoridad empieza por conocerla."),
+        .heading("Emergencias y policía"),
+        .bullets([
+            "**112**: emergencias en todas las Illes Balears. Si dudas a quién llamar, llama aquí.",
+            "**092**: Policía Local en Palma y en los municipios grandes. En los pueblos pequeños, llama al 112.",
+            "**091**: Policía Nacional, en las ciudades más grandes.",
+            "**062**: Guardia Civil, que cubre la mayoría de pueblos de la isla.",
+            "**AlertCops**: app oficial del Ministerio del Interior para avisar a Policía Nacional y Guardia Civil por chat, incluso sin hablar.",
+        ]),
+        .heading("Protección Civil en Mallorca"),
+        .bullets([
+            "Casi todos los ayuntamientos de la isla tienen agrupación de voluntarios de Protección Civil (Palma, Calvià, Marratxí, Llucmajor, Inca, Manacor…). Pregunta en el tuyo o en la Policía Local.",
+            "La formación del voluntariado y de las policías locales de Baleares la coordina el **ISPIB** (Institut de Seguretat Pública de les Illes Balears).",
+            "En verano hay muchísimos servicios preventivos: fiestas patronales, verbenas, Sant Joan, conciertos, carreras populares y playas. Es la mejor época para empezar y que te conozcan.",
+            "**Cruz Roja Illes Balears** también busca voluntariado de socorros y emergencias, incluido el de playas.",
+        ]),
+        .heading("Conocer a la autoridad de tu zona"),
+        .bullets([
+            "Policía Nacional y Guardia Civil tienen **delegados de participación ciudadana**: pide hablar con ellos en tu comisaría o cuartel.",
+            "Muchas Policías Locales de Mallorca tienen policía de barrio o de proximidad que se reúne con las asociaciones de vecinos. Ve a esas reuniones.",
+            "Preséntate siempre con tu nombre y tu agrupación. La confianza llega por la cara que conocen, no por la que escondes.",
+        ]),
+        .tip("Si algún día quieres opositar a Policía Local en Baleares, te pedirán un certificado de catalán (el nivel lo fija cada convocatoria). Puedes sacarlo con las pruebas oficiales del Govern o en la Escuela Oficial de Idiomas, sin prisa."),
+        .warning("Ningún cuerpo en Mallorca ni en España trabaja con particulares enmascarados. Si ocultas la cara en un incidente, la policía que llega te tratará como sospechoso. Y si acabas implicado en un delito, el Código Penal lo castiga más: actuar con disfraz es una agravante (art. 22.2)."),
+    ]
+
     static let proteccion = AuthorityRoute(
         id: "proteccion", title: "Protección Civil", icon: "cross.case.fill",
         summary: "Voluntario con uniforme en la agrupación de tu municipio. Patrullas preventivas en fiestas, conciertos y emergencias, codo con codo con la Policía Local y los servicios de emergencia. Es la forma más rápida de que la policía de tu ciudad te conozca y confíe en ti.",
