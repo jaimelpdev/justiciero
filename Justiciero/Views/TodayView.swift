@@ -2,6 +2,8 @@ import SwiftUI
 
 struct TodayView: View {
     @EnvironmentObject private var store: ProgressStore
+    @AppStorage("plan.prompted") private var planPrompted = false
+    @State private var showingQuiz = false
 
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: .now)
@@ -45,6 +47,21 @@ struct TodayView: View {
             }
             .screenBackground()
             .navigationTitle("Base")
+            .onAppear {
+                // La primera vez sin plan, abre el cuestionario directamente.
+                if store.state.trainingPlan == nil && !planPrompted {
+                    planPrompted = true
+                    showingQuiz = true
+                }
+            }
+            .fullScreenCover(isPresented: $showingQuiz) {
+                NavigationStack {
+                    PlanQuizView()
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) { Button("Más tarde") { showingQuiz = false } }
+                        }
+                }
+            }
         }
     }
 

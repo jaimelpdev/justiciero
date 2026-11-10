@@ -168,6 +168,8 @@ struct HabitRow: View {
         case .entreno:
             if let workout {
                 NavigationLink { WorkoutDetailView(workout: workout) } label: { goLabel }
+            } else if store.state.trainingPlan == nil {
+                NavigationLink { PlanQuizView() } label: { goLabel }
             }
         case .dojo:
             NavigationLink { BeltView(belt: store.currentBelt) } label: { goLabel }

@@ -47,7 +47,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Versionar la caché del service worker
-        run: sed -i "s/const VERSION = \"justiciero-v1\"/const VERSION = \"justiciero-${GITHUB_SHA::7}\"/" web/sw.js
+        run: |
+          sed -i "s/const VERSION = \"justiciero-v1\"/const VERSION = \"justiciero-${GITHUB_SHA::7}\"/" web/sw.js
+          sed -i "s/const APP_VERSION = \"dev\"/const APP_VERSION = \"${GITHUB_SHA::7}\"/" web/app.js
       - name: Noticias de sucesos por ciudad
         # Si Google Noticias falla, se publica la web igualmente (sin resumen de sucesos).
         continue-on-error: true

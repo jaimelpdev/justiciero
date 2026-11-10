@@ -252,6 +252,36 @@ enum PlanEngine {
                        minutes: estimate(blocks), notes: "\(runNote) \(note)", blocks: blocks)
     }
 
+    // MARK: Progresión
+
+    struct Step: Identifiable {
+        let id: String
+        let label: String
+        let current: String
+        let next: String?
+        /// Semana en la que se desbloquea el siguiente escalón (nil: en el próximo ciclo).
+        let unlockWeek: Int?
+    }
+
+    /// Ejercicio actual y siguiente de cada patrón de movimiento.
+    static func progression(_ a: PlanAnswers, week: Int) -> [Step] {
+        let block = (cycleWeek(max(1, week)) - 1) / 4
+        let rows = [("push", "Empuje"), (a.pullupBar ? "pullBar" : "pull", "Tirón"), ("leg", "Piernas"), ("hinge", "Cadera"), ("core", "Core")]
+        return rows.map { row in
+            let (slot, label) = row
+            let moves = ladder(slot).filter { !(a.lowImpact && $0.impact) }
+            let top = min(a.level + block, moves.count - 1)
+            let next = top + 1 < moves.count ? describe(moves[top + 1]) : nil
+            return Step(id: slot, label: label, current: describe(moves[top]), next: next,
+                        unlockWeek: next != nil && block < 2 ? (block + 1) * 4 + 1 : nil)
+        }
+    }
+
+    private static func describe(_ m: PlanMove) -> String {
+        if let reps = m.reps { return "\(m.exercise.name) · \(reps)\(m.perSide ? "/lado" : "") rep." }
+        return "\(m.exercise.name) · \(m.seconds ?? 0) s"
+    }
+
     private static func ladder(_ slot: String) -> [PlanMove] {
         switch slot {
         case "push": PlanData.push
