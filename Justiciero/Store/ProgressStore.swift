@@ -167,6 +167,7 @@ final class ProgressStore: ObservableObject {
 
     func reset() {
         state = AppState()
+        UserDefaults.standard.removeObject(forKey: "plan.prompted")
     }
 
     // MARK: Actividad y racha
@@ -401,6 +402,21 @@ final class ProgressStore: ObservableObject {
         }
     }
 
+    /// Sube o baja el nivel del plan sin reiniciar las semanas.
+    func adjustLevel(_ delta: Int) {
+        guard var answers = state.trainingPlan else { return }
+        answers.level = min(3, max(0, answers.level + delta))
+        state.trainingPlan = answers
+    }
+
+    /// Empieza un ciclo nuevo de 12 semanas un nivel más arriba.
+    func startNextCycle() {
+        guard var answers = state.trainingPlan else { return }
+        answers.level = min(3, answers.level + 1)
+        answers.start = .now
+        state.trainingPlan = answers
+    }
+
     func deletePlan() {
         state.trainingPlan = nil
     }
@@ -569,14 +585,16 @@ final class ProgressStore: ObservableObject {
         } else {
             let template = Habits.weeks.last(where: { $0.minPhase <= phase }) ?? Habits.weeks[0]
             items = Habits.daily + template.days[index]
-            // Con plan personalizado, el entreno físico del día sale del plan.
-            if state.trainingPlan != nil {
-                items.removeAll { $0.kind == .entreno || $0.id == "trote" }
-                if let session = planSession(on: date) {
-                    items.append(HabitItem(id: "plan", block: .tarde, kind: .entreno, title: session.name,
-                                           detail: session.focus, minutes: session.minutes, workout: session.id))
-                }
-            }
+        }
+        // El entreno físico del día siempre sale del plan personalizado.
+        items.removeAll { $0.kind == .entreno || $0.id == "trote" }
+        if state.trainingPlan == nil {
+            items.append(HabitItem(id: "plan", block: .tarde, kind: .entreno, title: "Crea tu plan de entreno",
+                                   detail: "9 preguntas y la app te dirá qué entrenar cada día, con progresión semana a semana.",
+                                   minutes: 5, workout: nil))
+        } else if let session = planSession(on: date) {
+            items.append(HabitItem(id: "plan", block: .tarde, kind: .entreno, title: session.name,
+                                   detail: session.focus, minutes: session.minutes, workout: session.id))
         }
         if index == 6 && testDue(at: date) { items.append(Habits.test) }
         let order = DayBlock.allCases

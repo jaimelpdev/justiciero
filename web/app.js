@@ -6,6 +6,8 @@
    ============================================================ */
 
 const STORAGE_KEY = "justiciero.v1";
+// El despliegue sustituye "dev" por el commit publicado (se ve al final de Más).
+const APP_VERSION = "dev";
 const XP = { task: 20, lesson: 15, workout: 30, scenarioPerPoint: 10, test: 25, journal: 5, dojoClass: 40, belt: 150, mental: 15 };
 
 const RANKS = [
@@ -213,12 +215,14 @@ function plan(date = new Date()) {
   if (isRebootActive(date)) items = [...HABITS.daily, ...REBOOT.daily, ...REBOOT.week.days[idx]];
   else {
     items = [...HABITS.daily, ...template.days[idx]];
-    // Con plan personalizado, el entreno físico del día sale del plan.
-    if (state.trainingPlan) {
-      items = items.filter((i) => i.kind !== "entreno" && i.id !== "trote");
-      const s = planSessionFor(date);
-      if (s) items.push({ id: "plan", block: "tarde", kind: "entreno", title: s.name, detail: s.focus, minutes: s.minutes, workout: s.id });
-    }
+  }
+  // El entreno físico del día siempre sale del plan personalizado.
+  items = items.filter((i) => i.kind !== "entreno" && i.id !== "trote");
+  if (!state.trainingPlan) {
+    items.push({ id: "plan", block: "tarde", kind: "entreno", title: "Crea tu plan de entreno", detail: "9 preguntas y la app te dirá qué entrenar cada día, con progresión semana a semana.", minutes: 5, workout: null });
+  } else {
+    const s = planSessionFor(date);
+    if (s) items.push({ id: "plan", block: "tarde", kind: "entreno", title: s.name, detail: s.focus, minutes: s.minutes, workout: s.id });
   }
   const last = state.tests[state.tests.length - 1];
   if (idx === 6 && (!last || date.getTime() - last.date >= 25 * 86400000)) items.push(HABITS.test);
@@ -263,7 +267,7 @@ function nextLesson() {
 function resolveHabit(item) {
   const r = { title: item.title, detail: item.detail, href: null };
   switch (item.kind) {
-    case "entreno": r.href = `#/entreno/${item.workout}`; break;
+    case "entreno": r.href = item.workout ? `#/entreno/${item.workout}` : "#/plan-test"; break;
     case "dojo": { const b = currentBelt(); r.title = `Clase del Dojo · cinturón ${b.name.toLowerCase()}`; r.href = `#/cinturon/${b.id}`; break; }
     case "leccion": {
       const n = nextLesson();
@@ -682,6 +686,25 @@ function expandWorkout(w) {
   return { ...w, blocks: out, format: null };
 }
 
+/** Ejercicio actual y siguiente de cada patrón (copia de PlanEngine.progression). */
+function planProgression(a, week) {
+  const block = Math.floor((planCycleWeek(Math.max(1, week)) - 1) / 4);
+  const describe = (m) => (m.reps != null ? `${m.exercise.name} · ${m.reps}${m.perSide ? "/lado" : ""} rep.` : `${m.exercise.name} · ${m.seconds} s`);
+  return [["push", "Empuje"], [a.pullupBar ? "pullBar" : "pull", "Tirón"], ["leg", "Piernas"], ["hinge", "Cadera"], ["core", "Core"]].map(([slot, label]) => {
+    const moves = PLAN[slot].filter((m) => !(a.lowImpact && m.impact));
+    const top = Math.min(a.level + block, moves.length - 1);
+    const next = top + 1 < moves.length ? describe(moves[top + 1]) : null;
+    return { label, current: describe(moves[top]), next, unlockWeek: next && block < 2 ? (block + 1) * 4 + 1 : null };
+  });
+}
+function progressionCard(a, week) {
+  return `<div class="card stack" style="gap:10px"><p class="title" style="color:var(--accent)">📈 Tu progresión</p>
+    ${planProgression(a, week).map((p) => `<div><p class="tiny muted" style="font-weight:700;text-transform:uppercase">${p.label}</p>
+      <p class="small" style="font-weight:700">${esc(p.current)}</p>
+      ${p.next ? `<p class="tiny muted">Siguiente: ${esc(p.next)} · ${p.unlockWeek ? `semana ${p.unlockWeek}` : "próximo ciclo"}</p>` : `<p class="tiny" style="color:var(--success)">Nivel máximo de este ejercicio</p>`}</div>`).join("")}
+    <p class="tiny muted">Cada semana suben las repeticiones o los segundos; cada 4 semanas, el ejercicio.</p></div>`;
+}
+
 function planNutrition(a, weight) {
   const bmi = weight / Math.pow(a.heightCm / 100, 2);
   const bmr = 10 * weight + 6.25 * a.heightCm - 5 * a.age + (a.sex === "hombre" ? 5 : -161);
@@ -774,7 +797,7 @@ function viewPlan() {
     html: `<div class="stack">
       ${planCard()}
       ${session ? `<a class="btn" href="#/entreno/${session.id}">▶ ${planDone(new Date()) ? "Repetir la sesión de hoy" : "Empezar la sesión de hoy"}</a>` : ""}
-      <div class="grid3">${stat(planSessionsDone(), "sesiones hechas", "✅")}${stat(PLAN_LEVEL_NAMES[a.level], "nivel inicial", "📊")}${stat(`${a.minutes}'`, "por sesión", "⏱")}</div>
+      <div class="grid3">${stat(planSessionsDone(), "sesiones hechas", "✅")}${stat(PLAN_LEVEL_NAMES[a.level], "nivel", "📊")}${stat(`${a.minutes}'`, "por sesión", "⏱")}</div>
       <div class="row"><div class="section grow">📅 Semana ${week}</div>
         <button class="linkbtn" data-act="plan-week" data-d="-1" ${week <= 1 ? "disabled" : ""}>‹</button>
         <button class="linkbtn" data-act="plan-week" data-d="1" ${week >= PLAN_WEEKS ? "disabled" : ""}>›</button></div>
@@ -785,6 +808,12 @@ function viewPlan() {
           <div class="grow"><p class="tiny" style="font-weight:700;color:${isToday ? "var(--accent)" : "var(--muted)"}">${DAY_LONG[day]}${isToday ? " · hoy" : ""}</p>
           <p class="title">${esc(workout.name)}</p><p class="tiny muted">${workout.minutes} min · ${workout.blocks.length - 1} ejercicios</p></div>`);
       }).join("")}
+      ${planWeekOf(a) > PLAN_WEEKS ? `${callout("tip", "**¡Has completado las 12 semanas!** Haz un test físico y empieza un ciclo nuevo un nivel más arriba.")}
+        <button class="btn" style="--c:var(--success)" data-act="plan-cycle">⬆ Empezar el siguiente ciclo</button>` : ""}
+      ${progressionCard(a, week)}
+      <div class="grid2"><button class="btn ghost" data-act="plan-level" data-d="-1" ${a.level === 0 ? "disabled" : ""}>⬇ Me cuesta mucho</button>
+        <button class="btn ghost" data-act="plan-level" data-d="1" ${a.level === 3 ? "disabled" : ""}>⬆ Me resulta fácil</button></div>
+      <p class="tiny muted">Nivel actual: ${PLAN_LEVEL_NAMES[a.level]}. Cambiarlo ajusta los ejercicios desde hoy sin perder tus semanas.</p>
       ${section("Nutrición y peso", "🍽️")}
       ${link("#/nutricion", `<span style="font-size:1.6rem">🍽️</span><div class="grow"><p class="title">Tu nutrición</p><p class="small muted">${n.kcal} kcal · ${n.protein} g de proteína · ${fmt1(n.waterLiters)} L de agua</p></div>`)}
       <div class="card stack" style="gap:10px">
@@ -1245,17 +1274,19 @@ function viewProgram() {
 }
 
 function viewTraining() {
-  const phase = currentPhase();
+  const a = state.trainingPlan, session = a && planSessionFor();
   return {
     title: "Entreno", large: true,
     html: `<div class="stack">
-      ${state.trainingPlan ? planCard() : planCTA()}
-      ${callout("tip", "Objetivo semanal: **3 sesiones** físicas + **2–3 clases** del Dojo a partir de la Fase 1. Puedes hacer una clase del Dojo y una sesión física el mismo día, pero deja al menos un día de descanso total a la semana.")}
+      ${a ? planCard() : planCTA()}
+      ${session ? `<a class="btn" href="#/entreno/${session.id}">▶ ${planDone(new Date()) ? "Repetir la sesión de hoy" : "Empezar la sesión de hoy"}</a>` : ""}
+      ${a ? progressionCard(a, Math.max(1, planWeekOf(a))) : `<p class="small muted">Tu plan te dice qué entrenar cada día y sube de nivel solo. Sustituye a las sesiones sueltas de antes.</p>`}
       ${dojoCard()}
-      <div class="grid3">${stat(`${workoutsThisWeek()}/3`, "Esta semana", "📅")}${stat(state.workouts.length, "Totales", "🔥")}${stat(state.tests.length, "Tests físicos", "📈")}</div>
-      <a class="btn" href="#/test">⏱ Registrar test físico</a>
-      ${section("Sesiones físicas", "🏋️")}
-      ${WORKOUTS.map((w) => workoutRow(w, w.minPhase > phase.id)).join("")}
+      <p class="tiny muted">Además del plan, a partir de la Fase 1: 2–3 clases del Dojo a la semana. Deja al menos un día de descanso total.</p>
+      <div class="grid3">${stat(`${workoutsThisWeek()}/${a ? a.days : 3}`, "Esta semana", "📅")}${stat(state.workouts.length, "Totales", "🔥")}${stat(state.tests.length, "Tests físicos", "📈")}</div>
+      <a class="btn ghost" href="#/test">⏱ Registrar test físico</a>
+      ${section("Extras para los días de descanso", "🍃")}
+      ${WORKOUTS.filter((w) => w.id === "movilidad" || w.id === "caidas").map((w) => workoutRow(w, false)).join("")}
       ${state.workouts.length ? `${section("Historial reciente", "🕘")}
         <div class="card list">${state.workouts.slice(0, 10).map((w) =>
           `<div class="list-item small"><span class="grow">${esc(w.name)}</span><span class="muted">${fmtDate(w.date)}</span></div>`).join("")}</div>` : ""}
@@ -1311,7 +1342,7 @@ function viewMore() {
           <input type="file" accept="application/json,.json" data-act="import" hidden></label>
         <button class="list-item" data-act="reset" style="color:var(--danger)"><span style="width:28px;text-align:center">🗑️</span><span class="grow">Reiniciar todo el progreso</span></button>
       </div>
-      <p class="tiny muted center">Tus datos se guardan solo en este dispositivo. Exporta una copia de vez en cuando.</p>
+      <p class="tiny muted center">Tus datos se guardan solo en este dispositivo. Exporta una copia de vez en cuando.<br>Versión ${APP_VERSION}</p>
     </div>`,
   };
 }
@@ -2610,6 +2641,8 @@ const ACTIONS = {
     planWeekSel = Math.min(PLAN_WEEKS, Math.max(1, (planWeekSel || cur) + Number(d.d)));
     render();
   },
+  "plan-level": (d) => commit((s) => { s.trainingPlan.level = Math.min(3, Math.max(0, s.trainingPlan.level + Number(d.d))); }),
+  "plan-cycle": () => { planWeekSel = 0; commit((s) => { s.trainingPlan.level = Math.min(3, s.trainingPlan.level + 1); s.trainingPlan.start = Date.now(); }); },
   "plan-redo": () => { quiz = null; location.hash = "#/plan-test"; },
   "plan-delete": () => { if (confirm("¿Borrar el plan? Tu historial de entrenos y de peso se mantiene.")) commit((s) => { s.trainingPlan = null; }); },
   "weight-add": () => {
@@ -2773,7 +2806,7 @@ const ACTIONS = {
     commit((s) => {
       Object.assign(s.profile, { alias: onb.alias.trim(), isAdult: onb.isAdult, contactName: onb.contactName.trim(), contactPhone: onb.contactPhone.trim(), startDate: Date.now(), onboarded: true });
     }, false);
-    location.hash = "#/base";
+    location.hash = state.trainingPlan ? "#/base" : "#/plan-test";
     render();
   },
 };
@@ -2875,7 +2908,14 @@ setInterval(() => {
 }, 1000);
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+  // Busca versiones nuevas al abrir la app y al volver a ella, y recarga sola cuando llega una.
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => { if (hadController && !reloaded) { reloaded = true; location.reload(); } });
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").then((reg) => {
+    reg.update();
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") reg.update().catch(() => {}); });
+  }).catch(() => {}));
 }
 
 render();

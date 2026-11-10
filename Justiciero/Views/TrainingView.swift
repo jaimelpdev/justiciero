@@ -9,15 +9,26 @@ struct TrainingView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    if store.state.trainingPlan != nil {
+                    if let answers = store.state.trainingPlan {
                         NavigationLink { PlanView() } label: { PlanCard() }
                             .buttonStyle(.plain)
+                        if let session = store.planSession() {
+                            NavigationLink {
+                                WorkoutDetailView(workout: session)
+                            } label: {
+                                Label(store.planDone(on: .now) ? "Repetir la sesión de hoy" : "Empezar la sesión de hoy", systemImage: "play.fill")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(PrimaryButtonStyle())
+                        }
+                        ProgressionCard(answers: answers, week: max(1, store.planWeek))
                     } else {
                         NavigationLink { PlanQuizView() } label: { PlanCTA() }
                             .buttonStyle(.plain)
+                        Text("Tu plan te dice qué entrenar cada día y sube de nivel solo. Sustituye a las sesiones sueltas de antes.")
+                            .font(.subheadline)
+                            .foregroundStyle(Theme.muted)
                     }
-
-                    Callout(kind: .tip, text: "Objetivo semanal: **3 sesiones** físicas + **2–3 clases** del Dojo a partir de la Fase 1. Puedes hacer una clase del Dojo y una sesión física el mismo día, pero deja al menos un día de descanso total a la semana.")
 
                     NavigationLink {
                         DojoView()
@@ -25,9 +36,12 @@ struct TrainingView: View {
                         DojoCard()
                     }
                     .buttonStyle(.plain)
+                    Text("Además del plan, a partir de la Fase 1: 2–3 clases del Dojo a la semana. Deja al menos un día de descanso total.")
+                        .font(.caption)
+                        .foregroundStyle(Theme.muted)
 
                     HStack(spacing: 12) {
-                        StatTile(value: "\(store.workoutsThisWeek)/3", label: "Esta semana", icon: "calendar", color: Theme.accent)
+                        StatTile(value: "\(store.workoutsThisWeek)/\(store.state.trainingPlan?.days ?? 3)", label: "Esta semana", icon: "calendar", color: Theme.accent)
                         StatTile(value: "\(store.state.workouts.count)", label: "Totales", icon: "flame.fill", color: .orange)
                         StatTile(value: "\(store.state.tests.count)", label: "Tests físicos", icon: "chart.line.uptrend.xyaxis", color: Theme.info)
                     }
@@ -37,18 +51,16 @@ struct TrainingView: View {
                     } label: {
                         Label("Registrar test físico", systemImage: "stopwatch.fill")
                     }
-                    .buttonStyle(PrimaryButtonStyle())
+                    .buttonStyle(PrimaryButtonStyle(color: Theme.cardHighlight))
 
-                    SectionHeader(title: "Sesiones físicas", icon: "dumbbell.fill")
-                    ForEach(Workout.all) { workout in
-                        let locked = workout.minPhase > store.currentPhase.id
+                    SectionHeader(title: "Extras para los días de descanso", icon: "leaf.fill")
+                    ForEach([Workout.movilidad, Workout.caidas]) { workout in
                         NavigationLink {
                             WorkoutDetailView(workout: workout)
                         } label: {
-                            WorkoutRow(workout: workout, locked: locked)
+                            WorkoutRow(workout: workout, locked: false)
                         }
                         .buttonStyle(.plain)
-                        .disabled(locked)
                     }
 
                     if !store.state.workouts.isEmpty {

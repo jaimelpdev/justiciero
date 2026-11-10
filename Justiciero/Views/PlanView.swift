@@ -265,7 +265,7 @@ struct PlanView: View {
 
                 HStack(spacing: 12) {
                     StatTile(value: "\(store.planSessionsDone)", label: "sesiones hechas", icon: "checkmark.seal.fill", color: Theme.success)
-                    StatTile(value: PlanAnswers.levelNames[answers.level], label: "nivel inicial", icon: "chart.bar.fill", color: Theme.info)
+                    StatTile(value: PlanAnswers.levelNames[answers.level], label: "nivel", icon: "chart.bar.fill", color: Theme.info)
                     StatTile(value: "\(answers.minutes)'", label: "por sesión", icon: "clock", color: Theme.accent)
                 }
 
@@ -305,6 +305,34 @@ struct PlanView: View {
                     }
                     .buttonStyle(.plain)
                 }
+
+                if store.planWeek > PlanEngine.totalWeeks {
+                    Callout(kind: .tip, text: "**¡Has completado las 12 semanas!** Haz un test físico y empieza un ciclo nuevo un nivel más arriba.")
+                    Button {
+                        store.startNextCycle()
+                        selectedWeek = 0
+                    } label: {
+                        Label("Empezar el siguiente ciclo", systemImage: "arrow.up.circle.fill").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(PrimaryButtonStyle(color: Theme.success))
+                }
+
+                ProgressionCard(answers: answers, week: week)
+                HStack(spacing: 10) {
+                    Button { store.adjustLevel(-1) } label: {
+                        Label("Me cuesta mucho", systemImage: "arrow.down").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(PrimaryButtonStyle(color: Theme.cardHighlight))
+                    .disabled(answers.level == 0)
+                    Button { store.adjustLevel(1) } label: {
+                        Label("Me resulta fácil", systemImage: "arrow.up").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(PrimaryButtonStyle(color: Theme.cardHighlight))
+                    .disabled(answers.level == 3)
+                }
+                Text("Nivel actual: \(PlanAnswers.levelNames[answers.level]). Cambiarlo ajusta los ejercicios desde hoy sin perder tus semanas.")
+                    .font(.caption)
+                    .foregroundStyle(Theme.muted)
 
                 SectionHeader(title: "Nutrición y peso", icon: "fork.knife")
                 NavigationLink {
@@ -460,5 +488,35 @@ struct NutritionView: View {
         }
         .screenBackground()
         .navigationTitle("Nutrición")
+    }
+}
+
+/// Qué ejercicio haces ahora en cada patrón y cuál viene después.
+struct ProgressionCard: View {
+    let answers: PlanAnswers
+    let week: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Tu progresión", systemImage: "chart.line.uptrend.xyaxis").font(.headline).foregroundStyle(Theme.accent)
+            ForEach(PlanEngine.progression(answers, week: week)) { step in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(step.label.uppercased()).font(.caption2.bold()).foregroundStyle(Theme.muted)
+                    Text(step.current).font(.subheadline.bold())
+                    if let next = step.next {
+                        Text("Siguiente: \(next)\(step.unlockWeek.map { " · semana \($0)" } ?? " · próximo ciclo")")
+                            .font(.caption)
+                            .foregroundStyle(Theme.muted)
+                    } else {
+                        Text("Nivel máximo de este ejercicio").font(.caption).foregroundStyle(Theme.success)
+                    }
+                }
+            }
+            Text("Cada semana suben las repeticiones o los segundos; cada 4 semanas, el ejercicio.")
+                .font(.caption)
+                .foregroundStyle(Theme.muted)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .card()
     }
 }
