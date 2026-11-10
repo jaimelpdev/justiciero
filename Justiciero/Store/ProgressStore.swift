@@ -93,6 +93,8 @@ struct AppState: Codable {
     /// Respuestas del cuestionario del plan personalizado (nil si aún no lo has creado).
     var trainingPlan: PlanAnswers?
     var weights: [WeightEntry] = []
+    /// Sesiones adaptadas por el entrenador IA (clave: día "20261110").
+    var aiSessions: [String: AISession] = [:]
 
     init() {}
 
@@ -119,6 +121,7 @@ struct AppState: Codable {
         rebootUntil = try c.decodeIfPresent(Date.self, forKey: .rebootUntil)
         trainingPlan = try? c.decodeIfPresent(PlanAnswers.self, forKey: .trainingPlan)
         weights = try c.decodeIfPresent([WeightEntry].self, forKey: .weights) ?? []
+        aiSessions = (try? c.decodeIfPresent([String: AISession].self, forKey: .aiSessions)) ?? [:]
     }
 }
 
@@ -402,11 +405,35 @@ final class ProgressStore: ObservableObject {
         state.trainingPlan = nil
     }
 
+    /// Sesión del plan para ese día (la adaptada por la IA si la hay), o nil si toca descanso.
+    func planSession(on date: Date = .now) -> Workout? {
+        guard let answers = state.trainingPlan, let session = PlanEngine.session(answers, on: date) else { return nil }
+        let day = PlanEngine.dayNumber(date)
+        if let ai = state.aiSessions[String(day)] { return GroqCoach.workout(ai, day: day, focus: session.focus) }
+        return session
+    }
+
+    /// Sesión original del plan (sin la adaptación de la IA).
+    func originalPlanSession(on date: Date = .now) -> Workout? {
+        state.trainingPlan.flatMap { PlanEngine.session($0, on: date) }
+    }
+
+    func setAISession(_ session: AISession, on date: Date = .now) {
+        state.aiSessions[String(PlanEngine.dayNumber(date))] = session
+    }
+
+    func clearAISession(on date: Date = .now) {
+        state.aiSessions[String(PlanEngine.dayNumber(date))] = nil
+    }
+
     /// Busca un entreno por id, incluidas las sesiones generadas del plan.
     func workout(id: String?) -> Workout? {
         guard let id else { return nil }
         if let workout = Workout.all.first(where: { $0.id == id }) { return workout }
         guard let answers = state.trainingPlan else { return nil }
+        if id.hasPrefix("plan-ai-"), let day = Int(id.dropFirst(8)), let ai = state.aiSessions[String(day)] {
+            return GroqCoach.workout(ai, day: day, focus: "Adaptada por tu entrenador IA")
+        }
         return PlanEngine.workout(id: id, answers: answers)
     }
 
@@ -418,9 +445,22 @@ final class ProgressStore: ObservableObject {
         state.workouts.contains { $0.workoutID == workout.id }
     }
 
-    /// Sesiones del plan completadas (cada sesión cuenta una vez).
+    /// Día del plan al que pertenece un entreno registrado ("plan-d20261110-A" o "plan-ai-20261110").
+    private static func planDay(_ id: String) -> String? {
+        if id.hasPrefix("plan-ai-") { return String(id.dropFirst(8)) }
+        let parts = id.split(separator: "-")
+        guard parts.count == 3, parts[0] == "plan", parts[1].hasPrefix("d") else { return nil }
+        return String(parts[1].dropFirst())
+    }
+
+    /// Días de entreno del plan completados.
     var planSessionsDone: Int {
-        Set(state.workouts.map(\.workoutID).filter { $0.hasPrefix("plan-") }).count
+        Set(state.workouts.compactMap { Self.planDay($0.workoutID) }).count
+    }
+
+    func planDone(on date: Date) -> Bool {
+        let day = String(PlanEngine.dayNumber(date))
+        return state.workouts.contains { Self.planDay($0.workoutID) == day }
     }
 
     var currentWeight: Double? {
@@ -530,9 +570,9 @@ final class ProgressStore: ObservableObject {
             let template = Habits.weeks.last(where: { $0.minPhase <= phase }) ?? Habits.weeks[0]
             items = Habits.daily + template.days[index]
             // Con plan personalizado, el entreno físico del día sale del plan.
-            if let answers = state.trainingPlan {
+            if state.trainingPlan != nil {
                 items.removeAll { $0.kind == .entreno || $0.id == "trote" }
-                if let session = PlanEngine.session(answers, on: date) {
+                if let session = planSession(on: date) {
                     items.append(HabitItem(id: "plan", block: .tarde, kind: .entreno, title: session.name,
                                            detail: session.focus, minutes: session.minutes, workout: session.id))
                 }

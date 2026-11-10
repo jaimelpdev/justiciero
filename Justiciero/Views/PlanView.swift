@@ -200,7 +200,7 @@ struct PlanCard: View {
 
     var body: some View {
         let week = store.planWeek
-        let today = store.state.trainingPlan.flatMap { PlanEngine.session($0, on: .now) }
+        let today = store.planSession()
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Label("Tu plan", systemImage: "sparkles").font(.headline).foregroundStyle(Theme.accent)
@@ -212,9 +212,9 @@ struct PlanCard: View {
             ProgressBar(value: min(1, Double(week - 1) / Double(PlanEngine.totalWeeks)))
             if let today {
                 Text("Hoy: \(today.name)").font(.title3.bold())
-                Text("\(today.minutes) min · \(today.blocks.count - 1) ejercicios\(store.isLogged(today) ? " · hecho ✓" : "")")
+                Text("\(today.minutes) min · \(today.blocks.count - 1) ejercicios\(store.planDone(on: .now) ? " · hecho ✓" : "")")
                     .font(.subheadline)
-                    .foregroundStyle(store.isLogged(today) ? Theme.success : Theme.muted)
+                    .foregroundStyle(store.planDone(on: .now) ? Theme.success : Theme.muted)
             } else {
                 Text("Hoy descansas").font(.title3.bold())
                 Text("Camina, estira o haz una clase suave del Dojo. El músculo crece descansando.")
@@ -253,11 +253,11 @@ struct PlanView: View {
         return ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 PlanCard()
-                if let session = PlanEngine.session(answers, on: .now) {
+                if let session = store.planSession() {
                     NavigationLink {
                         WorkoutDetailView(workout: session)
                     } label: {
-                        Label(store.isLogged(session) ? "Repetir la sesión de hoy" : "Empezar la sesión de hoy", systemImage: "play.fill")
+                        Label(store.planDone(on: .now) ? "Repetir la sesión de hoy" : "Empezar la sesión de hoy", systemImage: "play.fill")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(PrimaryButtonStyle())
@@ -280,20 +280,22 @@ struct PlanView: View {
                 .foregroundStyle(Theme.accent)
 
                 ForEach(PlanEngine.sessions(answers, week: week)) { item in
+                    let shown = Calendar.current.isDateInToday(item.date) ? (store.planSession() ?? item.workout) : item.workout
+                    let done = store.planDone(on: item.date)
                     NavigationLink {
-                        WorkoutDetailView(workout: item.workout)
+                        WorkoutDetailView(workout: shown)
                     } label: {
                         HStack(spacing: 14) {
-                            Image(systemName: store.isLogged(item.workout) ? "checkmark.circle.fill" : PlanEngine.kindIcon(String(item.workout.id.suffix(1))))
+                            Image(systemName: done ? "checkmark.circle.fill" : PlanEngine.kindIcon(String(item.workout.id.suffix(1))))
                                 .font(.title2)
-                                .foregroundStyle(store.isLogged(item.workout) ? Theme.success : Theme.accent)
+                                .foregroundStyle(done ? Theme.success : Theme.accent)
                                 .frame(width: 40)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(Self.longDays[item.day] + (week == current && item.day == today ? " · hoy" : ""))
                                     .font(.caption.bold())
                                     .foregroundStyle(week == current && item.day == today ? Theme.accent : Theme.muted)
-                                Text(item.workout.name).font(.headline)
-                                Text("\(item.workout.minutes) min · \(item.workout.blocks.count - 1) ejercicios").font(.caption).foregroundStyle(Theme.muted)
+                                Text(shown.name).font(.headline)
+                                Text("\(shown.minutes) min · \(shown.blocks.count - 1) ejercicios").font(.caption).foregroundStyle(Theme.muted)
                             }
                             Spacer()
                             Image(systemName: "chevron.right").foregroundStyle(Theme.muted)

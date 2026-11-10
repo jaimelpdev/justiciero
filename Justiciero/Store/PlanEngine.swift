@@ -53,28 +53,42 @@ enum PlanEngine {
 
     /// Sesión que toca ese día, o nil si es día de descanso.
     static func session(_ answers: PlanAnswers, on date: Date) -> Workout? {
-        let number = week(answers, on: date)
         let today = weekday(date)
-        guard number > 0, let slot = schedule(days: answers.days).first(where: { $0.day == today }) else { return nil }
-        return build(answers, week: number, kind: slot.kind)
+        guard week(answers, on: date) > 0, let slot = schedule(days: answers.days).first(where: { $0.day == today }) else { return nil }
+        return build(answers, date: date, kind: slot.kind)
     }
 
     struct PlanDay: Identifiable {
         let day: Int
+        let date: Date
         let workout: Workout
         var id: Int { day }
     }
 
     /// Sesiones de una semana del plan.
     static func sessions(_ answers: PlanAnswers, week: Int) -> [PlanDay] {
-        schedule(days: answers.days).map { PlanDay(day: $0.day, workout: build(answers, week: week, kind: $0.kind)) }
+        let first = Calendar.current.date(byAdding: .day, value: (week - 1) * 7, to: monday(of: answers.start)) ?? answers.start
+        return schedule(days: answers.days).compactMap { slot in
+            guard let date = Calendar.current.date(byAdding: .day, value: slot.day, to: first) else { return nil }
+            return PlanDay(day: slot.day, date: date, workout: build(answers, date: date, kind: slot.kind))
+        }
     }
 
-    /// Reconstruye una sesión a partir de su id ("plan-w3-A").
+    static func dayNumber(_ date: Date) -> Int {
+        let c = Calendar.current.dateComponents([.year, .month, .day], from: date)
+        return (c.year ?? 2000) * 10000 + (c.month ?? 1) * 100 + (c.day ?? 1)
+    }
+
+    static func date(fromDayNumber n: Int) -> Date? {
+        Calendar.current.date(from: DateComponents(year: n / 10000, month: n / 100 % 100, day: n % 100, hour: 12))
+    }
+
+    /// Reconstruye una sesión a partir de su id ("plan-d20261110-A").
     static func workout(id: String, answers: PlanAnswers) -> Workout? {
         let parts = id.split(separator: "-")
-        guard parts.count == 3, parts[0] == "plan", parts[1].hasPrefix("w"), let number = Int(parts[1].dropFirst()) else { return nil }
-        return build(answers, week: number, kind: String(parts[2]))
+        guard parts.count == 3, parts[0] == "plan", parts[1].hasPrefix("d"),
+              let n = Int(parts[1].dropFirst()), let date = date(fromDayNumber: n) else { return nil }
+        return build(answers, date: date, kind: String(parts[2]))
     }
 
     /// Tras la semana 12 se repite el último bloque como mantenimiento.
@@ -82,19 +96,54 @@ enum PlanEngine {
         week <= totalWeeks ? week : 9 + (week - 9) % 4
     }
 
-    static func build(_ a: PlanAnswers, week: Int, kind: String) -> Workout {
-        let w = cycleWeek(max(week, 1))
+    /// Generador pseudoaleatorio con semilla (mulberry32). Igual que en la web, para que
+    /// el mismo día salga la misma sesión en el iPhone y en la web.
+    struct Seeded {
+        var state: UInt32
+        mutating func next() -> Double {
+            state = state &+ 0x6D2B79F5
+            var t = state
+            t = (t ^ (t >> 15)) &* (1 | t)
+            t = (t &+ ((t ^ (t >> 7)) &* (61 | t))) ^ t
+            return Double(t ^ (t >> 14)) / 4_294_967_296
+        }
+        mutating func index(_ count: Int) -> Int { min(count - 1, Int(next() * Double(count))) }
+    }
+
+    static let formats = ["series", "circuito", "superseries"]
+
+    static func formatName(_ format: String?) -> String? {
+        switch format {
+        case "circuito": "Circuito"
+        case "superseries": "Superseries"
+        default: nil
+        }
+    }
+
+    static func formatNote(_ format: String?) -> String? {
+        switch format {
+        case "circuito": "Hoy en circuito: haz un ejercicio detrás de otro descansando solo 15 s y descansa al terminar cada vuelta."
+        case "superseries": "Hoy en superseries: ejercicios por parejas, uno detrás de otro, y descansas después de la pareja."
+        default: nil
+        }
+    }
+
+    static func build(_ a: PlanAnswers, date: Date, kind: String) -> Workout {
+        let weekNumber = max(1, week(a, on: date))
+        let w = cycleWeek(weekNumber)
         let block = (w - 1) / 4
         let deload = (w - 1) % 4 == 3
         let step = deload ? 0 : (w - 1) % 4
-        let focus = week > totalWeeks
-            ? "Semana \(week) · Mantenimiento (repites el bloque Rendimiento)"
-            : "Semana \(week) de \(totalWeeks) · Bloque \(PlanData.blocks[block])\(deload ? " · descarga" : "")"
+        let focus = weekNumber > totalWeeks
+            ? "Semana \(weekNumber) · Mantenimiento (repites el bloque Rendimiento)"
+            : "Semana \(weekNumber) de \(totalWeeks) · Bloque \(PlanData.blocks[block])\(deload ? " · descarga" : "")"
         let note = deload ? PlanData.deloadNote : PlanData.blockNotes[block]
-        let id = "plan-w\(week)-\(kind)"
+        let id = "plan-d\(dayNumber(date))-\(kind)"
+        var rng = Seeded(state: UInt32(dayNumber(date)))
 
-        if kind == "D" { return run(a, id: id, focus: focus, note: note, week: w, deload: deload) }
+        if kind == "D" { return run(a, id: id, focus: focus, note: note, week: w, deload: deload, rng: &rng) }
 
+        let format = formats[rng.index(formats.count)]
         let baseSets = a.minutes >= 45 ? 4 : a.minutes >= 25 ? 3 : 2
         let count = a.minutes >= 45 ? 7 : a.minutes >= 35 ? 6 : a.minutes >= 25 ? 5 : 4
         let strengthRest = a.goal == .grasa ? 40 : a.goal == .musculo ? 75 : 60
@@ -114,28 +163,71 @@ enum PlanEngine {
             slots.remove(at: i)
             slots.insert("cardio", at: 1)
         }
+        var chosen = Array(slots.prefix(count))
+        // Cada día cambia el orden (el primer ejercicio, el principal, se queda el primero).
+        if chosen.count > 2 {
+            for i in stride(from: chosen.count - 1, to: 1, by: -1) {
+                let j = 1 + rng.index(i)
+                chosen.swapAt(i, j)
+            }
+        }
 
         var blocks = [WorkoutBlock(exercise: Exercises.mobility, sets: 1, reps: nil, seconds: 90, rest: 10)]
-        for slot in slots.prefix(count) {
-            let move = pick(slot, answers: a, block: block)
+        for slot in chosen {
+            let (move, easier) = pick(slot, answers: a, block: block, rng: &rng)
             let fast = slot == "cardio" || slot.hasPrefix("combat")
             let core = slot == "core" || slot == "core2" || slot == "back"
             let sets = max(1, baseSets + (emphasized(slot, a.focus) ? 1 : 0) - (deload ? 1 : 0))
             let rest = fast ? fastRest : core ? max(30, strengthRest - 15) : strengthRest
             if let seconds = move.seconds {
-                blocks.append(WorkoutBlock(exercise: move.exercise, sets: sets, reps: nil, seconds: seconds + 5 * step, rest: rest))
+                blocks.append(WorkoutBlock(exercise: move.exercise, sets: sets, reps: nil, seconds: seconds + 5 * step + (easier ? 10 : 0), rest: rest))
             } else {
                 let base = move.reps ?? 8
-                let reps = base + step * (base <= 6 ? 1 : 2)
+                let reps = base + step * (base <= 6 ? 1 : 2) + (easier ? 2 : 0)
                 blocks.append(WorkoutBlock(exercise: move.exercise, sets: sets, reps: move.perSide ? "\(reps)/lado" : "\(reps)", seconds: nil, rest: rest))
             }
         }
 
-        return Workout(id: id, name: kindName(kind), focus: focus, place: "Casa", minPhase: 0,
-                       minutes: estimate(blocks), notes: note, blocks: blocks)
+        let name = [kindName(kind), formatName(format)].compactMap { $0 }.joined(separator: " · ")
+        let notes = [formatNote(format), note].compactMap { $0 }.joined(separator: " ")
+        let workout = Workout(id: id, name: name, focus: focus, place: "Casa", minPhase: 0,
+                              minutes: 0, notes: notes, blocks: blocks, format: format == "series" ? nil : format)
+        return Workout(id: id, name: name, focus: focus, place: "Casa", minPhase: 0,
+                       minutes: estimate(expanded(workout).blocks), notes: notes, blocks: blocks, format: workout.format)
     }
 
-    private static func run(_ a: PlanAnswers, id: String, focus: String, note: String, week w: Int, deload: Bool) -> Workout {
+    /// Bloques en el orden en que se hacen: los circuitos y superseries se despliegan serie a serie.
+    static func expanded(_ w: Workout) -> Workout {
+        guard let format = w.format, w.blocks.count > 1 else { return w }
+        let warm = w.blocks[0]
+        let main = Array(w.blocks.dropFirst())
+        var out = [warm]
+        let one = { (b: WorkoutBlock, rest: Int) in WorkoutBlock(exercise: b.exercise, sets: 1, reps: b.reps, seconds: b.seconds, rest: rest) }
+        if format == "circuito" {
+            let rounds = main.map(\.sets).max() ?? 1
+            for round in 0..<rounds {
+                let inRound = main.filter { $0.sets > round }
+                for (i, b) in inRound.enumerated() {
+                    out.append(one(b, i == inRound.count - 1 ? (round == rounds - 1 ? 0 : 75) : 15))
+                }
+            }
+        } else {
+            for start in stride(from: 0, to: main.count, by: 2) {
+                let pair = Array(main[start..<min(start + 2, main.count)])
+                let sets = pair.map(\.sets).max() ?? 1
+                for s in 0..<sets {
+                    let active = pair.filter { $0.sets > s }
+                    for (i, b) in active.enumerated() {
+                        out.append(one(b, i == active.count - 1 ? b.rest : 10))
+                    }
+                }
+            }
+        }
+        return Workout(id: w.id, name: w.name, focus: w.focus, place: w.place, minPhase: w.minPhase,
+                       minutes: w.minutes, notes: w.notes, blocks: out, format: nil)
+    }
+
+    private static func run(_ a: PlanAnswers, id: String, focus: String, note: String, week w: Int, deload: Bool, rng: inout Seeded) -> Workout {
         var blocks = [WorkoutBlock(exercise: Exercises.mobility, sets: 1, reps: nil, seconds: 90, rest: 10)]
         let available = max(10, a.minutes - 5) * 60
         var runNote = "Por zonas iluminadas o de día. "
@@ -152,8 +244,9 @@ enum PlanEngine {
             blocks.append(WorkoutBlock(exercise: Exercises.warmJog, sets: 1, reps: nil, seconds: 300, rest: 0))
             let main = max(300, available - 300 - 240 - (deload ? 300 : 0))
             blocks.append(WorkoutBlock(exercise: Exercises.easyRun, sets: 1, reps: nil, seconds: main / 60 * 60, rest: 60))
-            blocks.append(WorkoutBlock(exercise: Exercises.strides, sets: 4, reps: nil, seconds: 20, rest: 40))
-            runNote += "Carrera continua a ritmo de conversación y 4 progresivos al final."
+            let strides = 4 + 2 * rng.index(2)
+            blocks.append(WorkoutBlock(exercise: Exercises.strides, sets: strides, reps: nil, seconds: 20, rest: 40))
+            runNote += "Carrera continua a ritmo de conversación y \(strides) progresivos al final."
         }
         return Workout(id: id, name: kindName("D"), focus: focus, place: "Exterior", minPhase: 0,
                        minutes: estimate(blocks), notes: "\(runNote) \(note)", blocks: blocks)
@@ -174,13 +267,20 @@ enum PlanEngine {
         }
     }
 
-    private static func pick(_ slot: String, answers a: PlanAnswers, block: Int) -> PlanMove {
+    /// Elige el ejercicio del día para un hueco. Devuelve también si es una variante más fácil
+    /// (a la que se le suman repeticiones o segundos).
+    private static func pick(_ slot: String, answers a: PlanAnswers, block: Int, rng: inout Seeded) -> (PlanMove, Bool) {
         if slot.hasPrefix("combat"), let i = Int(slot.dropFirst(6)) {
             let move = PlanData.combat[i]
-            return a.lowImpact && move.impact ? PlanData.cardio[0] : move
+            return (a.lowImpact && move.impact ? PlanData.cardio[0] : move, false)
         }
         let moves = ladder(slot).filter { !(a.lowImpact && $0.impact) }
-        return moves[min(a.level + block, moves.count - 1)]
+        let top = min(a.level + block, moves.count - 1)
+        if slot == "cardio" || slot == "core" {
+            return (moves[rng.index(top + 1)], false)
+        }
+        let easier = top > 0 && rng.next() < 0.35
+        return (moves[easier ? top - 1 : top], easier)
     }
 
     private static func emphasized(_ slot: String, _ focus: Set<PlanFocus>) -> Bool {

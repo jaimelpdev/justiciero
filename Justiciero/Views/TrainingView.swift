@@ -113,39 +113,68 @@ struct WorkoutRow: View {
 struct WorkoutDetailView: View {
     @EnvironmentObject private var store: ProgressStore
     let workout: Workout
+    @State private var adapted: Workout?
     @State private var running = false
     @State private var justLogged = false
+
+    /// La sesión que se muestra: la adaptada por la IA en esta pantalla, o la recibida.
+    private var shown: Workout { adapted ?? workout }
+
+    /// Solo la sesión del plan de hoy se puede adaptar con la IA.
+    private var isTodayPlan: Bool {
+        let day = PlanEngine.dayNumber(.now)
+        return shown.id.hasPrefix("plan-d\(day)-") || shown.id == "plan-ai-\(day)"
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text(workout.focus).foregroundStyle(Theme.muted)
+                Text(shown.focus).foregroundStyle(Theme.muted)
                 HStack {
-                    Pill(text: "\(workout.minutes) min", icon: "clock", color: Theme.info)
-                    Pill(text: workout.place, icon: "mappin", color: Theme.success)
+                    Pill(text: "\(shown.minutes) min", icon: "clock", color: Theme.info)
+                    Pill(text: shown.place, icon: "mappin", color: Theme.success)
                 }
-                if let notes = workout.notes {
+                if let notes = shown.notes {
                     Callout(kind: .warning, text: notes)
                 }
 
+                if isTodayPlan {
+                    CoachSection(workout: shown) { adapted = $0 }
+                }
+
                 SectionHeader(title: "Ejercicios", icon: "list.number")
-                ForEach(Array(workout.blocks.enumerated()), id: \.offset) { index, block in
+                ForEach(Array(shown.blocks.enumerated()), id: \.offset) { index, block in
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Text("\(index + 1)").font(.headline).foregroundStyle(Theme.accent)
-                            Image(systemName: block.exercise.icon)
                             Text(block.exercise.name).font(.headline)
                             Spacer()
                             Text(block.prescription).font(.subheadline.monospacedDigit()).foregroundStyle(Theme.accent)
                         }
-                        Text(block.exercise.howTo).font(.subheadline).foregroundStyle(Theme.muted)
-                        Text(md("**Más fácil:** \(block.exercise.easier)"))
-                            .font(.caption)
-                            .foregroundStyle(Theme.muted)
-                        if block.rest > 0 {
-                            Label("Descanso \(block.rest) s", systemImage: "pause.circle")
-                                .font(.caption)
-                                .foregroundStyle(Theme.muted)
+                        HStack(alignment: .top, spacing: 12) {
+                            ExerciseDemo(exercise: block.exercise)
+                                .frame(width: 96, height: 96)
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(block.exercise.howTo).font(.subheadline).foregroundStyle(Theme.muted)
+                                Text(md("**Más fácil:** \(block.exercise.easier)"))
+                                    .font(.caption)
+                                    .foregroundStyle(Theme.muted)
+                            }
+                        }
+                        HStack {
+                            if block.rest > 0 {
+                                Label("Descanso \(block.rest) s", systemImage: "pause.circle")
+                                    .font(.caption)
+                                    .foregroundStyle(Theme.muted)
+                            }
+                            Spacer()
+                            if let url = block.exercise.videoURL {
+                                Link(destination: url) {
+                                    Label("Ver vídeos", systemImage: "play.rectangle.fill")
+                                        .font(.caption.bold())
+                                        .foregroundStyle(Theme.danger)
+                                }
+                            }
                         }
                     }
                     .card()
@@ -160,7 +189,7 @@ struct WorkoutDetailView: View {
                 .padding(.top, 8)
 
                 Button {
-                    store.logWorkout(workout, minutes: workout.minutes)
+                    store.logWorkout(shown, minutes: shown.minutes)
                     withAnimation { justLogged = true }
                 } label: {
                     Label("Ya lo he hecho: marcar como completado (+\(XP.workout) XP)", systemImage: "checkmark")
@@ -168,7 +197,7 @@ struct WorkoutDetailView: View {
                 }
                 .buttonStyle(PrimaryButtonStyle(color: Theme.cardHighlight))
 
-                if justLogged || store.doneToday(workout) {
+                if justLogged || store.doneToday(shown) {
                     Label("Ya has registrado este entreno hoy", systemImage: "checkmark.seal.fill")
                         .font(.caption)
                         .foregroundStyle(Theme.success)
@@ -178,10 +207,10 @@ struct WorkoutDetailView: View {
             .padding()
         }
         .screenBackground()
-        .navigationTitle(workout.name)
+        .navigationTitle(shown.name)
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $running) {
-            WorkoutSessionView(workout: workout)
+            WorkoutSessionView(workout: PlanEngine.expanded(shown))
         }
     }
 }
@@ -266,9 +295,8 @@ struct WorkoutSessionView: View {
                 .font(.caption.weight(.bold))
                 .tracking(1.5)
                 .foregroundStyle(Theme.accent)
-            Image(systemName: block.exercise.icon)
-                .font(.system(size: 64))
-                .foregroundStyle(Theme.accent)
+            ExerciseDemo(exercise: block.exercise)
+                .frame(width: 180, height: 180)
             Text(block.exercise.name)
                 .font(.largeTitle.bold())
                 .multilineTextAlignment(.center)

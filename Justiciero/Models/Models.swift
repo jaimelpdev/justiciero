@@ -141,6 +141,8 @@ struct Workout: Identifiable, Hashable {
     let minutes: Int
     let notes: String?
     let blocks: [WorkoutBlock]
+    /// "circuito" o "superseries" para las sesiones del plan; nil = series normales.
+    var format: String? = nil
 }
 
 // MARK: - Academia
@@ -525,4 +527,18 @@ struct WeightEntry: Codable, Identifiable {
     var id = UUID()
     var date = Date.now
     var kg: Double
+}
+
+// MARK: - Animaciones
+
+/// Animación de un ejercicio: fotogramas clave de una figura de 11 puntos vista de lado
+/// (cabeza, hombro, cadera, codo y mano cerca, codo y mano lejos, rodilla y pie cerca, rodilla y pie lejos).
+struct Motion: Identifiable {
+    let id: String
+    /// Duración de un ciclo completo.
+    let seconds: Double
+    let exercises: [String]
+    /// Objetos fijos (silla, barra, mesa) como segmentos x1, y1, x2, y2.
+    let props: [Double]
+    let frames: [[Double]]
 }

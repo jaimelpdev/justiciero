@@ -18,6 +18,14 @@ struct MoreView: View {
                         Label("Reinicio", systemImage: "arrow.counterclockwise.circle.fill")
                     }
                 }
+                Section("Tu entreno") {
+                    NavigationLink { PlanView() } label: {
+                        Label("Tu plan de entreno", systemImage: "sparkles")
+                    }
+                    NavigationLink { CoachSettingsView() } label: {
+                        Label("Entrenador IA", systemImage: "wand.and.stars")
+                    }
+                }
                 Section("Tu camino") {
                     NavigationLink { AuthorityView() } label: {
                         Label("Ruta a la autoridad", systemImage: "shield.checkered")
